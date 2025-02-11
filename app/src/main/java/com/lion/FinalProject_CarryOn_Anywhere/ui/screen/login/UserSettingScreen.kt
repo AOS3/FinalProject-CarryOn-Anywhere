@@ -1,4 +1,4 @@
-package com.lion.finalprojectshoppingmallservice3team.customer.ui.screen
+package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login
 
 import android.graphics.Bitmap
 import android.net.Uri

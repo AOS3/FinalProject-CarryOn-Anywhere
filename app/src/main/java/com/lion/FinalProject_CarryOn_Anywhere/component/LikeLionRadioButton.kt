@@ -1,4 +1,4 @@
-package com.lion.finalprojectshoppingmallservice3team.Component
+package com.lion.FinalProject_CarryOn_Anywhere.component
 
 import androidx.annotation.Size
 import androidx.compose.foundation.clickable
@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lion.finalprojectshoppingmallservice3team.ui.theme.MainColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 
 @Composable
 fun LikeLionRadioButton(
