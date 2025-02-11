@@ -8,6 +8,8 @@ val Pink80 = Color(0xFFEFB8C8)
 
 val MainColor = Color(0xFF0064FF)
 val SubColor = Color(0xFF2E3D3D)
+val GrayColor = Color(0xFFADADAD)
+val SubTextColor = Color(0xFF79747E)
 
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)

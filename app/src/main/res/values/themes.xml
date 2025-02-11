@@ -2,4 +2,18 @@
 <resources>
 
     <style name="Theme.FinalProject_CarryOn_Anywhere" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Custom font 적용 -->
+    <style name="customTextViewFontStyle" parent="@android:style/Widget.DeviceDefault.TextView">
+        <item name="android:fontFamily">@font/nanumsquare_1</item>
+    </style>
+
+    <style name="customButtonFontStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless">
+        <item name="android:fontFamily">@font/nanumsquare_3</item>
+    </style>
+
+    <style name="customDialogTitleFontStyle" parent="@android:style/Widget.DeviceDefault.Button.Borderless">
+        <item name="android:fontFamily">@font/nanumsquare_3</item>
+    </style>
+
 </resources>
