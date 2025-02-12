@@ -37,7 +37,8 @@ import androidx.compose.ui.unit.dp
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
-import com.lion.finalprojectshoppingmallservice3team.R
+import com.lion.FinalProject_CarryOn_Anywhere.R
+
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -86,6 +87,7 @@ fun LikeLionProfileImg(
             .size(profileSize + 10.dp).clip(CircleShape).background(profileBack),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
+
         // bitmap에 데이터가 있다면? -> 이미지를 다운 받았다면
         bitmap.value?.asImageBitmap()?.let {
             Image(bitmap = it,
