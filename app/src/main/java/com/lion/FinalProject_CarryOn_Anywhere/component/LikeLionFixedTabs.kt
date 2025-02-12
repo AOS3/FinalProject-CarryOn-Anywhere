@@ -9,6 +9,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 
+
 @Composable
 fun LikeLionFixedTabs(
     tabTitleWithCounts: List<String>,

@@ -7,10 +7,10 @@ import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.storage.FirebaseStorage
-import com.lion.finalprojectshoppingmallservice3team.ShoppingApplication
-import com.lion.finalprojectshoppingmallservice3team.customer.data.service.CustomerService
-import com.lion.finalprojectshoppingmallservice3team.customer.data.util.Tools
-import com.lion.finalprojectshoppingmallservice3team.customer.data.util.UserState
+//import com.lion.finalprojectshoppingmallservice3team.ShoppingApplication
+//import com.lion.finalprojectshoppingmallservice3team.customer.data.service.CustomerService
+//import com.lion.finalprojectshoppingmallservice3team.customer.data.util.Tools
+//import com.lion.finalprojectshoppingmallservice3team.customer.data.util.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -22,10 +22,10 @@ import javax.inject.Inject
 @HiltViewModel
 class UserSettingViewModel @Inject constructor(
     @ApplicationContext context: Context,
-    val customerService: CustomerService
+   // val customerService: CustomerService
 ) : ViewModel() {
 
-    val shoppingApplication = context as ShoppingApplication
+    // val shoppingApplication = context as ShoppingApplication
 
     val textFieldModifyNicknameValue =
         mutableStateOf(shoppingApplication.loginCustomerModel.customerUserNickName)
@@ -231,11 +231,11 @@ class UserSettingViewModel @Inject constructor(
     fun withdrawalOnClick() {
         CoroutineScope(Dispatchers.Main).launch {
             val work1 = async(Dispatchers.IO){
-                customerService.updateUserState(shoppingApplication.loginCustomerModel.customerDocumentId, UserState.USER_STATE_SIGNOUT)
+                //customerService.updateUserState(shoppingApplication.loginCustomerModel.customerDocumentId, UserState.USER_STATE_SIGNOUT)
             }
             work1.join()
 
-            shoppingApplication.isLoggedIn.value = false
+            //shoppingApplication.isLoggedIn.value = false
             shoppingApplication.navHostController.popBackStack("userSetting", inclusive = true)
             shoppingApplication.navHostController.navigate("logoutMyPage")
         }
@@ -278,7 +278,7 @@ class UserSettingViewModel @Inject constructor(
                 // 서버상에서의 파일 이름
                 newFileName = "image_${System.currentTimeMillis()}.jpg"
                 // 로컬에 ImageView에 있는 이미지 데이터를 저장한다.
-                Tools.saveBitmap(shoppingApplication,  imageBitmapState.value!!)
+                //Tools.saveBitmap(shoppingApplication,  imageBitmapState.value!!)
 
                 val work2 = async(Dispatchers.IO){
                     val filePath = shoppingApplication.getExternalFilesDir(null).toString()
@@ -287,16 +287,16 @@ class UserSettingViewModel @Inject constructor(
                 work2.join()
             }
 
-            shoppingApplication.loginCustomerModel.customerUserNickName = nickName
-            shoppingApplication.loginCustomerModel.customerUserProfileImage = newFileName
-            shoppingApplication.loginCustomerModel.customerUserName = textFieldModifyNameValue.value
-            shoppingApplication.loginCustomerModel.customerUserPhoneNumber = textFieldModifyPhoneValue.value
-            shoppingApplication.loginCustomerModel.customerUserAddress = textFieldModifyAddressValue.value
-            shoppingApplication.loginCustomerModel.customerUserDetailAddress = textFieldModifyDetailAddressValue.value
-            shoppingApplication.loginCustomerModel.customerUserBirthDate = textFieldModifyBirthValue.value
-            shoppingApplication.loginCustomerModel.customerUserGender = selectedGender.value
-            shoppingApplication.loginCustomerModel.customerUserSmsAgree = selectedSmsAgree.value
-            shoppingApplication.loginCustomerModel.customerUserAppPushAgree = selectedPushAgree.value
+//            shoppingApplication.loginCustomerModel.customerUserNickName = nickName
+//            shoppingApplication.loginCustomerModel.customerUserProfileImage = newFileName
+//            shoppingApplication.loginCustomerModel.customerUserName = textFieldModifyNameValue.value
+//            shoppingApplication.loginCustomerModel.customerUserPhoneNumber = textFieldModifyPhoneValue.value
+//            shoppingApplication.loginCustomerModel.customerUserAddress = textFieldModifyAddressValue.value
+//            shoppingApplication.loginCustomerModel.customerUserDetailAddress = textFieldModifyDetailAddressValue.value
+//            shoppingApplication.loginCustomerModel.customerUserBirthDate = textFieldModifyBirthValue.value
+//            shoppingApplication.loginCustomerModel.customerUserGender = selectedGender.value
+//            shoppingApplication.loginCustomerModel.customerUserSmsAgree = selectedSmsAgree.value
+//            shoppingApplication.loginCustomerModel.customerUserAppPushAgree = selectedPushAgree.value
 
             val work3 = async(Dispatchers.IO) {
                 customerService.updateUserData(shoppingApplication.loginCustomerModel)
@@ -330,7 +330,7 @@ class UserSettingViewModel @Inject constructor(
             if(isCheckNickName.value){
                 showDialogNickNameOk.value = true
             } else{
-                textFieldModifyNicknameValue.value = ""
+               // textFieldModifyNicknameValue.value = ""
                 showDialogNickNameNo.value = true
                 updateNicknameConditions()
             }
