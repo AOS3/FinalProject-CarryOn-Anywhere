@@ -13,15 +13,9 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.webkit.WebViewAssetLoader
-import com.lion.finalprojectshoppingmallservice3team.R
 
 @Composable
 fun LikeLionAddressSearchWebView(
@@ -52,12 +46,12 @@ fun LikeLionAddressSearchWebView(
                     }
 
                     override fun onPageFinished(view: WebView?, url: String?) {
-                        Log.d("LikeLionWebView", "Page loaded: $url")
+                        Log.d("test100", "Page loaded: $url")
                     }
 
                     override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?
                     ) {
-                        Log.e("LikeLionWebView", "Error loading page: ${error?.description}")
+                        Log.e("test100", "Error loading page: ${error?.description}")
                     }
                 }
 
@@ -67,7 +61,7 @@ fun LikeLionAddressSearchWebView(
                 // WebChromeClient 설정
                 webChromeClient = object : WebChromeClient() {
                     override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-                        Log.d("LikeLionWebViewConsole", consoleMessage?.message() ?: "No message")
+                        //Log.d("LikeLionWebViewConsole", consoleMessage?.message() ?: "No message")
                         return super.onConsoleMessage(consoleMessage)
                     }
 
@@ -110,10 +104,17 @@ fun LikeLionAddressSearchWebView(
                     object {
                         @JavascriptInterface
                         fun onAddressSelected(address: String) {
-                            Log.d("LikeLionWebView", "Address selected: $address")
+                            //Log.d("LikeLionWebView", "Address selected: $address")
                             // 주소 선택 시 콜백 호출
                             onAddressSelected(address)
                             // 팝업 Dialog 닫기
+                            popupDialog?.dismiss()
+                        }
+
+                        @JavascriptInterface
+                        fun onClosePopup() {
+                            Log.d("test100", "주소 팝업 닫힘 요청")
+                            // JavaScript에서 닫기 요청 시 팝업 닫기
                             popupDialog?.dismiss()
                         }
                     },

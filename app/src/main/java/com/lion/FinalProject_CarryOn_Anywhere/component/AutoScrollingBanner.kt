@@ -5,10 +5,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,30 +17,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.pager.*
-import kotlinx.coroutines.delay
+import com.lion.FinalProject_CarryOn_Anywhere.R
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun AutoScrollingBanner(
     bannerImages: List<Any>,
-    autoScrollDelay: Long = 5000L,
     bannerHeight: Dp = 350.dp,
     modifier: Modifier = Modifier,
     onBannerClick: (Int) -> Unit = {}
 ) {
-    val pagerState = rememberPagerState()
-
-    // Auto-scroll 기능 구현
-    LaunchedEffect(pagerState) {
-        while (true) {
-            delay(autoScrollDelay)
-            val nextPage = (pagerState.currentPage + 1) % bannerImages.size
-            pagerState.animateScrollToPage(nextPage)
-        }
+    val safeBannerImages = if (bannerImages.isEmpty()) {
+        listOf(R.drawable.banner3, R.drawable.banner3, R.drawable.banner3) // 🔹 기본 더미 이미지 추가
+    } else {
+        bannerImages
     }
+
+    val pagerState = rememberPagerState(pageCount = { safeBannerImages.size })
 
     Box(
         modifier = modifier
@@ -49,7 +45,7 @@ fun AutoScrollingBanner(
         Column(modifier = modifier.fillMaxWidth()) {
             // HorizontalPager로 배너 표시
             HorizontalPager(
-                count = bannerImages.size,
+                //count = bannerImages.size,
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -102,7 +98,6 @@ fun AutoScrollingBanner(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun CustomPagerIndicator(
     pagerState: PagerState,
@@ -132,4 +127,16 @@ fun CustomPagerIndicator(
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewAutoScrollingBanner() {
+    AutoScrollingBanner(
+        bannerImages = listOf(
+            R.drawable.banner3,
+            R.drawable.banner3,
+            R.drawable.banner3
+        )
+    )
 }
