@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.dp
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubTextColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
 
 
 @Composable
@@ -32,13 +34,13 @@ fun LikeLionAlertDialog(
     dismissButtonOnClick : () -> Unit = {
         showDialogState.value = false
     },
-    confirmcontainerColor: Color = MainColor,
-    confirmcontentColor: Color = Color.White,
-    confirmbuttonModifier: Modifier = Modifier,
-    dismisscontainerColor: Color = Color.Transparent,
-    dismisscontentColor: Color = Color.Black,
-    dismissbuttonModifier: Modifier = Modifier, // 기본값 설정
-    dismissBorder: BorderStroke = BorderStroke(0.dp, Color.Transparent),
+    confirmContainerColor: Color = MainColor,
+    confirmContentColor: Color = Color.White,
+    confirmButtonModifier: Modifier = Modifier,
+    dismissContainerColor: Color = Color.Transparent,
+    dismissContentColor: Color = MainColor,
+    dismissButtonModifier: Modifier = Modifier, // 기본값 설정
+    dismissBorder: BorderStroke = BorderStroke(1.dp, MainColor),
     titleAlign : TextAlign? = null,
     textModifier: Modifier = Modifier,
     titleModifier: Modifier = Modifier,
@@ -63,9 +65,9 @@ fun LikeLionAlertDialog(
                     // 취소 버튼
                     if (dismissButtonTitle != null) {
                         LikeLionFilledButton(
-                            modifier = dismissbuttonModifier,
-                            containerColor = dismisscontainerColor,
-                            contentColor = dismisscontentColor,
+                            modifier = dismissButtonModifier,
+                            containerColor = dismissContainerColor,
+                            contentColor = dismissContentColor,
                             text = dismissButtonTitle,
                             border = dismissBorder,
                             onClick = dismissButtonOnClick
@@ -73,11 +75,11 @@ fun LikeLionAlertDialog(
                     }
                     // 확인 버튼
                     LikeLionFilledButton(
-                        modifier = confirmbuttonModifier,
+                        modifier = confirmButtonModifier,
 
-                        containerColor = confirmcontainerColor,
+                        containerColor = confirmContainerColor,
 
-                        contentColor = confirmcontentColor,
+                        contentColor = confirmContentColor,
                         text = confirmButtonTitle,
                         onClick = confirmButtonOnClick
                     )
@@ -98,6 +100,7 @@ fun LikeLionAlertDialog(
                     Text(
                         text = title,
                         textAlign = titleAlign,
+                        style = Typography.titleMedium,
                         modifier = titleModifier
                     )
                 }
@@ -109,7 +112,9 @@ fun LikeLionAlertDialog(
                     Text(
                         text = text,
                         textAlign = textAlign,
-                        modifier = textModifier
+                        modifier = textModifier,
+                        color = SubTextColor,
+                        style = Typography.bodyLarge
                     )
                 }
             } else {
