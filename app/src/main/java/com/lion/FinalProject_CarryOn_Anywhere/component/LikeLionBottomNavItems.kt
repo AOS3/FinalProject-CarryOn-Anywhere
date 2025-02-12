@@ -7,34 +7,34 @@ import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Shop
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import com.lion.FinalProject_CarryOn_Anywhere.R
 
+@Composable
 fun LikeLionBottomNavItems(isLoggedIn: Boolean): List<BottomNavigationItemData> {
 
     return listOf(
         BottomNavigationItemData(
-            icon = Icons.Default.Home,
-            label = "Home",
+            icon = ImageVector.vectorResource(id = R.drawable.home_variant),
+            label = "홈",
             route = "home"
         ),
         BottomNavigationItemData(
-            icon = Icons.Default.Mood,
-            label = "Creator",
-            route = "creator"
+            icon = ImageVector.vectorResource(id = R.drawable.assignment_24px),
+            label = "캐리톡",
+            route = "social"
         ),
         BottomNavigationItemData(
-            icon = Icons.Default.Star,
-            label = "My",
-            route = "myFavorite"
+            icon = ImageVector.vectorResource(id = R.drawable.favorite_24px),
+            label = "내 장소",
+            route = "myPlace"
         ),
         BottomNavigationItemData(
-            icon = Icons.Default.Shop,
-            label = "Shop",
-            route = "shop"
-        ),
-        BottomNavigationItemData(
-            icon = Icons.Default.Person,
-            label = "My Page",
+            icon = ImageVector.vectorResource(id = R.drawable.account_circle_24px),
+            label = "마이페이지",
             route = if (isLoggedIn) "loginMyPage" else "logoutMyPage",
         )
     )

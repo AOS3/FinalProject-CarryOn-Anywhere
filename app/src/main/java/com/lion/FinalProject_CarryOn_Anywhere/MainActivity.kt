@@ -11,20 +11,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.HomeScreenPreView
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.MainScreenPreview
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.FinalProject_CarryOn_AnywhereTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+
         setContent {
             FinalProject_CarryOn_AnywhereTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                MainScreenPreview()
             }
         }
     }

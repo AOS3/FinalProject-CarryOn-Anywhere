@@ -1,17 +1,13 @@
 package com.lion.FinalProject_CarryOn_Anywhere.component
 
-import android.R.attr.contentDescription
-import android.R.attr.fontWeight
-import android.R.attr.onClick
+
 import androidx.compose.foundation.Canvas
-import com.lion.finalprojectshoppingmallservice3team.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -25,8 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Mood
-import androidx.compose.material.minimumInteractiveComponentSize
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -36,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -48,7 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.lion.finalprojectshoppingmallservice3team.ui.theme.MainColor
+import com.lion.FinalProject_CarryOn_Anywhere.R
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import kotlinx.coroutines.flow.MutableSharedFlow
 
 @Composable
@@ -62,7 +57,7 @@ fun LikeLionBottomNavigation(
             .selectableGroup()
             .windowInsetsPadding(WindowInsets.navigationBars)
             .height(70.dp),
-        containerColor = Color.LightGray.copy(alpha = 0.7f),
+        containerColor = Color.White.copy(alpha = 0.7f),
         contentColor = Color.Transparent,
     ) {
         Row (
@@ -89,10 +84,10 @@ fun LikeLionBottomNavigation(
                     icon = {
                         Box {
                             val shadow = if (item.icon == Icons.Default.Mood)
-                                ImageVector.vectorResource(R.drawable.radio_button_checked_24px)
+                                ImageVector.vectorResource(R.drawable.home_variant)
                             else item.icon
                             val mainShadowColor = if(item.icon == Icons.Default.Home) Color.Black
-                                else Color(0xFF8369A8)
+                                else MainColor
                             Icon(imageVector = shadow,
                                 modifier = Modifier
                                     .size(width = 27.dp, height = 26.dp)
@@ -103,7 +98,7 @@ fun LikeLionBottomNavigation(
                                 modifier = Modifier
                                     .size(26.dp)
                                     .offset(y = (3).dp),
-                                tint = if (selected) MainColor else Color.Black,
+                                tint = if (selected) MainColor else GrayColor,
                                 contentDescription = item.label)
 
                         }
@@ -139,7 +134,7 @@ fun LikeLionBottomNavigation(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
-                                    color = if (selected) MainColor else Color.Black
+                                    color = if (selected) MainColor else GrayColor,
                                 )
 
 
