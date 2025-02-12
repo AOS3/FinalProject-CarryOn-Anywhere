@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -25,7 +26,6 @@ fun LikeLionCheckBox(
     checkedColor: Color = MainColor,
     uncheckedColor: Color = Color.LightGray,
     paddingTop:Dp = 0.dp,
-    fontSize: TextUnit = TextUnit.Unspecified,
     textModifier: Modifier,
     modifier: Modifier,
     onCheckedChange:() -> Unit = {},
@@ -54,7 +54,7 @@ fun LikeLionCheckBox(
                 onCheckedChange()
             },
             text = text,
-            fontSize = fontSize,
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }
