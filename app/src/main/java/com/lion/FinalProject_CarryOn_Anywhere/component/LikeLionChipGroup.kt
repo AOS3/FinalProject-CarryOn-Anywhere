@@ -42,9 +42,11 @@ fun LikeLionChipGroup(
                     onChipClicked(content, isSelected, idx)
                 },
 
-                onDeleteButtonClicked = if (onDeleteButtonClicked!=null)
-                { content -> onDeleteButtonClicked(content, idx) }
-                else null
+                onDeleteButtonClicked = if (onDeleteButtonClicked != null)
+                    { content -> onDeleteButtonClicked(content, idx) }
+                else null,
+                borderColor = chipStyle.selectedColor,
+                cornerRadius = 50
             )
             Spacer(modifier = Modifier.padding(8.dp))
         }
