@@ -1,14 +1,13 @@
-package com.lion.FinalProject_CarryOn_Anywhere.component
-
-import android.R.attr.divider
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import com.lion.finalprojectshoppingmallservice3team.ui.theme.MainColor
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 
 @Composable
 fun LikeLionFixedTabs(
@@ -21,9 +20,18 @@ fun LikeLionFixedTabs(
 ) {
     TabRow(
         selectedTabIndex = selectedTabIndex,
-        indicator = {},
         modifier = modifier.fillMaxWidth(),
-        divider = divider
+        divider = divider,
+        indicator = { tabPositions ->
+            TabRowDefaults.Indicator(
+                modifier = Modifier
+                    // 선택된 탭에 맞게 위치 설정
+                    .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                    .fillMaxWidth(),
+                color = MainColor,
+                height = 3.dp
+            )
+        }
     ) {
         tabTitleWithCounts.forEachIndexed { index, title ->
             Tab(
