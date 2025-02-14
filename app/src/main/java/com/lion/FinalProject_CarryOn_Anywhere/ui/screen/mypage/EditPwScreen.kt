@@ -1,0 +1,147 @@
+package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.lion.FinalProject_CarryOn_Anywhere.component.*
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun EditPwScreen() {
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    // ⚡ MutableState<String>으로 선언하여 상태를 유지
+    val currentPassword = remember { mutableStateOf("") }
+    val newPassword = remember { mutableStateOf("") }
+    val confirmPassword = remember { mutableStateOf("") }
+
+    Scaffold(
+        topBar = {
+            LikeLionTopAppBar(
+                title = "비밀번호 변경",
+                backColor = Color.White,
+                navigationIconImage = Icons.AutoMirrored.Filled.ArrowBack,
+                navigationIconOnClick = { /* TODO: 뒤로 가기 기능 추가 */ },
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(innerPadding)
+                .padding(20.dp)
+                .imePadding() // ✅ 키보드가 올라와도 UI를 적절하게 조정
+        ) {
+           // Spacer(modifier = Modifier.height(10.dp)) // 상단 여백 추가
+
+            // ✅ 비밀번호 입력 필드 섹션
+            Column {
+                // 현재 비밀번호 입력
+                LikeLionOutlinedTextField(
+                    textFieldValue = currentPassword,
+                    onValueChange = { currentPassword.value = it },
+                    label = "현재 비밀번호",
+                    placeHolder = "현재 비밀번호를 입력해 주세요.",
+                    trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
+                    singleLine = true,
+                    inputType = LikeLionOutlinedTextFieldInputType.PASSWORD,
+                    inputCondition = "[^a-zA-Z0-9_]",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 10.dp)
+                )
+
+                // 새 비밀번호 입력
+                LikeLionOutlinedTextField(
+                    textFieldValue = newPassword,
+                    onValueChange = { newPassword.value = it },
+                    label = "새 비밀번호",
+                    placeHolder = "새 비밀번호를 입력해 주세요.",
+                    trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
+                    singleLine = true,
+                    inputType = LikeLionOutlinedTextFieldInputType.PASSWORD,
+                    inputCondition = "[^a-zA-Z0-9_]",
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Next // ✅ "다음" 버튼 활성화
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 3.dp)
+                )
+
+                Row(modifier = Modifier.padding(bottom = 10.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Check",
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 4.dp)
+                    )
+                    Text(
+                        text = "영문 숫자 포함 10자 이상",
+                        fontSize = 14.sp
+                    )
+                }
+
+                // 새 비밀번호 확인 입력
+                LikeLionOutlinedTextField(
+                    textFieldValue = confirmPassword,
+                    onValueChange = { confirmPassword.value = it },
+                    label = "새 비밀번호 확인",
+                    placeHolder = "새 비밀번호를 입력해 주세요.",
+                    trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
+                    singleLine = true,
+                    inputType = LikeLionOutlinedTextFieldInputType.PASSWORD,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done // ✅ "완료" 버튼 활성화
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = { keyboardController?.hide() } // ✅ "완료" 누르면 키보드 숨김
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 5.dp)
+                )
+
+                Row(modifier = Modifier.padding(bottom = 15.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Check",
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 4.dp)
+                    )
+                    Text(
+                        text = "비밀번호 일치",
+                        fontSize = 14.sp
+                    )
+                }
+
+                // ✅ 버튼을 비밀번호 일치 아래에 배치
+                LikeLionFilledButton(
+                    text = "등록",
+                    cornerRadius = 5,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+}
