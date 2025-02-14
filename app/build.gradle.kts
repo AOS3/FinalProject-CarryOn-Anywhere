@@ -61,6 +61,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
@@ -79,11 +80,15 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
-    implementation ("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.webkit:webkit:1.12.1")
+
+    implementation("com.google.maps.android:maps-compose:2.14.0")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
 
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 }
-
 kapt {
     correctErrorTypes = true
 }

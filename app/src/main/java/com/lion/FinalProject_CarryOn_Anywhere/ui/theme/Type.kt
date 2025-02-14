@@ -36,5 +36,14 @@ val Typography = Typography(
     labelLarge = TextStyle(
         fontFamily = nanumSquareBold,
         fontSize = 16.sp
+    ),
+    // Extrabold 글씨 - 헤드라인
+    headlineMedium = TextStyle(
+        fontFamily = nanumSquareExtraBold,
+        fontSize = 20.sp
+    ),
+    headlineSmall  = TextStyle(
+        fontFamily = nanumSquareExtraBold,
+        fontSize = 16.sp
     )
 )
