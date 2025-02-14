@@ -19,10 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.HomeScreenPreView
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.MainScreen
-import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.MainScreenPreview
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.PlaceInfoScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.PlaceSearchScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.ChangePwScreen
@@ -31,9 +33,18 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindIdScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.AddTripPlanScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.EditPlanPlaceScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.SelectTripDateScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.SelectTripRegionScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.ShowTripMapScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.TripSearchPlaceScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.WriteRequestPlaceScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.FinalProject_CarryOn_AnywhereTheme
-import com.lion.FinalProject_CarryOn_Anywhere.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +70,8 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
     // Application 객체에 담는다.
     val carryOnApplication = LocalContext.current.applicationContext as CarryOnApplication
     carryOnApplication.navHostController = navHostController
+
+    val tripInfoViewModel : TripInfoViewModel = hiltViewModel()
 
     // 네비게이션 처리
     NavHost(

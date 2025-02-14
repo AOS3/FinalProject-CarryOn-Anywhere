@@ -137,7 +137,7 @@ fun MainScreen(
                         .weight(1f),
                     paddingTop = 10.dp,
                     onClick = {
-
+                        mainViewModel.buttonMainAddTrip()
                     },
                     icon = painterResource(id = R.drawable.add_event),
                     cornerRadius = 5,
