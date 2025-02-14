@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -46,7 +47,7 @@ fun LikeLionFilledButton(
     // 버튼 활성화 여부
     isEnabled: Boolean = true,
     // 아이콘
-    icon: ImageVector? = null,
+    icon: Painter? = null,
     // 모디파이어
     modifier: Modifier = Modifier,
     // 배경색
@@ -94,7 +95,7 @@ fun LikeLionFilledButton(
         Row {
             if (icon != null) {
                 Icon(
-                    imageVector = icon,
+                    painter = icon,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )
