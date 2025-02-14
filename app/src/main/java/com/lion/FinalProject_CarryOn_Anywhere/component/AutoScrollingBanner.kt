@@ -9,10 +9,12 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -22,25 +24,26 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lion.FinalProject_CarryOn_Anywhere.R
 
+// AutoScrolling 적용 안함
 @Composable
 fun AutoScrollingBanner(
     bannerImages: List<Any>,
-    bannerHeight: Dp = 350.dp,
+    bannerHeight: Dp = 300.dp,
     modifier: Modifier = Modifier,
+    cornerRadius: Dp = 16.dp,
     onBannerClick: (Int) -> Unit = {}
 ) {
-    val safeBannerImages = if (bannerImages.isEmpty()) {
-        listOf(R.drawable.banner3, R.drawable.banner3, R.drawable.banner3) // 🔹 기본 더미 이미지 추가
-    } else {
-        bannerImages
-    }
 
-    val pagerState = rememberPagerState(pageCount = { safeBannerImages.size })
+    val pagerState = rememberPagerState(pageCount = {bannerImages.size})
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(bannerHeight)
+            .padding(
+                horizontal = 20.dp,
+                vertical = 10.dp
+            )
     ) {
         Column(modifier = modifier.fillMaxWidth()) {
             // HorizontalPager로 배너 표시
@@ -54,8 +57,9 @@ fun AutoScrollingBanner(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .clip(RoundedCornerShape(cornerRadius))
                         .clickable { onBannerClick(page) }, // 클릭 이벤트 처리
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     when (val item = bannerImages[page]) {
                         is Bitmap -> {
@@ -63,7 +67,7 @@ fun AutoScrollingBanner(
                                 bitmap = item.asImageBitmap(),
                                 contentDescription = "Banner $page",
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.FillBounds
+                                contentScale = ContentScale.FillBounds,
                             )
                         }
 
@@ -127,16 +131,4 @@ fun CustomPagerIndicator(
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewAutoScrollingBanner() {
-    AutoScrollingBanner(
-        bannerImages = listOf(
-            R.drawable.banner3,
-            R.drawable.banner3,
-            R.drawable.banner3
-        )
-    )
 }

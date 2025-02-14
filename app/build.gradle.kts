@@ -61,6 +61,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
@@ -80,7 +81,6 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation ("androidx.webkit:webkit:1.12.1")
-
 }
 
 kapt {

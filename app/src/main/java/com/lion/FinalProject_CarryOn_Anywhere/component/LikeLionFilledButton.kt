@@ -1,6 +1,10 @@
 package com.lion.FinalProject_CarryOn_Anywhere.component
 
+import android.media.Image
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.content.MediaType.Companion.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,10 +18,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -47,7 +53,8 @@ fun LikeLionFilledButton(
     // 버튼 활성화 여부
     isEnabled: Boolean = true,
     // 아이콘
-    icon: Painter? = null,
+    //icon: ImageVector? = null,
+    icon: Any? = null,
     // 모디파이어
     modifier: Modifier = Modifier,
     // 배경색
@@ -92,14 +99,33 @@ fun LikeLionFilledButton(
         shape = RoundedCornerShape(cornerRadius.dp),
         enabled = isEnabled
     ) {
-        Row {
-            if (icon != null) {
-                Icon(
-                    painter = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // 아이콘이 Painter 또는 ImageVector일 경우 렌더링
+            when (icon) {
+                is Painter -> {
+                    Image(
+                        painter = icon,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .padding(end = 8.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                is ImageVector -> {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(end = 8.dp),
+                        tint = Color.Unspecified
+                    )
+                }
             }
         }
         Text(text = text)
