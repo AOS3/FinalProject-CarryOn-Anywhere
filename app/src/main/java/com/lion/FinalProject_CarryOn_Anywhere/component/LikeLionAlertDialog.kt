@@ -71,36 +71,18 @@ fun LikeLionAlertDialog(
                             text = dismissButtonTitle,
                             border = dismissBorder,
                             onClick = dismissButtonOnClick,
-                            paddingTop = TODO(),
-                            paddingBottom = TODO(),
-                            horizontalPadding = TODO(),
-                            fillWidth = TODO(),
-                            buttonWidth = TODO(),
-                            buttonHeight = TODO(),
-                            cornerRadius = TODO(),
-                            isEnabled = TODO(),
-                            icon = TODO()
+                            cornerRadius = 5,
                         )
                     }
                     // 확인 버튼
                     LikeLionFilledButton(
                         modifier = confirmButtonModifier,
-
                         containerColor = confirmContainerColor,
 
                         contentColor = confirmContentColor,
                         text = confirmButtonTitle,
                         onClick = confirmButtonOnClick,
-                        border = TODO(),
-                        paddingTop = TODO(),
-                        paddingBottom = TODO(),
-                        horizontalPadding = TODO(),
-                        fillWidth = TODO(),
-                        buttonWidth = TODO(),
-                        buttonHeight = TODO(),
-                        cornerRadius = TODO(),
-                        isEnabled = TODO(),
-                        icon = TODO()
+                        cornerRadius = 5,
                     )
                 }
             },
