@@ -1,7 +1,5 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts
 
-import androidx.test.services.events.TimeStamp
-
 data class ReplyModel(
 
     val userDocumentId : String, //작성자

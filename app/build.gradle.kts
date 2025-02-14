@@ -88,6 +88,9 @@ dependencies {
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
 
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+
+    implementation("com.google.accompanist:accompanist-pager:0.28.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
 }
 kapt {
     correctErrorTypes = true

@@ -26,8 +26,6 @@ enum class ScreenName{
     SELECT_TRIP_DATE,
     EDIT_PLAN_PLACE,
     ADD_TRIP_PLAN,
-enum class ScreenName{
-    MAIN_SCREEN,
     // 소셜 화면
     SOCIAL_SCREEN,
     // 후기 화면
@@ -40,4 +38,5 @@ enum class ScreenName{
     SHARE_SCREEN,
     // 댓글 화면
     COMMENT_SCREEN,
+
 }
