@@ -1,4 +1,5 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.util
 
-class Values {
+enum class ScreenName{
+    MAIN_SCREEN,
 }

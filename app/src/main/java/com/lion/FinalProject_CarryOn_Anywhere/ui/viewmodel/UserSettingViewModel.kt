@@ -7,10 +7,7 @@ import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.storage.FirebaseStorage
-//import com.lion.finalprojectshoppingmallservice3team.ShoppingApplication
-//import com.lion.finalprojectshoppingmallservice3team.customer.data.service.CustomerService
-//import com.lion.finalprojectshoppingmallservice3team.customer.data.util.Tools
-//import com.lion.finalprojectshoppingmallservice3team.customer.data.util.UserState
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -25,20 +22,16 @@ class UserSettingViewModel @Inject constructor(
    // val customerService: CustomerService
 ) : ViewModel() {
 
-    // val shoppingApplication = context as ShoppingApplication
+    val shoppingApplication = context as CarryOnApplication
 
-    val textFieldModifyNicknameValue =
-        mutableStateOf(shoppingApplication.loginCustomerModel.customerUserNickName)
+    val textFieldModifyIdValue =
+        mutableStateOf(shoppingApplication.loginCustomerModel.customerUserId)
+
     val textFieldModifyNameValue =
         mutableStateOf(shoppingApplication.loginCustomerModel.customerUserName)
     val textFieldModifyPhoneValue =
         mutableStateOf(shoppingApplication.loginCustomerModel.customerUserPhoneNumber)
-    val textFieldModifyAddressValue =
-        mutableStateOf(shoppingApplication.loginCustomerModel.customerUserAddress)
-    val textFieldModifyDetailAddressValue =
-        mutableStateOf(shoppingApplication.loginCustomerModel.customerUserDetailAddress)
-    val textFieldModifyBirthValue =
-        mutableStateOf(shoppingApplication.loginCustomerModel.customerUserBirthDate)
+
 
     // 보여줄 이미지 요소
     val showImage1State = mutableStateOf(false)
@@ -104,16 +97,7 @@ class UserSettingViewModel @Inject constructor(
     // 자음 모음 단독 사용 불가
     val isConsonantVowelValid = mutableStateOf(false)
 
-    // 라디오 버튼 클릭 여부
-    val selectedGender = mutableStateOf(
-        if (shoppingApplication.loginCustomerModel.customerUserGender.isBlank()) {
-            "상관없음"
-        } else {
-            shoppingApplication.loginCustomerModel.customerUserGender
-        }
-    )
-    val selectedSmsAgree =
-        mutableStateOf(shoppingApplication.loginCustomerModel.customerUserSmsAgree)
+
     val selectedPushAgree =
         mutableStateOf(shoppingApplication.loginCustomerModel.customerUserAppPushAgree)
 
@@ -138,7 +122,7 @@ class UserSettingViewModel @Inject constructor(
 
     init {
         // 초기화 시 닉네임 조건 업데이트
-        updateNicknameConditions()
+        //updateNicknameConditions()
         loadProfileImage()
     }
 
@@ -155,49 +139,22 @@ class UserSettingViewModel @Inject constructor(
         showImage1State.value = true
     }
 
-    fun updateNicknameConditions() {
-        val nickname = textFieldModifyNicknameValue.value
 
-        // 2~10자 조건
-        isLengthValid.value = nickname.length in 2..10
-
-        // 특수문자 불가 조건 (빈 문자열 처리 추가)
-        isSpecialCharInvalid.value = !nickname.contains(Regex("[^ㄱ-ㅎㅏ-ㅣ가-힣0-9a-zA-Z]"))
-
-        // 자음 모음 단독 사용 불가 조건
-        isConsonantVowelValid.value = !nickname.contains(Regex("[ㄱ-ㅎㅏ-ㅣ]"))
-
-        // 버튼 활성화 상태
-        isButtonNicknameEnabled.value =
-            isLengthValid.value && isSpecialCharInvalid.value && isConsonantVowelValid.value &&
-                    shoppingApplication.loginCustomerModel.customerUserNickName != nickname
-    }
 
     fun navigationIconOnClick() {
         // 서버에서 가져온 값과 현재 상태를 리스트로 매핑
         val serverValues = listOf(
-            shoppingApplication.loginCustomerModel.customerUserNickName,
 //            shoppingApplication.loginCustomerModel.customerUserProfileImage,
             shoppingApplication.loginCustomerModel.customerUserName,
             shoppingApplication.loginCustomerModel.customerUserPhoneNumber,
-            shoppingApplication.loginCustomerModel.customerUserAddress,
-            shoppingApplication.loginCustomerModel.customerUserDetailAddress,
-            shoppingApplication.loginCustomerModel.customerUserBirthDate,
-            shoppingApplication.loginCustomerModel.customerUserGender,
-            shoppingApplication.loginCustomerModel.customerUserSmsAgree,
             shoppingApplication.loginCustomerModel.customerUserAppPushAgree
         )
 
         val currentValues = listOf(
-            textFieldModifyNicknameValue.value,
+
 //            imageUri.value,
             textFieldModifyNameValue.value,
             textFieldModifyPhoneValue.value,
-            textFieldModifyAddressValue.value,
-            textFieldModifyDetailAddressValue.value,
-            textFieldModifyBirthValue.value,
-            selectedGender.value,
-            selectedSmsAgree.value,
             selectedPushAgree.value
         )
 
@@ -242,14 +199,7 @@ class UserSettingViewModel @Inject constructor(
     }
 
     fun saveSettingButtonOnClick() {
-        val nickName = textFieldModifyNicknameValue.value
 
-        if (shoppingApplication.loginCustomerModel.customerUserNickName != nickName) {
-            if (!isCheckNickName.value) {
-                showDialogNickNameIsNotCheckState.value = true
-                return
-            }
-        }
 
         CoroutineScope(Dispatchers.Main).launch {
             // 첨부 이미지가 있다면
@@ -258,7 +208,7 @@ class UserSettingViewModel @Inject constructor(
                 if(showImage1State.value){
                     // 이미지 파일을 삭제한다.
                     val work1 = async(Dispatchers.IO) {
-                        customerService.removeImageFile(shoppingApplication.loginCustomerModel.customerUserNickName)
+                     //   customerService.removeImageFile(shoppingApplication.loginCustomerModel.customerUserNickName)
                     }
                     work1.join()
                     newFileName = "none"
@@ -270,7 +220,7 @@ class UserSettingViewModel @Inject constructor(
                 if(imageUriState.value != null){
                     // 이미지 파일을 삭제한다.
                     val work1 = async(Dispatchers.IO) {
-                        customerService.removeImageFile(shoppingApplication.loginCustomerModel.customerUserNickName)
+                       // customerService.removeImageFile(shoppingApplication.loginCustomerModel.customerUserNickName)
                     }
                     work1.join()
                 }
@@ -282,7 +232,7 @@ class UserSettingViewModel @Inject constructor(
 
                 val work2 = async(Dispatchers.IO){
                     val filePath = shoppingApplication.getExternalFilesDir(null).toString()
-                    customerService.uploadImage("${filePath}/uploadTemp.jpg", newFileName)
+                 //   customerService.uploadImage("${filePath}/uploadTemp.jpg", newFileName)
                 }
                 work2.join()
             }
@@ -299,7 +249,7 @@ class UserSettingViewModel @Inject constructor(
 //            shoppingApplication.loginCustomerModel.customerUserAppPushAgree = selectedPushAgree.value
 
             val work3 = async(Dispatchers.IO) {
-                customerService.updateUserData(shoppingApplication.loginCustomerModel)
+              //  customerService.updateUserData(shoppingApplication.loginCustomerModel)
             }
             work3.join()
 
@@ -309,31 +259,4 @@ class UserSettingViewModel @Inject constructor(
         }
     }
 
-    // 중복 확인 버튼을 눌렀을 때 호출되는 메서드
-    fun buttonCheckNickNameOnClick(){
-        // 사용자가 입력한 닉네임
-        val nickName = textFieldModifyNicknameValue.value
-
-        // 비어 있다면
-        if(nickName.isEmpty()){
-            showDialogNickNameEmptyState.value = true
-            return
-        }
-
-        // 사용할 수 있는 닉네임인지 검사한다.
-        CoroutineScope(Dispatchers.Main).launch {
-            val work1 = async(Dispatchers.IO){
-                customerService.checkJoinUserNickName(nickName)
-            }
-            isCheckNickName.value = work1.await()
-
-            if(isCheckNickName.value){
-                showDialogNickNameOk.value = true
-            } else{
-               // textFieldModifyNicknameValue.value = ""
-                showDialogNickNameNo.value = true
-                updateNicknameConditions()
-            }
-        }
-    }
 }

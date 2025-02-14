@@ -65,42 +65,26 @@ fun LikeLionAlertDialog(
                     // 취소 버튼
                     if (dismissButtonTitle != null) {
                         LikeLionFilledButton(
-                            modifier = dismissButtonModifier,
+                            modifier = Modifier.weight(1f),
                             containerColor = dismissContainerColor,
                             contentColor = dismissContentColor,
+                            cornerRadius = 5,
                             text = dismissButtonTitle,
                             border = dismissBorder,
                             onClick = dismissButtonOnClick,
-                            paddingTop = TODO(),
-                            paddingBottom = TODO(),
-                            horizontalPadding = TODO(),
-                            fillWidth = TODO(),
-                            buttonWidth = TODO(),
-                            buttonHeight = TODO(),
-                            cornerRadius = TODO(),
-                            isEnabled = TODO(),
-                            icon = TODO()
+
+
                         )
                     }
                     // 확인 버튼
                     LikeLionFilledButton(
-                        modifier = confirmButtonModifier,
-
+                        modifier = Modifier.weight(1f),
                         containerColor = confirmContainerColor,
-
+                        cornerRadius = 5,
                         contentColor = confirmContentColor,
                         text = confirmButtonTitle,
                         onClick = confirmButtonOnClick,
-                        border = TODO(),
-                        paddingTop = TODO(),
-                        paddingBottom = TODO(),
-                        horizontalPadding = TODO(),
-                        fillWidth = TODO(),
-                        buttonWidth = TODO(),
-                        buttonHeight = TODO(),
-                        cornerRadius = TODO(),
-                        isEnabled = TODO(),
-                        icon = TODO()
+
                     )
                 }
             },
