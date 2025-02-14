@@ -1,4 +1,4 @@
-package com.lion.FinalProject_CarryOn_Anywhere.data.server.util
+package com.lion.FinalProject_CarryOn_Anywhere.util
 
 enum class ScreenName{
     // 로그인 화면
