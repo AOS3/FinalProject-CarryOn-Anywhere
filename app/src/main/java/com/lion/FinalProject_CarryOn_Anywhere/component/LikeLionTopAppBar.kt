@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
