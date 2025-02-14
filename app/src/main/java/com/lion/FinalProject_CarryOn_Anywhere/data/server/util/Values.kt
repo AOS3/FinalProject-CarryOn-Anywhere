@@ -18,5 +18,12 @@ enum class ScreenName{
     // 검색 화면
     PLACE_SEARCH_SCREEN,
     // 장소 상세 정보 화면
-    PLACE_INFO_SCREEN
+    PLACE_INFO_SCREEN,
+    WRITE_REQUEST_PLACE,
+    TRIP_SEARCH_PLACE,
+    SHOW_TRIP_MAP,
+    SELECT_TRIP_REGION,
+    SELECT_TRIP_DATE,
+    EDIT_PLAN_PLACE,
+    ADD_TRIP_PLAN,
 }

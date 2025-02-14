@@ -81,7 +81,12 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
 
     implementation ("androidx.webkit:webkit:1.12.1")
-}
+
+    implementation("com.google.maps.android:maps-compose:2.14.0")
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
+
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.6")
+
 
 kapt {
     correctErrorTypes = true

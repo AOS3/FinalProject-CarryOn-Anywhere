@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.ViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
-import com.lion.FinalProject_CarryOn_Anywhere.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject

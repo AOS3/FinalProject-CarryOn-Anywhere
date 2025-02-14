@@ -13,6 +13,11 @@
         android:theme="@style/Theme.FinalProject_CarryOn_Anywhere"
         tools:targetApi="31"
         android:name=".CarryOnApplication">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCQEC8qCCiD3MVjJR-fAeutsa_jZa9uI5U"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
