@@ -23,6 +23,7 @@ fun LikeLionFixedTabs(
         selectedTabIndex = selectedTabIndex,
         modifier = modifier.fillMaxWidth(),
         divider = divider,
+        containerColor = Color.White,
         indicator = { tabPositions ->
             TabRowDefaults.Indicator(
                 modifier = Modifier

@@ -38,6 +38,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,6 +47,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lion.FinalProject_CarryOn_Anywhere.R
 
 
 @Composable
@@ -152,8 +154,9 @@ fun LikeLionOutlinedTextField(
                             }
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Clear,
-                                contentDescription = "Clear text"
+                                painter = painterResource(R.drawable.cancel_24px),
+                                contentDescription = "Clear text",
+                                tint = Color.Black
                             )
                         }
                     }

@@ -81,6 +81,7 @@ dependencies {
 
     implementation ("androidx.webkit:webkit:1.12.1")
 
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 }
 
 kapt {
