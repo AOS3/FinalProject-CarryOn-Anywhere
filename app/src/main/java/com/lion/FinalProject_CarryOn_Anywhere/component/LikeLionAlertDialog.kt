@@ -74,6 +74,7 @@ fun LikeLionAlertDialog(
                         LikeLionFilledButton(
                             modifier = dismissButtonModifier,
                             horizontalPadding = 0.dp,
+                            fillWidth = false,
                             containerColor = dismissContainerColor,
                             contentColor = dismissContentColor,
                             text = dismissButtonTitle,
@@ -86,6 +87,7 @@ fun LikeLionAlertDialog(
                     LikeLionFilledButton(
                         horizontalPadding = 0.dp,
                         modifier = confirmButtonModifier,
+                        fillWidth = false,
                         containerColor = confirmContainerColor,
                         contentColor = confirmContentColor,
                         text = confirmButtonTitle,
