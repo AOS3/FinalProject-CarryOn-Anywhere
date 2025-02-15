@@ -43,13 +43,13 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
 
 @Composable
 fun LoginScreen(
-    windowInsetsController: WindowInsetsControllerCompat,
+    windowInsetsController:WindowInsetsControllerCompat,
     loginViewModel: LoginViewModel = hiltViewModel()) {
 
     LaunchedEffect(windowInsetsController) {
         windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
     }
-
+    // 화면이 처음 생성될 때 (최초 1회만 실행)
     LaunchedEffect(Unit) {
         windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
     }
@@ -78,7 +78,7 @@ fun LoginScreen(
                         .padding(end = 10.dp)
                         .align(Alignment.CenterEnd)
                         .clickable {
-
+                            loginViewModel.buttonAroundClick()
                         },
                 )
             }
