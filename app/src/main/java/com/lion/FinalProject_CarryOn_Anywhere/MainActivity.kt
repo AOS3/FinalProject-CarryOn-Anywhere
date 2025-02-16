@@ -52,6 +52,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.SocialScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.StoryDetailScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.StoryScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.FinalProject_CarryOn_AnywhereTheme
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -195,13 +196,20 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             composable(
                 route = ScreenName.PLACE_SEARCH_SCREEN.name
             ) {
-                PlaceSearchScreen()
+                PlaceSearchScreen(navController = navHostController)
             }
             // 검색 상세 화면
             composable(
-                route = ScreenName.PLACE_INFO_SCREEN.name
-            ) {
-                PlaceInfoScreen()
+                route = "${ScreenName.PLACE_INFO_SCREEN.name}/{title}",
+            ) { backStackEntry ->
+                val title = backStackEntry.arguments?.getString("title") ?: ""
+                val placeSearchViewModel: PlaceSearchViewModel = hiltViewModel()
+
+                PlaceInfoScreen(
+                    navController = navHostController,
+                    title = title,
+                    placeSearchViewModel = placeSearchViewModel
+                )
             }
 
             // 지역 선택 화면

@@ -53,7 +53,7 @@ fun PlaceSearchListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = painterResource(id = R.drawable.sampleplace1),
+            painter = painterResource(id = place["imageRes"] as Int),
             contentDescription = null,
             modifier = Modifier
                 .size(80.dp)
@@ -68,7 +68,7 @@ fun PlaceSearchListItem(
                 .weight(1f)
         ) {
             Text(
-                text = place["name"].toString(),
+                text = place["title"].toString(),
                 style = Typography.headlineSmall,
                 color = SubColor,
                 modifier = Modifier

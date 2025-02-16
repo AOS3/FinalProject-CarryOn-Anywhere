@@ -16,19 +16,22 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.lion.FinalProject_CarryOn_Anywhere.R
+import androidx.navigation.NavController
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionPlaceSearchList
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionSearchTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionSearchTopAppBarTextFieldEndIconMode
 import com.lion.FinalProject_CarryOn_Anywhere.component.PlaceSearchListItem
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewModel
 
 @Composable
-fun PlaceSearchScreen(placeSearchViewModel: PlaceSearchViewModel = hiltViewModel()) {
+fun PlaceSearchScreen(
+    navController: NavController,
+    placeSearchViewModel: PlaceSearchViewModel = hiltViewModel()
+) {
 
     // 키보드 컨트롤러
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -103,8 +106,9 @@ fun PlaceSearchScreen(placeSearchViewModel: PlaceSearchViewModel = hiltViewModel
                         }
                     )
                 },
-                onRowClick = {
-                    // TODO : 상세 화면으로 이동
+                onRowClick = { place ->
+                    val title = (place as Map<String, Any>)["title"] as String
+                    navController.navigate("${ScreenName.PLACE_INFO_SCREEN.name}/$title")
                 }
             )
         }
