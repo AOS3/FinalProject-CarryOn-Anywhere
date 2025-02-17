@@ -2,7 +2,6 @@ package com.lion.FinalProject_CarryOn_Anywhere.component
 
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,14 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripPlanModel
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripStoryModel
-
-
-class LikeLionMyTripPlanList {
-}
-
 
 // ✅ 개별 댓글 아이템
 @Composable
@@ -37,7 +29,7 @@ fun LikeLionMyTripPlanItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -50,7 +42,7 @@ fun LikeLionMyTripPlanItem(
             // ✅ 제목
             Text(
                 text = plan.PlanTitle,
-                fontSize = 15.sp,
+                fontSize = 20.sp,
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -58,7 +50,7 @@ fun LikeLionMyTripPlanItem(
             // ✅ 날짜
             Text(
                 text = plan.PlanDate,
-                fontSize = 12.sp,
+                fontSize = 15.sp,
                 color = Color.Gray
             )
         }

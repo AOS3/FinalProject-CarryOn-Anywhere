@@ -1,9 +1,12 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -25,10 +28,19 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTripStoryList
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripStoryModel
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyLikeItem
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun MyPostsScreen() {
+fun MyPostsScreen(navController: NavController) {
     val tabTitles = listOf("여행 후기", "여행 이야기", "댓글")
     val pagerState = rememberPagerState(initialPage = 0)
     val coroutineScope = rememberCoroutineScope()
@@ -39,7 +51,7 @@ fun MyPostsScreen() {
                 title = "나의 글",
                 backColor = Color.White,
                 navigationIconImage = Icons.AutoMirrored.Filled.ArrowBack,
-                navigationIconOnClick = { /* TODO: 뒤로 가기 기능 추가 */ },
+                navigationIconOnClick = { navController.popBackStack() }
             )
         }
     ) { paddingValues ->
@@ -109,7 +121,9 @@ fun TravelReviewScreen() {
     )
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(10.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(10.dp)
     ) {
 
         Spacer(modifier = Modifier.height(5.dp))
@@ -135,7 +149,7 @@ fun TravelStoryScreen() {
             TripStoryDate = "2025-03-01",
             TripStoryViewCount = 26,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
-            TripStoryTag = listOf("여행 일정")
+            TripStoryTag = "여행 일정"
         ),
         TripStoryModel(
             TripStoryTitle = "대전 빵투어 이야기 1",
@@ -143,7 +157,7 @@ fun TravelStoryScreen() {
             TripStoryDate = "2025-01-15",
             TripStoryViewCount = 56,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
-            TripStoryTag = listOf("맛집")
+            TripStoryTag = "맛집"
         ),
         TripStoryModel(
             TripStoryTitle = "대전 빵투어 이야기 2",
@@ -151,7 +165,7 @@ fun TravelStoryScreen() {
             TripStoryDate = "2025-01-16",
             TripStoryViewCount = 126,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
-            TripStoryTag = listOf("맛집")
+            TripStoryTag = "맛집"
         ),
         TripStoryModel(
             TripStoryTitle = "대전 빵투어 이야기 3",
@@ -159,26 +173,102 @@ fun TravelStoryScreen() {
             TripStoryDate = "2025-01-17",
             TripStoryViewCount = 150,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
-            TripStoryTag = listOf("맛집")
+            TripStoryTag = "맛집"
         )
     )
 
-    Column(modifier = Modifier.fillMaxSize().padding(5.dp)) {
-      //  Text("여행 이야기 리스트!!", style = MaterialTheme.typography.h6)
 
+    //
+    val chipItems = listOf("전체", "맛집", "숙소", "여행 일정", "모임")
+    val scrollState = rememberScrollState()
+    val selectedChip = remember { mutableStateOf(chipItems[0]) }
 
-        // ✅ 여행 이야기 리스트 출력 (LazyColumn 사용)
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+    // 선택된 태그에 따라 필터링된 게시글 목록 생성
+    val filteredPosts = if (selectedChip.value == "전체") {
+        tripStories // 전체 글 보기
+    } else {
+        tripStories.filter { it.TripStoryTag == selectedChip.value }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+
+        // ✅ 카테고리 필터
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .padding(bottom = 5.dp)
+                .horizontalScroll(scrollState),
+            horizontalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            items(tripStories) { story ->
-                LikeLionTripStoryList(post = story, onClick = {
-                    // ✅ 클릭 시 동작 추가 가능
-                })
+            chipItems.forEach { chipText ->
+                LikeLionFilterChip(
+                    text = chipText,
+                    selected = selectedChip.value == chipText,
+                    selectedColor = SubColor,
+                    unselectedColor = Color.White,
+                    borderColor = SubColor,
+                    chipTextStyle = TextStyle(
+                        color = if (selectedChip.value == chipText) Color.White else SubColor,
+                        textAlign = TextAlign.Center
+                    ),
+                    selectedTextColor = Color.White,
+                    unselectedTextColor = SubColor,
+                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
+                    chipModifier = Modifier
+                        .padding(4.dp)
+                        .width(60.dp),
+                    cornerRadius = 100,
+                    onChipClicked = { text, _ ->
+                        selectedChip.value = text // ✅ 선택된 태그 변경
+                    },
+                    onDeleteButtonClicked = null
+                )
+            }
+        }
+
+        // ✅ 필터링된 데이터가 없을 경우 빈 화면 표시
+        if (filteredPosts.isEmpty()) {
+            LikeLionEmptyView(message = "선택한 태그에 해당하는 여행 이야기가 없습니다.")
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+
+            ) {
+                items(filteredPosts) { story ->
+                    LikeLionTripStoryList(post = story, onClick = {
+                        // ✅ 클릭 시 동작 추가 가능
+                    })
+                }
             }
         }
     }
+
+
+
+
+
+//    Column(modifier = Modifier.fillMaxSize().padding(5.dp)) {
+//      //  Text("여행 이야기 리스트!!", style = MaterialTheme.typography.h6)
+//
+//
+//        // ✅ 여행 이야기 리스트 출력 (LazyColumn 사용)
+//        LazyColumn(
+//            modifier = Modifier.fillMaxSize(),
+//            verticalArrangement = Arrangement.spacedBy(8.dp)
+//        ) {
+//            items(tripStories) { story ->
+//                LikeLionTripStoryList(post = story, onClick = {
+//                    // ✅ 클릭 시 동작 추가 가능
+//                })
+//            }
+//        }
+//    }
 }
 
 
@@ -216,7 +306,9 @@ fun CommentsScreen() {
         ),
     )
 
-    Column(modifier = Modifier.fillMaxSize().padding(5.dp)) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(5.dp)) {
         // ✅ 댓글 리스트 출력
         LikeLionMyCommentList(
             commentList = tripComments,
@@ -234,5 +326,7 @@ fun CommentsScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMyPostsScreen() {
-    MyPostsScreen()
+
+    val navController = rememberNavController() // ✅ 미리보기용 NavController 생성
+    MyPostsScreen(navController = navController)
 }

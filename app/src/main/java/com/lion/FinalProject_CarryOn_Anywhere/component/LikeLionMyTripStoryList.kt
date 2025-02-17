@@ -40,7 +40,7 @@ fun LikeLionTripStoryList(post: TripStoryModel, onClick: () -> Unit) {
                 // 태그
                 if (post.TripStoryTag.isNotEmpty()) {
                     Text(
-                        text = post.TripStoryTag.joinToString(", "), // 리스트를 문자열로 변환 + 연결
+                        text = post.TripStoryTag, // 리스트를 문자열로 변환 + 연결
                         fontSize = 12.sp,
                         color = Color.White,
                         modifier = Modifier
@@ -48,7 +48,7 @@ fun LikeLionTripStoryList(post: TripStoryModel, onClick: () -> Unit) {
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
                 }
 
                 // ✅ 제목
@@ -60,7 +60,7 @@ fun LikeLionTripStoryList(post: TripStoryModel, onClick: () -> Unit) {
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 // ✅ 설명
                 Text(
@@ -82,7 +82,7 @@ fun LikeLionTripStoryList(post: TripStoryModel, onClick: () -> Unit) {
                 ){
                     // ✅ 날짜 및 조회수
                     Text(
-                        text = "${post.TripStoryData}",
+                        text = "${post.TripStoryDate}",
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
@@ -95,8 +95,6 @@ fun LikeLionTripStoryList(post: TripStoryModel, onClick: () -> Unit) {
 
                     )
                 }
-
-
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -120,10 +118,10 @@ fun PreviewTripStoryList() {
     val samplePost = TripStoryModel(
         TripStoryTitle = "제주도 여행 이야기",
         TripStoryContent = "제주도에서 즐거운 여행을 하고 왔습니다!",
-        TripStoryData = "2025-02-10",
+        TripStoryDate = "2025-02-10",
         TripStoryViewCount = 123,
         TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 테스트용 이미지 URL
-        TripStoryTag = listOf("여행 일정")
+        TripStoryTag = "여행 일정"
     )
 
     LikeLionTripStoryList(post = samplePost, onClick = {})

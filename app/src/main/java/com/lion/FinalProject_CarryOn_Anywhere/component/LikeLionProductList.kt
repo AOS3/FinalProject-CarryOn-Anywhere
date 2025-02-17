@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lion.FinalProject_CarryOn_Anywhere.R
@@ -137,15 +138,15 @@ fun LikeLionProductItem(
     }
 }
 
-//// ✅ 테스트용 ProductModel 리스트
-//@Composable
-//fun PreviewProductList() {
-//
-//}
-//
-//// ✅ Jetpack Compose Preview 추가
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewProductGrid() {
-//    PreviewProductList()
-//}
+// ✅ 테스트용 ProductModel 리스트
+@Composable
+fun PreviewProductList() {
+
+}
+
+// ✅ Jetpack Compose Preview 추가
+@Preview(showBackground = true)
+@Composable
+fun PreviewProductGrid() {
+    PreviewProductList()
+}
