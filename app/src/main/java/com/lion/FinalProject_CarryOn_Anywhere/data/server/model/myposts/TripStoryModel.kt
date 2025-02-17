@@ -16,6 +16,6 @@ data class TripStoryModel(
     // 이미지
     val TripStoryImages: List<String>,
     // 태그 (중복 가능?)
-    val TripStoryTag: List<String>,
+    val TripStoryTag: String,
 
 )

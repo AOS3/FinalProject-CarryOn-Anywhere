@@ -48,6 +48,9 @@ enum class ScreenName{
     EDIT_PW,
     //  나의 글 화면
     MY_POSTS,
+    // 내 일정 화면
+    MY_TRIP_PLAN,
     // 나의 찜 화면
+    MY_LIKE
 
 }

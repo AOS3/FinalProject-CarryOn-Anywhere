@@ -7,10 +7,7 @@
 //import androidx.compose.runtime.mutableStateOf
 //import androidx.lifecycle.ViewModel
 //import com.google.firebase.storage.FirebaseStorage
-////import com.lion.finalprojectshoppingmallservice3team.ShoppingApplication
-////import com.lion.finalprojectshoppingmallservice3team.customer.data.service.CustomerService
-////import com.lion.finalprojectshoppingmallservice3team.customer.data.util.Tools
-////import com.lion.finalprojectshoppingmallservice3team.customer.data.util.UserState
+//
 //import dagger.hilt.android.lifecycle.HiltViewModel
 //import dagger.hilt.android.qualifiers.ApplicationContext
 //import kotlinx.coroutines.CoroutineScope

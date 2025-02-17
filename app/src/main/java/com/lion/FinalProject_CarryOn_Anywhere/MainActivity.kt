@@ -8,7 +8,10 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -30,9 +33,11 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindIdScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mylike.MyLikeScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPageScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPostsScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyTripPlanScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.AddTripPlanScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.EditPlanPlaceScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.SelectTripDateScreen
@@ -89,10 +94,10 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
     val bottomNaviScreens = listOf(
         // 메인 화면
         ScreenName.MAIN_SCREEN.name,
-        // TODO : 마이페이지 화면
-        ScreenName.SELECT_TRIP_DATE.name,
-        // TODO : 찜 목록 화면
-        ScreenName.ADD_TRIP_PLAN.name,
+        // 마이페이지 화면
+        ScreenName.MY_PAGE.name,
+        // 찜 화면
+        ScreenName.MY_LIKE.name,
         // 캐리톡 화면
         ScreenName.STORY_SCREEN.name,
     )
@@ -263,7 +268,7 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             composable(
                 route = ScreenName.SOCIAL_SCREEN.name
-            ){
+            ) {
                 SocialScreen(
                     navController = navHostController,
                     onAddClick = {
@@ -273,21 +278,21 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             composable(
                 route = ScreenName.REVIEW_SCREEN.name
-            ){
+            ) {
                 ReviewScreen(
                     navController = navHostController
                 )
             }
             composable(
                 route = ScreenName.STORY_SCREEN.name
-            ){
+            ) {
                 StoryScreen(
                     navController = navHostController
                 )
             }
             composable(
                 route = ScreenName.POST_SCREEN.name
-            ){
+            ) {
                 PostScreen(
                     navController = navHostController,
                     onAddClick = {
@@ -297,7 +302,8 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             // ReviewDetailScreen
             composable("reviewDetail/{reviewIndex}") { backStackEntry ->
-                val reviewIndex = backStackEntry.arguments?.getString("reviewIndex")?.toIntOrNull() ?: 0
+                val reviewIndex =
+                    backStackEntry.arguments?.getString("reviewIndex")?.toIntOrNull() ?: 0
                 ReviewDetailScreen(
                     reviewIndex = reviewIndex,
                     navController = navHostController,
@@ -308,7 +314,8 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             // StoryDetailScreen
             composable("storyDetail/{storyIndex}") { backStackEntry ->
-                val reviewIndex = backStackEntry.arguments?.getString("storyIndex")?.toIntOrNull() ?: 0
+                val reviewIndex =
+                    backStackEntry.arguments?.getString("storyIndex")?.toIntOrNull() ?: 0
                 StoryDetailScreen(
                     reviewIndex = reviewIndex,
                     navController = navHostController,
@@ -319,7 +326,7 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             composable(
                 route = ScreenName.SHARE_SCREEN.name
-            ){
+            ) {
                 SharingScreen(
                     navController = navHostController,
                 )
@@ -336,43 +343,54 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             composable(
                 route = ScreenName.COMMENT_SCREEN.name
-            ){
+            ) {
                 CommentScreen(
                     navController = navHostController,
                 )
             }
+            // 마이페이지 화면
+            composable(
+                route = ScreenName.MY_PAGE.name
+            ) {
+                MyPageScreen(navHostController)
+            }
+
+            // 계정 설정 화면
+            composable(
+                route = ScreenName.EDIT_MY_INFO.name
+            ) {
+                // EditMyInfoSreen()
+            }
+
+            // 비밀번호 변경 화면
+            composable(
+                route = ScreenName.EDIT_PW.name
+            ) {
+                EditPwScreen()
+            }
 
 
+            // 나의 글 화면
+            composable(
+                route = ScreenName.MY_POSTS.name
+            ) {
+                MyPostsScreen(navHostController)
+            }
 
-        // 마이페이지 화면
-        composable(
-            route = ScreenName.MY_PAGE.name
-        ) {
-            MyPageScreen(navHostController)
+            // 내 일정 화면
+            composable(
+                route = ScreenName.MY_TRIP_PLAN.name
+            ) {
+                MyTripPlanScreen(navHostController)
+            }
+
+            // 나의 찜 화면
+            composable(
+                route = ScreenName.MY_LIKE.name
+            ) {
+                MyLikeScreen(navHostController)
+            }
+
         }
-
-        // 계정 설정 화면
-        composable(
-            route = ScreenName.EDIT_MY_INFO.name
-        ) {
-           // EditMyInfoSreen()
-        }
-
-        // 비밀번호 변경 화면
-        composable(
-            route = ScreenName.EDIT_PW.name
-        ) {
-            EditPwScreen()
-        }
-
-
-        // 나의 글 화면
-        composable(
-            route = ScreenName.MY_POSTS.name
-        ) {
-            MyPostsScreen()
-        }
-
     }
-
 }
