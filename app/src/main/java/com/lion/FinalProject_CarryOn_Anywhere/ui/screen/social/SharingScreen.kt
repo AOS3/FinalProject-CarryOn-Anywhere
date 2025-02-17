@@ -43,9 +43,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.Share
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.SharingViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Share
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.SharingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

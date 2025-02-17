@@ -1,7 +1,6 @@
-package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel
+package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
 import androidx.lifecycle.ViewModel
-import com.lion.FinalProject_CarryOn_Anywhere.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
