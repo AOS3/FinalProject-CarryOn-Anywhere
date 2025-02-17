@@ -293,7 +293,7 @@ fun PostScreen(
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 10.dp), // ✅ 좌우 여백 20.dp
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(imageUris.size) { index ->
@@ -304,7 +304,7 @@ fun PostScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(80.dp) // ✅ 원래 이미지 크기 유지
+                                        .size(80.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                 ) {
                                     Image(

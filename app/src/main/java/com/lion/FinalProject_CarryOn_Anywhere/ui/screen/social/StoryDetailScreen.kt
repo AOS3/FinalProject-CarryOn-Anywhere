@@ -54,7 +54,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.StoryViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
 
 @Composable
 fun StoryDetailScreen(

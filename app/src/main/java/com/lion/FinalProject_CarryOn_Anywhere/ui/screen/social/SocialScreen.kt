@@ -20,7 +20,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.review.ReviewScreen
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.SocialViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.SocialViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)

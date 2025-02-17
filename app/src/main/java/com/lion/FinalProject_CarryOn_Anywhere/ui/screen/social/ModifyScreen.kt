@@ -67,8 +67,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.ReviewViewModel
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.StoryViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -308,7 +308,7 @@ fun ModifyScreen(
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 10.dp), // ✅ 좌우 여백 20.dp
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(imageUris.size) { index ->
@@ -319,7 +319,7 @@ fun ModifyScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(80.dp) // ✅ 원래 이미지 크기 유지
+                                        .size(80.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                 ) {
                                     Image(

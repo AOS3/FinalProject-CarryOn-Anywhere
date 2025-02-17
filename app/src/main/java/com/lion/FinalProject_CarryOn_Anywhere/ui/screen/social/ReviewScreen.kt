@@ -25,8 +25,8 @@ import androidx.navigation.NavController
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.Review
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.ReviewViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
 
 @Composable
 fun ReviewScreen(

@@ -1,4 +1,4 @@
-package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel
+package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
 import androidx.lifecycle.ViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.R
