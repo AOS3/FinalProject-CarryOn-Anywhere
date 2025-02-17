@@ -1,7 +1,9 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -12,7 +14,10 @@ data class Share(
     val date: String,
 )
 @HiltViewModel
-class SharingViewModel @Inject constructor() : ViewModel() {
+class SharingViewModel @Inject constructor(
+    @ApplicationContext context: Context
+) : ViewModel() {
+
     private val _shares = MutableStateFlow(
         listOf(
             Share("서울 맛집 투어", "2025-02-12"),
