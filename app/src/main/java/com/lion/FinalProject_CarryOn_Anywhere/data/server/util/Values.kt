@@ -113,3 +113,11 @@ enum class BannerState(val number:Int, val str:String){
     // 비활성화
     BANNER_STATE_DISABLE(2, "비활성화"),
 }
+
+// 로그인 결과 값
+enum class LoginResult(val number: Int, val str: String) {
+    LOGIN_RESULT_SUCCESS(1, "로그인 성공"),
+    LOGIN_RESULT_ID_NOT_EXIST(2, "존재하지 않는 아이디"),
+    LOGIN_RESULT_PASSWORD_INCORRECT(3, "잘못된 비밀번호"),
+    LOGIN_RESULT_SIGN_OUT_MEMBER(4, "탈퇴한 회원"),
+}
