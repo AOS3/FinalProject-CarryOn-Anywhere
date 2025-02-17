@@ -36,7 +36,8 @@ fun MyPageScreen(navController: NavController) {
         bottomBar = {
             LikeLionBottomNavigation(
                 navController = navController,
-                items = LikeLionBottomNavItems(isLoggedIn = true) // ✅ 로그인 상태 전달
+                //items = LikeLionBottomNavItems(isLoggedIn = true) // ✅ 로그인 상태 전달
+                items = LikeLionBottomNavItems()
             )
         }
     ) { _ ->

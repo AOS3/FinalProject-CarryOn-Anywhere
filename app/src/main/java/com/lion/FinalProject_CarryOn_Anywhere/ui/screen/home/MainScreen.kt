@@ -44,22 +44,22 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.MainViewModel
 
 @Composable
 fun MainScreen(
-    windowInsetsController: WindowInsetsControllerCompat,
+    //windowInsetsController: WindowInsetsControllerCompat,
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
     // 시스템 바 표시 여부
     // windowInsetsController가 변경될 때 실행
-    LaunchedEffect(windowInsetsController) {
-        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
-    }
-    // 화면이 처음 생성될 때 (최초 1회만 실행)
-    LaunchedEffect(Unit) {
-        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
-    }
+//    LaunchedEffect(windowInsetsController) {
+//        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
+//    }
+//    // 화면이 처음 생성될 때 (최초 1회만 실행)
+//    LaunchedEffect(Unit) {
+//        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
+//    }
 
     Scaffold(
-        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom),
+        //contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom),
         topBar = {
             LikeLionTopAppBar(
                 title = "Carry On",
@@ -80,12 +80,12 @@ fun MainScreen(
             )
         }
     ) { paddingValues ->
-        val context = LocalContext.current
+        //val context = LocalContext.current
         // 현재 디바이스 전체 화면 높이를 가져온다.
         // 재구성 시에도 screenHeightPx 값이 유지되도록 한다.
-        val screenHeightPx = remember {
-            context.resources.displayMetrics.heightPixels.toFloat()
-        }
+//        val screenHeightPx = remember {
+//            context.resources.displayMetrics.heightPixels.toFloat()
+//        }
 
         Column(
             modifier = Modifier

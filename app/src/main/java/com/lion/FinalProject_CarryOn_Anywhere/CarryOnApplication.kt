@@ -5,6 +5,7 @@ import androidx.compose.material3.DrawerState
 import androidx.navigation.NavHostController
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.UserModel
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @HiltAndroidApp
 class CarryOnApplication :Application(){
@@ -15,4 +16,7 @@ class CarryOnApplication :Application(){
 
     // 로그인한 사용자 객체
     lateinit var loginCustomerModel: UserModel
+
+    // 로그인했는지
+    //var isLoggedIn = MutableStateFlow(false)
 }
