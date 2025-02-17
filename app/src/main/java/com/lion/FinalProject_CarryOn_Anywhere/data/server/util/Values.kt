@@ -39,4 +39,15 @@ enum class ScreenName{
     // 댓글 화면
     COMMENT_SCREEN,
 
+
+    // 마이페이지 화면
+    MY_PAGE,
+    // 계정 설정 화면
+    EDIT_MY_INFO,
+    // 비밀번호 변경 화면
+    EDIT_PW,
+    //  나의 글 화면
+    MY_POSTS,
+    // 나의 찜 화면
+
 }

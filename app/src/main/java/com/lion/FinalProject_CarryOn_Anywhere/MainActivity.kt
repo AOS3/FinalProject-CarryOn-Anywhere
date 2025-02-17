@@ -27,6 +27,9 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindIdScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditPwScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPageScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPostsScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.AddTripPlanScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.EditPlanPlaceScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.SelectTripDateScreen
@@ -82,7 +85,9 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
     // 네비게이션 처리
     NavHost(
         navController = navHostController,
-        startDestination = ScreenName.LOGIN_SCREEN.name,
+
+        // 이거로 바꾸기
+        startDestination = ScreenName.MY_PAGE.name,
         enterTransition = {
             fadeIn(
                 tween(300)
@@ -153,6 +158,7 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             route = ScreenName.MAIN_SCREEN.name
         ) {
             MainScreen(windowInsetsController)
+
         }
         // 검색 화면
         composable(
@@ -297,6 +303,37 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             CommentScreen(
                 navController = navHostController,
             )
+        }
+
+
+
+        // 마이페이지 화면
+        composable(
+            route = ScreenName.MY_PAGE.name
+        ) {
+            MyPageScreen(navHostController)
+        }
+
+        // 계정 설정 화면
+        composable(
+            route = ScreenName.EDIT_MY_INFO.name
+        ) {
+           // EditMyInfoSreen()
+        }
+
+        // 비밀번호 변경 화면
+        composable(
+            route = ScreenName.EDIT_PW.name
+        ) {
+            EditPwScreen()
+        }
+
+
+        // 나의 글 화면
+        composable(
+            route = ScreenName.MY_POSTS.name
+        ) {
+            MyPostsScreen()
         }
 
     }
