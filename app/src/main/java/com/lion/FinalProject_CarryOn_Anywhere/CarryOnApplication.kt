@@ -3,9 +3,8 @@ package com.lion.FinalProject_CarryOn_Anywhere
 import android.app.Application
 import androidx.compose.material3.DrawerState
 import androidx.navigation.NavHostController
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.UserModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.flow.MutableStateFlow
 
 @HiltAndroidApp
 class CarryOnApplication :Application(){
