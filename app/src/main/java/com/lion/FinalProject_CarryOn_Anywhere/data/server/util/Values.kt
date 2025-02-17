@@ -38,6 +38,20 @@ enum class ScreenName{
     SHARE_SCREEN,
     // 댓글 화면
     COMMENT_SCREEN,
+
+    // 마이페이지 화면
+    MY_PAGE,
+    // 계정 설정 화면
+    EDIT_MY_INFO,
+    // 비밀번호 변경 화면
+    EDIT_PW,
+    //  나의 글 화면
+    MY_POSTS,
+    // 내 일정 화면
+    MY_TRIP_PLAN,
+    // 나의 찜 화면
+    MY_LIKE
+
 }
 
 // 사용자 상태
@@ -105,6 +119,7 @@ enum class RequestState(val number:Int, val str:String){
     // 비활성화
     REQUEST_STATE_DISABLE(2, "비활성화"),
 }
+
 
 // 배너 상태
 enum class BannerState(val number:Int, val str:String){

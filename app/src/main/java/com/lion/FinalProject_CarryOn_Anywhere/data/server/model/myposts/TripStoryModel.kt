@@ -10,7 +10,7 @@ data class TripStoryModel(
     // 내용
     val TripStoryContent: String,
     // 업로드 날짜
-    val TripStoryData: String,
+    val TripStoryDate: String,
     // 조회수
     val TripStoryViewCount: Int,
     // 이미지

@@ -132,7 +132,7 @@ fun TravelStoryScreen() {
         TripStoryModel(
             TripStoryTitle = "자운드 여행 이야기",
             TripStoryContent = "자운드에 다녀왔습니다! 날씨가 너무 좋았어요~",
-            TripStoryData = "2025-03-01",
+            TripStoryDate = "2025-03-01",
             TripStoryViewCount = 26,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
             TripStoryTag = listOf("여행 일정")
@@ -140,7 +140,7 @@ fun TravelStoryScreen() {
         TripStoryModel(
             TripStoryTitle = "대전 빵투어 이야기 1",
             TripStoryContent = "맛있는 빵을 찾아 대전에 오다! 1편입니다",
-            TripStoryData = "2025-01-15",
+            TripStoryDate = "2025-01-15",
             TripStoryViewCount = 56,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
             TripStoryTag = listOf("맛집")
@@ -148,7 +148,7 @@ fun TravelStoryScreen() {
         TripStoryModel(
             TripStoryTitle = "대전 빵투어 이야기 2",
             TripStoryContent = "맛있는 빵을 찾아 대전에 다녀왔습니다! 2편입니다",
-            TripStoryData = "2025-01-16",
+            TripStoryDate = "2025-01-16",
             TripStoryViewCount = 126,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
             TripStoryTag = listOf("맛집")
@@ -156,7 +156,7 @@ fun TravelStoryScreen() {
         TripStoryModel(
             TripStoryTitle = "대전 빵투어 이야기 3",
             TripStoryContent = "맛있는 빵을 찾아 대전에 다녀왔습니다! 3편입니다",
-            TripStoryData = "2025-01-17",
+            TripStoryDate = "2025-01-17",
             TripStoryViewCount = 150,
             TripStoryImages = listOf(R.drawable.test1.toString()), // ✅ 첫 번째 이미지
             TripStoryTag = listOf("맛집")
