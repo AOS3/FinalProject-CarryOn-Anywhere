@@ -20,7 +20,7 @@ fun LikeLionBottomNavItems(
         BottomNavigationItemData(
             icon = ImageVector.vectorResource(id = R.drawable.assignment_24px),
             label = "캐리톡",
-            route = ScreenName.STORY_SCREEN.name
+            route = ScreenName.SOCIAL_SCREEN.name
         ),
         BottomNavigationItemData(
             icon = ImageVector.vectorResource(id = R.drawable.favorite_24px),
