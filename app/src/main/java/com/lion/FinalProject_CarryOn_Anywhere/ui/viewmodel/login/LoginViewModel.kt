@@ -33,6 +33,11 @@ class LoginViewModel
                 textFieldLoginPwValue.value.isNotEmpty()
     }
 
+    fun buttonAroundClick() {
+        // 메인 화면으로 이동
+        carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+    }
+
     // 로그인 버튼 동작 메서드
     fun buttonLoginClick() {
         // 아이디, 비밀번호 체크
