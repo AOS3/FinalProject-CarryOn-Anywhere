@@ -62,9 +62,12 @@ fun AddTripPlanScreen(
         cameraPositionState.position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
     }
 
-    // 현재 선택된 날짜에 해당하는 장소 리스트만 필터링하여 LatLng 리스트로 변환
     val selectedDayPlaces = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]
-        ?.map { LatLng(it.latitude, it.longitude) } ?: emptyList()
+        ?.mapNotNull { place ->
+            val lat = place.mapy?.toDoubleOrNull()
+            val lng = place.mapx?.toDoubleOrNull()
+            if (lat != null && lng != null) LatLng(lat, lng) else null
+        } ?: emptyList()
 
     // 여행 날짜 목록 업데이트
     LaunchedEffect(tripInfoViewModel.startDate.value, tripInfoViewModel.endDate.value) {
@@ -235,10 +238,16 @@ fun AddTripPlanScreen(
                         tripInfoViewModel.placesByDay[day]?.let { places ->
                             places.forEachIndexed { index, place ->
                                 val distanceToNext = if (index < places.lastIndex) {
-                                    // ✅ 다음 장소와의 거리 계산
+                                    // 거리 계산 시에도 같은 방식 적용
                                     tripInfoViewModel.calculateDistance(
-                                        LatLng(place.latitude, place.longitude),
-                                        LatLng(places[index + 1].latitude, places[index + 1].longitude)
+                                        LatLng(
+                                            place.mapy?.toDoubleOrNull() ?: 0.0,
+                                            place.mapx?.toDoubleOrNull() ?: 0.0
+                                        ),
+                                        LatLng(
+                                            places[index + 1].mapy?.toDoubleOrNull() ?: 0.0,
+                                            places[index + 1].mapx?.toDoubleOrNull() ?: 0.0
+                                        )
                                     )
                                 } else {
                                     null // 마지막 장소는 거리 표시 X

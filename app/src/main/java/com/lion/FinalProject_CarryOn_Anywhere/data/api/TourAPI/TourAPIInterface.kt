@@ -34,8 +34,8 @@ interface TourAPIInterface {
         @Query("MobileOS") mobileOS: String = "AND",
         @Query("MobileApp") mobileApp: String = "AppTest",
         @Query("_type") type: String = "json",
-        @Query("areaCode") areaCode: String, // ✅ String 타입으로 변경
-        @Query("sigunguCode") sigunguCode: String? = null, // ✅ 선택적 파라미터 유지
-        @Query("contentTypeId") contentTypeId: String? = null // ✅ 선택적 파라미터 유지
+        @Query("areaCode") areaCode: String, // String 타입으로 변경
+        @Query("sigunguCode") sigunguCode: String? = null, // 선택적 파라미터 유지
+        @Query("contentTypeId") contentTypeId: String? = null // 선택적 파라미터 유지
     ): Response<TourApiModel.TouristSpotResponse>
 }

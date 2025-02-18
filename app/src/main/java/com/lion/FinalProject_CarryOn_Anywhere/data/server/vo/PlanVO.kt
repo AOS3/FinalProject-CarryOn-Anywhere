@@ -10,7 +10,9 @@ class PlanVO {
     // 여행 문서 아이디
     var tripDocumentId:String = ""
     // 장소 목록 (contentId)
-    var placeList = mutableListOf<String>()
+    var placeList = mutableListOf<Map<String, Any?>>()
+    // 여행 날짜
+    var planDay:String = ""
     // 일정 데이터 생성 시간
     var planTimeStamp:Long = 0L
 
@@ -20,6 +22,7 @@ class PlanVO {
         planModel.planDocumentId = planDocumentId
         planModel.tripDocumentId = tripDocumentId
         planModel.placeList = placeList.toMutableList()
+        planModel.planDay = planDay
         planModel.planTimeStamp = planTimeStamp
 
         return planModel

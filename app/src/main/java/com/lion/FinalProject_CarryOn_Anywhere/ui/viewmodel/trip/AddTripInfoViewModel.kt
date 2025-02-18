@@ -150,7 +150,8 @@ class AddTripInfoViewModel @Inject constructor(
                             areaCode = areaCode
                         )
                     }
-                }.awaitAll() // 🚀 여러 지역 코드 동시 요청
+                    // 여러 지역 코드 동시 요청
+                }.awaitAll()
 
                 responses.forEachIndexed { index, response ->
                     if (response.isSuccessful) {
@@ -186,8 +187,8 @@ class AddTripInfoViewModel @Inject constructor(
 
     fun getRegionCode(regionName: String): String {
         // 시/군/구가 포함된 경우 시/도만 추출
-        val parsedRegion = regionName.split(" ")[0] // "서울시 강서구" → "서울시"
-            .replace("서울시", "서울") // 서울시 → 서울
+        val parsedRegion = regionName.split(" ")[0]
+            .replace("서울시", "서울")
             .replace("부산시", "부산")
             .replace("대구시", "대구")
             .replace("인천시", "인천")
@@ -195,8 +196,8 @@ class AddTripInfoViewModel @Inject constructor(
             .replace("대전시", "대전")
             .replace("울산시", "울산")
             .replace("세종시", "세종")
-            .replace("특별자치도", "제주") // 제주도 변환 추가
-            .replace("도$", "") // "충청도", "경상도" → "충청", "경상"
+            .replace("특별자치도", "제주")
+            .replace("도$", "")
 
         val regionCode = when (parsedRegion) {
             "서울" -> "1"
@@ -258,11 +259,11 @@ class AddTripInfoViewModel @Inject constructor(
         // 선택된 지역 정보 리스트 변환 (시/도 & 선택된 구/군만 저장)
         tripModel.tripCityList = selectedRegions.mapNotNull { region ->
             val regionName = region.text
-            val parsedRegion = parseRegionName(regionName) // 🔹 "서울시 강북구" → "서울"
-            val regionCodeList = getRegionCode(parsedRegion).split(",") // 🔹 "33,34" → ["33", "34"]
+            val parsedRegion = parseRegionName(regionName)
+            val regionCodeList = getRegionCode(parsedRegion).split(",")
 
             // 사용자가 선택한 "구/군"만 필터링
-            val selectedSubRegionName = extractSubRegion(regionName) // 🔹 "강북구"
+            val selectedSubRegionName = extractSubRegion(regionName)
             val matchedSubRegion = subRegionsCodeMap.value[parsedRegion]
                 ?.find { it["subRegionName"] == selectedSubRegionName }
 
@@ -272,7 +273,7 @@ class AddTripInfoViewModel @Inject constructor(
 
                 mapOf(
                     "regionName" to parsedRegion,
-                    "regionCode" to correctRegionCode, // 🔹 구/군이 속하는 정확한 `regionCode`
+                    "regionCode" to correctRegionCode,
                     "subRegionName" to subRegion["subRegionName"],
                     "subRegionCode" to subRegion["subRegionCode"]
                 )
@@ -331,12 +332,12 @@ class AddTripInfoViewModel @Inject constructor(
                     tripModel = tripData
                     serverStartDate.value = tripModel.tripStartDate
                     serverEndDate.value = tripModel.tripEndDate
-                    Log.d("TripInfoViewModel", "✅ 서버 데이터 로드 완료: ${serverStartDate.value} ~ ${serverEndDate.value}")
+                    Log.d("TripInfoViewModel", "서버 데이터 로드 완료: ${serverStartDate.value} ~ ${serverEndDate.value}")
                 } else {
-                    Log.e("TripInfoViewModel", "⚠ Firestore에서 데이터를 찾을 수 없음: $tripDocumentId")
+                    Log.e("TripInfoViewModel", "Firestore에서 데이터를 찾을 수 없음: $tripDocumentId")
                 }
             } catch (e: Exception) {
-                Log.e("TripInfoViewModel", "🚨 Firestore 데이터 가져오기 실패: ${e.message}")
+                Log.e("TripInfoViewModel", "Firestore 데이터 가져오기 실패: ${e.message}")
             }
         }
     }
@@ -348,8 +349,8 @@ class AddTripInfoViewModel @Inject constructor(
     }
 
     fun tripDateNavigationOnClick(tripDocumentId: String) {
-        Log.d("TripInfoViewModel", "🔍 previousScreen: ${carryOnApplication.previousScreen.value}")
-        Log.d("TripInfoViewModel", "🔍 Checking: ${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
+        Log.d("TripInfoViewModel", "previousScreen: ${carryOnApplication.previousScreen.value}")
+        Log.d("TripInfoViewModel", "Checking: ${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
 
         when (carryOnApplication.previousScreen.value) {
             ScreenName.SELECT_TRIP_REGION.name -> {
@@ -357,7 +358,7 @@ class AddTripInfoViewModel @Inject constructor(
                 carryOnApplication.navHostController.navigate(ScreenName.SELECT_TRIP_REGION.name)
             }
             "${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId" -> {
-                Log.d("TripInfoViewModel", "✅ Navigating to ADD_TRIP_PLAN")
+                Log.d("TripInfoViewModel", "Navigating to ADD_TRIP_PLAN")
                 carryOnApplication.navHostController.popBackStack()
                 carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
             }
@@ -371,7 +372,7 @@ class AddTripInfoViewModel @Inject constructor(
         carryOnApplication.previousScreen.value = ScreenName.SELECT_TRIP_REGION.name
         carryOnApplication.navHostController.popBackStack()
 
-        // ✅ `tripDocumentId` 없이 이동 가능하도록 변경
+        // `tripDocumentId` 없이 이동 가능하도록 변경
         carryOnApplication.navHostController.navigate("${ScreenName.SELECT_TRIP_DATE.name}")
     }
 }

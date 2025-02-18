@@ -20,7 +20,6 @@ import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
-import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.Place
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -42,8 +41,8 @@ class TripInfoViewModel @Inject constructor(
 
     val carryOnApplication = context as CarryOnApplication
 
-    val regionCode = mutableStateOf("")
-    val subRegionCode = mutableStateOf("")
+    val regionCodes = mutableStateListOf<String>()
+    val subRegionCodes = mutableStateListOf<String>()
 
     // ViewModel
     var selectedPlaces = mutableStateListOf<LatLng>() // 선택된 장소 리스트
@@ -54,10 +53,7 @@ class TripInfoViewModel @Inject constructor(
     val editTripNameDialogState = mutableStateOf(false)
     val deletePlaceDialogState = mutableStateOf(false)
 
-    var deleteTargetPlace = mutableStateOf<Place?>(null)
-
-//    // 검색 키워드
-//    val searchTextFieldValue = mutableStateOf("")
+    var deleteTargetPlace = mutableStateOf<TourApiModel.TouristSpotItem?>(null)
 
     var currentTripName = mutableStateOf("여행1")
     val editTripNameTextFieldValue = mutableStateOf("")
@@ -99,9 +95,12 @@ class TripInfoViewModel @Inject constructor(
 
             tripModel.tripCityList.forEach { cityMap ->
                 val regionName = cityMap["regionName"] as? String ?: ""
-                regionCode.value = cityMap["regionCode"] as? String ?: ""
+                val regionCode = cityMap["regionCode"] as? String ?: ""
                 val subRegionName = cityMap["subRegionName"] as? String ?: ""
-                subRegionCode.value = cityMap["subRegionCode"] as? String ?: ""
+                val subRegionCode = cityMap["subRegionCode"] as? String ?: ""
+
+                regionCodes.add(regionCode)
+                subRegionCodes.add(subRegionCode)
 
                 // 🔹 "서울시 마포구" 형태로 저장
                 val fullRegionInfo = if (regionName == "서울" ||
@@ -138,11 +137,20 @@ class TripInfoViewModel @Inject constructor(
     }
 
     // 일별 장소선택
-    var placesByDay = mutableStateMapOf<String, MutableList<Place>>()
+    var placesByDay = mutableStateMapOf<String, MutableList<TourApiModel.TouristSpotItem>>()
     var selectedDay = mutableStateOf("")
 
-    fun removePlaceFromDay(day: String, place: Place) {
+    fun removePlaceFromDay(day: String, place: TourApiModel.TouristSpotItem) {
         placesByDay[day]?.let { places ->
+            // `mapx`, `mapy`를 `Double`로 변환
+            val placeLat = place.mapy?.toDoubleOrNull()
+            val placeLng = place.mapx?.toDoubleOrNull()
+
+            // 유효한 위도/경도 값이 있는지 확인
+            if (placeLat != null && placeLng != null) {
+                selectedPlaces.removeIf { it.latitude == placeLat && it.longitude == placeLng }
+            }
+
             // 장소 삭제
             places.remove(place)
 
@@ -150,9 +158,6 @@ class TripInfoViewModel @Inject constructor(
             if (places.isEmpty()) {
                 placesByDay.remove(day)
             }
-
-            // `selectedPlaces`에서도 해당 장소의 좌표 삭제
-            selectedPlaces.removeIf { it.latitude == place.latitude && it.longitude == place.longitude }
 
             // 남아있는 장소가 있으면 마지막 장소로 지도 중심 이동
             selectedPlaceLocation.value = if (selectedPlaces.isNotEmpty()) {
@@ -218,7 +223,8 @@ class TripInfoViewModel @Inject constructor(
             "${ScreenName.SELECT_TRIP_DATE.name}?tripDocumentId=$tripDocumentId"
         }
 
-        Log.d("TripInfoViewModel", "Navigating to: $route") // 🚀 디버깅 로그 추가
+        // 디버깅 로그 추가
+        Log.d("TripInfoViewModel", "Navigating to: $route")
 
         carryOnApplication.navHostController.navigate(route)
     }
@@ -228,9 +234,13 @@ class TripInfoViewModel @Inject constructor(
         // `selectedDay` 업데이트
         selectedDay.value = day
 
+        // 🔹 `regionCodes`와 `subRegionCodes`를 문자열로 변환
+        val regionCodesParam = regionCodes.joinToString(",")  // "1,2,3"
+        val subRegionCodesParam = subRegionCodes.joinToString(",")  // "101,102,103"
+
         // selectedDay가 비어있지 않으면 이동
         carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/$day/$tripDocumentId/$regionCode/$subRegionCode")
+        carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/$day/$tripDocumentId/${regionCodesParam}/${subRegionCodesParam}")
     }
 
     // 장소 편집에서 뒤로가기 눌렀을 때

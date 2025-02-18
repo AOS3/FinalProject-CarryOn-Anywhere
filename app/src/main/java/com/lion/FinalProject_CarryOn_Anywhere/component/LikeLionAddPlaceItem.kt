@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.Place
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
@@ -35,12 +35,12 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 @Composable
 fun LikeLionAddPlaceItem(
     index: Int,
-    place: Place,
+    place: TourApiModel.TouristSpotItem,  // ✅ `Place` → `TouristSpotItem` 변경
     isEdit: Boolean = false,
     state: ReorderableLazyListState = rememberReorderableLazyListState(onMove = { from, to -> } ),
     distanceToNext: Float? = null, // ✅ 다음 장소와의 거리 추가
     deleteOnClick: () -> Unit = {},
-    lastIndex:Int = -1,
+    lastIndex: Int = -1,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -94,13 +94,13 @@ fun LikeLionAddPlaceItem(
             ) {
                 Column {
                     Text(
-                        text = place.title,
+                        text = place.title ?: "알 수 없는 장소",  // 관광지명
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color.Black,
                         modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp)
                     )
                     Text(
-                        text = "${place.subtitle} / ${place.location}",
+                        text = "${place.addr1 ?: "주소 없음"} / ${place.addr2 ?: ""}", // 기본 주소 / 상세 주소
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray,
                         modifier = Modifier.padding(start = 10.dp, top = 5.dp, bottom = 10.dp)
@@ -111,7 +111,7 @@ fun LikeLionAddPlaceItem(
             if (isEdit) {
                 LikeLionIconButton(
                     icon = Icons.Default.Menu,
-                    modifier = Modifier.detectReorderAfterLongPress(state) // ✅ 드래그 가능하게 설정
+                    modifier = Modifier.detectReorderAfterLongPress(state) // 드래그 가능하게 설정
                 )
             }
         }
@@ -127,15 +127,11 @@ fun LikeLionAddPlaceItem(
                     modifier = Modifier
                         .width(1.dp)
                         .height(30.dp)
-                        .background(Color.Gray) // ✅ 타임라인 선
+                        .background(Color.Gray) // 타임라인 선
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = if (distanceToNext != null) {
-                        if (distanceToNext >= 1000) "%.2f km".format(distanceToNext / 1000) else "%.0f m".format(distanceToNext)
-                    } else {
-                        ""
-                    },
+                    text = if (distanceToNext >= 1000) "%.2f km".format(distanceToNext / 1000) else "%.0f m".format(distanceToNext),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Black
                 )

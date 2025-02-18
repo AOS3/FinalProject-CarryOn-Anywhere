@@ -102,7 +102,7 @@ fun EditPlanPlaceScreen(
                     state = reorderState.listState,
                     modifier = Modifier.reorderable(reorderState) // 드래그 가능하게 설정
                 ) {
-                    itemsIndexed(places, key = { _, item -> item.title }) { index, place ->
+                    itemsIndexed(places, key = { _, item -> item.contentid ?: item.title ?: "" }) { index, place ->
                         LikeLionAddPlaceItem(
                             index = index,
                             place = place,
