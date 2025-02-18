@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,8 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextField
@@ -33,6 +38,9 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.login.UserJoinViewMod
 
 @Composable
 fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
+
+    val context = LocalContext.current
+    val activity = context as? Activity ?: return
 
     Scaffold(
         topBar = {
@@ -206,11 +214,11 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                     trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
                     inputType = LikeLionOutlinedTextFieldInputType.NUMBER,
                     onTrailingIconClick = {
-                        userJoinViewModel.updateCheckIdButtonState()
+                        userJoinViewModel.updateSendAutoButtonState()
                     },
                     singleLine = true,
                     onValueChange = {
-                        userJoinViewModel.updateCheckIdButtonState()
+                        userJoinViewModel.updateSendAutoButtonState()
                     },
                 )
 
@@ -223,7 +231,7 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                         .padding(top = 6.dp, start = 5.dp)
                         .height(56.dp),
                     onClick = {
-
+                        userJoinViewModel.sendVerificationCode(userJoinViewModel.textFieldUserJoinPhoneValue.value, activity)
                     },
                     cornerRadius = 5,
                     containerColor = SubColor,
@@ -259,11 +267,97 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                     .padding(top = 10.dp),
                 paddingTop = 10.dp,
                 onClick = {
-                    userJoinViewModel.buttonCheckAuthOnClick()
+                    userJoinViewModel.buttonCheckAuthOnClick(context)
                 },
                 cornerRadius = 5,
                 containerColor = SubColor,
                 buttonHeight = 60.dp,
+            )
+
+            // ---------------------------- Dialog ------------------------
+
+            // Dialog - 사용할 수 있는 아이디인 경우
+            LikeLionAlertDialog(
+                showDialogState = userJoinViewModel.showDialogIdOk,
+                title = "중복 확인",
+                text = "사용할 수 있는 아이디 입니다.",
+                confirmButtonTitle = "뒤로 가기",
+                confirmButtonOnClick = {
+                    userJoinViewModel.showDialogIdOk.value = false
+                },
+                titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                confirmButtonModifier = Modifier.width(140.dp),
+                dismissButtonModifier = Modifier.width(140.dp)
+            )
+
+            // Dialog - 사용할 수 없는 아이디인 경우
+            LikeLionAlertDialog(
+                showDialogState = userJoinViewModel.showDialogIdOk,
+                title = "중복 확인",
+                text = "사용할 수 없는 아이디 입니다.",
+                confirmButtonTitle = "확인",
+                confirmButtonOnClick = {
+                    userJoinViewModel.showDialogIdOk.value = false
+                },
+                titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                confirmButtonModifier = Modifier.width(140.dp),
+                dismissButtonModifier = Modifier.width(140.dp)
+            )
+
+            // Dialog - 잘못된 인증 번호일 경우
+            LikeLionAlertDialog(
+                showDialogState = userJoinViewModel.showDialogAuthNo,
+                title = "인증 실패",
+                text = "인증 번호가 올바르지 않습니다. \n다시 확인해주세요.",
+                confirmButtonTitle = "확인",
+                confirmButtonOnClick = {
+                    userJoinViewModel.showDialogAuthNo.value = false
+                },
+                titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                confirmButtonModifier = Modifier.width(140.dp),
+                dismissButtonModifier = Modifier.width(140.dp)
+            )
+
+            // Dialog - 가입 완료
+            LikeLionAlertDialog(
+                showDialogState = userJoinViewModel.showDialogJoinOk,
+                title = "가입 완료",
+                text = "가입이 완료되었습니다.\n로그인을 진행해주세요 ",
+                confirmButtonTitle = "확인",
+                confirmButtonOnClick = {
+                    userJoinViewModel.moveToLoginScreen()
+                },
+                titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                confirmButtonModifier = Modifier.width(140.dp),
+                dismissButtonModifier = Modifier.width(140.dp)
+            )
+
+            LikeLionAlertDialog(
+                showDialogState = userJoinViewModel.showDialogAuthOk,
+                title = "인증 성공",
+                text = "인증이 완료되었습니다.",
+                confirmButtonTitle = "확인",
+                confirmButtonOnClick = {
+                    userJoinViewModel.showDialogAuthOk.value = false
+                },
+                titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                confirmButtonModifier = Modifier.width(140.dp),
+                dismissButtonModifier = Modifier.width(140.dp)
             )
         }
     }

@@ -91,6 +91,10 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-pager:0.28.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
+
+    // Authentication
+    implementation("com.google.firebase:firebase-auth")
+    implementation ("com.google.firebase:firebase-appcheck-safetynet:16.1.2")
 }
 kapt {
     correctErrorTypes = true
