@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.Review
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

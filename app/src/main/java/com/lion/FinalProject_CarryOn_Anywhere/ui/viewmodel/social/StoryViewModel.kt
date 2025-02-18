@@ -1,11 +1,13 @@
-package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel
+package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 import com.lion.FinalProject_CarryOn_Anywhere.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 // 게시글 데이터 클래스
 data class Post(
@@ -20,7 +22,10 @@ data class Post(
 )
 
 @HiltViewModel
-class StoryViewModel @Inject constructor() : ViewModel() {
+class StoryViewModel @Inject constructor(
+    @ApplicationContext context: Context
+) : ViewModel() {
+
     private val _posts= MutableStateFlow(
         listOf(
             Post("맛집", "서울 맛집 투어", "경복궁 근처 맛집 추천", "김철수", "2025-02-12", 5, 12, listOf(R.drawable.sample1, R.drawable.sample2)),

@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -37,6 +38,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -67,60 +69,65 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.ReviewViewModel
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.StoryViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.ModifyViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
 
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModifyScreen(
     navController: NavController,
     reviewIndex: Int?,
+    storyIndex: Int?,
     storyViewModel: StoryViewModel = hiltViewModel(),
     reviewViewModel: ReviewViewModel = hiltViewModel(),
+    modifyViewModel: ModifyViewModel = hiltViewModel(),
     onAddClick: () -> Unit
 ) {
-    // 기존 데이터 불러오기 (여행 이야기 or 여행 후기)
-    val posts by storyViewModel.posts.collectAsState()
+    val context = LocalContext.current
+
     val reviews by reviewViewModel.reviews.collectAsState()
+    val posts by storyViewModel.posts.collectAsState()
 
-    val modify = reviewIndex?.let { posts.getOrNull(it) } ?: reviewIndex?.let { reviews.getOrNull(it) }
+    LaunchedEffect(reviewIndex) {
+        reviewIndex?.let {
+            reviews.getOrNull(it)?.let { review ->
+                modifyViewModel.loadData(review = review)
+            }
+        }
+    }
 
-    val postItems = listOf("여행 후기", "여행 이야기")
-    val chipItems = listOf("전체", "맛집", "숙소", "여행 일정", "모임")
+    LaunchedEffect(storyIndex) {
+        storyIndex?.let {
+            posts.getOrNull(it)?.let { post ->
+                modifyViewModel.loadData(post = post)
+            }
+        }
+    }
 
     val scrollState = rememberScrollState()
-    val selectedPostChip = remember { mutableStateOf(postItems[0]) }
-    val selectedChip = remember { mutableStateOf(chipItems[0]) }
+
+    val postItems = modifyViewModel.postItems
+    val chipItems = modifyViewModel.chipItems
+    val selectedPostChip = modifyViewModel.selectedPostChip.collectAsState()
+    val selectedChip = modifyViewModel.selectedChip.collectAsState()
+
+    val imageUris = modifyViewModel.imageUris.collectAsState()
+    val title by modifyViewModel.title.collectAsState()
+    val content by modifyViewModel.content.collectAsState()
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogBackState = remember { mutableStateOf(false) }
     val showDialogCompleteState = remember { mutableStateOf(false) }
 
-    val imageUris = remember { mutableStateListOf<Uri>() }
-    val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.clipData?.let { clipData ->
-                val selectedImages = mutableListOf<Uri>()
-                val totalSelected = clipData.itemCount // 사용자가 선택한 전체 개수
-
-                for (i in 0 until clipData.itemCount) {
-                    if (selectedImages.size + imageUris.size < 10) { // 최대 10개까지만 추가
-                        selectedImages.add(clipData.getItemAt(i).uri)
-                    }
-                }
-
-                imageUris.addAll(selectedImages)
-
-                // 사용자가 11개 이상 선택한 경우 토스트 메시지 표시
-                if (totalSelected > 10) {
-                    Toast.makeText(context, "한번에 최대 10개의 사진 업로드가 가능합니다.", Toast.LENGTH_SHORT).show()
-                }
+                modifyViewModel.addImages(clipData, context)
             } ?: result.data?.data?.let { uri ->
-                if (imageUris.size < 10) {
-                    imageUris.add(uri)
-                }
+                modifyViewModel.addSingleImage(uri)
             }
         }
     }
@@ -167,8 +174,8 @@ fun ModifyScreen(
             textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
             titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
             textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
-            confirmButtonModifier = Modifier.width(140.dp),
-            dismissButtonModifier = Modifier.width(140.dp)
+            confirmButtonModifier = Modifier.width(120.dp),
+            dismissButtonModifier = Modifier.width(120.dp)
         )
 
         // 다이얼로그 표시
@@ -190,8 +197,8 @@ fun ModifyScreen(
             textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
             titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
             textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
-            confirmButtonModifier = Modifier.width(140.dp),
-            dismissButtonModifier = Modifier.width(140.dp)
+            confirmButtonModifier = Modifier.width(120.dp),
+            dismissButtonModifier = Modifier.width(120.dp)
         )
 
         // LazyColumn을 사용하여 세로 스크롤 가능하게 변경
@@ -231,7 +238,7 @@ fun ModifyScreen(
                                 .width(80.dp),
                             cornerRadius = 100,
                             onChipClicked = { text, _ ->
-                                selectedPostChip.value = text
+                                modifyViewModel.updateSelectedPostChip(text)
                             },
                             onDeleteButtonClicked = null
                         )
@@ -265,7 +272,7 @@ fun ModifyScreen(
                                     .width(60.dp),
                                 cornerRadius = 100,
                                 onChipClicked = { text, _ ->
-                                    selectedChip.value = text
+                                    modifyViewModel.updateSelectedChip(text)
                                 },
                                 onDeleteButtonClicked = null
                             )
@@ -280,19 +287,19 @@ fun ModifyScreen(
                 )
 
                 // 기본 텍스트 입력 필드 (제목)
-                val textState = remember { mutableStateOf("") }
                 LikeLionOutlinedTextField(
-                    textFieldValue = textState,
+                    textFieldValue = mutableStateOf(title),
                     label = "제목",
                     placeHolder = "제목을 입력하세요",
                     maxLength = 30,
                     showCharCount = true,
-                    onValueChange = { textState.value = it },
+                    onValueChange = { modifyViewModel.updateTitle(it) }, // 수정된 함수 사용
                     singleLine = true,
                     trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
-                    onTrailingIconClick = { textState.value = "" },
+                    onTrailingIconClick = { modifyViewModel.clearData() },
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp)
                 )
+
 
                 LikeLionDivider(
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
@@ -304,14 +311,14 @@ fun ModifyScreen(
 
 
                 // 추가한 사진
-                if (imageUris.isNotEmpty()) {
+                if (imageUris.value.isNotEmpty()) {
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 10.dp), // ✅ 좌우 여백 20.dp
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(imageUris.size) { index ->
+                        items(imageUris.value.size) { index ->
                             Box(
                                 modifier = Modifier
                                     .size(90.dp) //
@@ -319,11 +326,11 @@ fun ModifyScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(80.dp) // ✅ 원래 이미지 크기 유지
+                                        .size(80.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                 ) {
                                     Image(
-                                        painter = rememberAsyncImagePainter(imageUris[index]),
+                                        painter = rememberAsyncImagePainter(imageUris.value[index]),
                                         contentDescription = "Uploaded Image",
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
@@ -332,7 +339,7 @@ fun ModifyScreen(
 
                                 // X 버튼
                                 IconButton(
-                                    onClick = { imageUris.removeAt(index) },
+                                    onClick = { modifyViewModel.removeImage(index) },
                                     modifier = Modifier
                                         .size(20.dp)
                                         .align(Alignment.TopEnd)
@@ -381,20 +388,19 @@ fun ModifyScreen(
                 )
 
                 // 여러 줄 입력 필드 (내용 입력)
-                val contentState = remember { mutableStateOf("") }
                 LikeLionOutlinedTextField(
-                    textFieldValue = contentState,
+                    textFieldValue = mutableStateOf(content),
                     label = "내용",
                     placeHolder = "내용을 입력하세요",
                     maxLength = 500,
                     showCharCount = true,
-                    onValueChange = { contentState.value = it },
+                    onValueChange = { modifyViewModel.updateContent(it) },
                     modifier = Modifier
                         .padding(start = 20.dp, end = 20.dp, top = 10.dp)
                         .height(300.dp),
                     singleLine = false,
                     trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
-                    onTrailingIconClick = { contentState.value = "" }
+                    onTrailingIconClick = { modifyViewModel.clearData() }
                 )
 
                 // 여행 후기를 선택하면 숨기고, 여행 이야기를 선택하면 보이게 처리
@@ -425,6 +431,7 @@ private fun ModifyScreenPreview() {
     ModifyScreen(
         navController = NavController(LocalContext.current),
         onAddClick = {},
-        reviewIndex = 0
+        reviewIndex = null,
+        storyIndex = 1
     )
 }

@@ -53,7 +53,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.ReviewViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
 import androidx.compose.foundation.layout.Spacer as Spacer1
 
 @Composable
@@ -89,7 +89,7 @@ fun ReviewDetailScreen(
                 menuItems = {
                     Row {
                         IconButton(onClick = {
-                            navController.navigate("modifyScreen/${reviewIndex}")
+                            navController.navigate("modifyScreen/review/$reviewIndex")
                         }) {
                             Icon(
                                 imageVector = Icons.Default.ModeEdit,
@@ -126,8 +126,8 @@ fun ReviewDetailScreen(
                 textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
                 titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
                 textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
-                confirmButtonModifier = Modifier.width(140.dp),
-                dismissButtonModifier = Modifier.width(140.dp)
+                confirmButtonModifier = Modifier.width(120.dp),
+                dismissButtonModifier = Modifier.width(120.dp)
             )
 
             // 본문 내용 (LazyColumn)

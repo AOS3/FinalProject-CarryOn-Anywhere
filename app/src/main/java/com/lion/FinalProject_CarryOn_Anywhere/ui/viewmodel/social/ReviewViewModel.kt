@@ -1,8 +1,10 @@
-package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel
+package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -19,7 +21,10 @@ data class Review(
 )
 
 @HiltViewModel
-class ReviewViewModel @Inject constructor() : ViewModel() {
+class ReviewViewModel@Inject constructor(
+    @ApplicationContext context: Context
+) : ViewModel() {
+
     private val _reviews = MutableStateFlow(
         listOf(
             Review(

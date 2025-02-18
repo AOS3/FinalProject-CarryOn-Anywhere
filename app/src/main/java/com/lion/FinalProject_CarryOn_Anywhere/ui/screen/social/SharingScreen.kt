@@ -43,9 +43,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.Share
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.SharingViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Share
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.SharingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,14 +82,14 @@ fun SharingScreen(
                 items(shares.size) { index ->
                     ShareItem(shares[index], navController, index)
 
-                    // 마지막 아이템이 아닐 경우 구분선 추가
-                    if (index < shares.size - 1) {
-                        LikeLionDivider(
-                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
-                            color = Color.LightGray,
-                            thickness = 1.dp
-                        )
-                    }
+//                    // 마지막 아이템이 아닐 경우 구분선 추가
+//                    if (index < shares.size - 1) {
+//                        LikeLionDivider(
+//                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
+//                            color = Color.LightGray,
+//                            thickness = 1.dp
+//                        )
+//                    }
                 }
             }
         }
@@ -105,7 +104,7 @@ private fun ShareItem(share: Share, navController: NavController, index: Int) {
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp, horizontal = 15.dp)
+            .padding(vertical = 5.dp, horizontal = 15.dp)
             .clickable {
                 navController.navigate("storyDetail/$index")
             }
