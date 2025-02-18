@@ -135,3 +135,4 @@ enum class LoginResult(val number: Int, val str: String) {
     LOGIN_RESULT_ID_NOT_EXIST(2, "존재하지 않는 아이디"),
     LOGIN_RESULT_PASSWORD_INCORRECT(3, "잘못된 비밀번호"),
     LOGIN_RESULT_SIGN_OUT_MEMBER(4, "탈퇴한 회원"),
+}
