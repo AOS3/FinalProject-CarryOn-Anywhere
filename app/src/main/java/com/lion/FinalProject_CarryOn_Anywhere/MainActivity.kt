@@ -3,7 +3,6 @@ package com.lion.FinalProject_CarryOn_Anywhere
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -100,7 +99,7 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
         // 찜 화면
         ScreenName.MY_LIKE.name,
         // 캐리톡 화면
-        ScreenName.STORY_SCREEN.name,
+        ScreenName.SOCIAL_SCREEN.name,
     )
 
     // 현재 네비게이션 상태 확인
@@ -267,9 +266,11 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             ) {
                 AddTripPlanScreen(tripInfoViewModel)
             }
+
+            // 소셜 화면
             composable(
                 route = ScreenName.SOCIAL_SCREEN.name
-            ) {
+            ){
                 SocialScreen(
                     navController = navHostController,
                     onAddClick = {
@@ -277,23 +278,29 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                     }
                 )
             }
+
+            // 소셜 화면 - 여행 후기 화면
             composable(
                 route = ScreenName.REVIEW_SCREEN.name
-            ) {
+            ){
                 ReviewScreen(
                     navController = navHostController
                 )
             }
+
+            // 소셜 화면 - 여행 이야기 화면
             composable(
                 route = ScreenName.STORY_SCREEN.name
-            ) {
+            ){
                 StoryScreen(
                     navController = navHostController
                 )
             }
+
+            // 글 작성 화면
             composable(
                 route = ScreenName.POST_SCREEN.name
-            ) {
+            ){
                 PostScreen(
                     navController = navHostController,
                     onAddClick = {
@@ -301,10 +308,10 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                     }
                 )
             }
-            // ReviewDetailScreen
+
+            // 여행 후기 상세 화면
             composable("reviewDetail/{reviewIndex}") { backStackEntry ->
-                val reviewIndex =
-                    backStackEntry.arguments?.getString("reviewIndex")?.toIntOrNull() ?: 0
+                val reviewIndex = backStackEntry.arguments?.getString("reviewIndex")?.toIntOrNull() ?: 0
                 ReviewDetailScreen(
                     reviewIndex = reviewIndex,
                     navController = navHostController,
@@ -313,38 +320,59 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                     }
                 )
             }
-            // StoryDetailScreen
+
+            // 여행 이야기 상세 화면
             composable("storyDetail/{storyIndex}") { backStackEntry ->
-                val reviewIndex =
-                    backStackEntry.arguments?.getString("storyIndex")?.toIntOrNull() ?: 0
+                val storyIndex = backStackEntry.arguments?.getString("storyIndex")?.toIntOrNull() ?: 0
                 StoryDetailScreen(
-                    reviewIndex = reviewIndex,
+                    storyIndex = storyIndex,
                     navController = navHostController,
                     onAddClick = {
                         navHostController.navigate(ScreenName.STORY_SCREEN.name)
                     }
                 )
             }
+
+            // 공유 화면
             composable(
                 route = ScreenName.SHARE_SCREEN.name
-            ) {
+            ){
                 SharingScreen(
                     navController = navHostController,
                 )
             }
-            composable("modifyScreen/{reviewIndex}") { backStackEntry ->
+
+            // 글 수정 화면 (여행 후기)
+            composable("modifyScreen/review/{reviewIndex}") { backStackEntry ->
                 val reviewIndex = backStackEntry.arguments?.getString("reviewIndex")?.toIntOrNull()
                 ModifyScreen(
                     navController = navHostController,
                     onAddClick = {
                         navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
                     },
-                    reviewIndex = reviewIndex
+                    reviewIndex = reviewIndex,
+                    storyIndex = null
                 )
             }
+
+            // 글 수정 화면 (여행 이야기)
+            composable("modifyScreen/story/{storyIndex}") { backStackEntry ->
+                val storyIndex = backStackEntry.arguments?.getString("storyIndex")?.toIntOrNull()
+                ModifyScreen(
+                    navController = navHostController,
+                    onAddClick = {
+                        navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
+                    },
+                    reviewIndex = null,
+                    storyIndex = storyIndex
+                )
+            }
+
+
+            // 댓글 화면
             composable(
                 route = ScreenName.COMMENT_SCREEN.name
-            ) {
+            ){
                 CommentScreen(
                     navController = navHostController,
                 )
