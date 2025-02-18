@@ -25,13 +25,13 @@ fun LikeLionBottomNavItems(
         BottomNavigationItemData(
             icon = ImageVector.vectorResource(id = R.drawable.favorite_24px),
             label = "내 장소",
-            route = ScreenName.ADD_TRIP_PLAN.name
+            route = ScreenName.MY_LIKE.name
         ),
         BottomNavigationItemData(
             icon = ImageVector.vectorResource(id = R.drawable.account_circle_24px),
             label = "마이페이지",
             //route = if (isLoggedIn) "loginMyPage" else "logoutMyPage",
-            route = ScreenName.SELECT_TRIP_DATE.name
+            route = ScreenName.MY_PAGE.name
         )
     )
 }

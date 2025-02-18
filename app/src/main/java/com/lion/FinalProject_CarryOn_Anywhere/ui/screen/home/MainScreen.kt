@@ -122,7 +122,7 @@ fun MainScreen(
                         .weight(1f),
                     paddingTop = 10.dp,
                     onClick = {
-
+                        mainViewModel.buttonMainUserTripList()
                     },
                     icon = painterResource(id = R.drawable.calendar),
                     cornerRadius = 5,

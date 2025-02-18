@@ -17,7 +17,7 @@ class MainViewModel @Inject constructor(
 
     // 내 일정 보기 버튼 클릭
     fun buttonMainUserTripList() {
-
+        carryOnApplication.navHostController.navigate(ScreenName.MY_TRIP_PLAN.name)
     }
 
     // 일정 등록 버튼 클릭

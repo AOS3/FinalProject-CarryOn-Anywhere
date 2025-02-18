@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts
 
+// 여행 후기
 // 임시 파일입니다
 // 내용 및 파일 이름 추후 수정
 
