@@ -87,7 +87,7 @@ fun MyPageScreen(navController: NavController) {
             showDialogState = showLogoutDialog,
             title = "로그아웃",
             text = "로그아웃 하시겠습니까?",
-            confirmButtonTitle = "로그아웃 하기",
+            confirmButtonTitle = "로그아웃하기",
             dismissButtonTitle = "취소",
             confirmButtonOnClick = {
                 showLogoutDialog.value = false

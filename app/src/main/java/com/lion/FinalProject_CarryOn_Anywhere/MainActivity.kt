@@ -34,6 +34,10 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mylike.MyLikeScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditMyInfoScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditPwScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPageScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPostsScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyTripPlanScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.AddTripPlanScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.EditPlanPlaceScreen
