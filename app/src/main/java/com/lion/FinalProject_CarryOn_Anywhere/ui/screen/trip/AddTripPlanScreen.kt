@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.model.CameraPosition
@@ -48,6 +49,10 @@ fun AddTripPlanScreen(
     tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
     tripDocumentId: String
 ) {
+    if (!tripDocumentId.isNullOrEmpty()) {
+        tripInfoViewModel.gettingTripData(tripDocumentId)
+    }
+
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
     }
@@ -63,6 +68,7 @@ fun AddTripPlanScreen(
 
     // 여행 날짜 목록 업데이트
     LaunchedEffect(tripInfoViewModel.startDate.value, tripInfoViewModel.endDate.value) {
+        tripInfoViewModel.updateFormattedDates()
         tripInfoViewModel.updateTripDays()
     }
 
@@ -132,22 +138,18 @@ fun AddTripPlanScreen(
                 modifier = Modifier.padding(bottom = 15.dp)
             )
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 15.dp)
             ) {
-                tripInfoViewModel.selectedRegions.forEachIndexed { index, it ->
-                    Text(
-                        text = if (index == tripInfoViewModel.selectedRegions.lastIndex) {
-                            it.text // 마지막 요소일 경우 `/` 제외
-                        } else {
-                            "${it.text} / "
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = GrayColor,
-                    )
-                }
+                Text(
+                    text = tripInfoViewModel.selectRegion.joinToString(" / "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = GrayColor,
+                    maxLines = Int.MAX_VALUE, // 최대 줄 수 제한 없음
+                    overflow = TextOverflow.Clip // 넘치는 텍스트 잘리지 않게
+                )
             }
 
             // Google Map을 감싸는 Box 추가
