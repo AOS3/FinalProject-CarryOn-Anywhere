@@ -28,7 +28,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewMode
 @Composable
 fun TripSearchPlaceScreen(
     tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
-    selectedDay: String
+    selectedDay: String,
+    tripDocumentId: String
 ) {
     LaunchedEffect(tripInfoViewModel.searchTextFieldValue.value) {
         tripInfoViewModel.filterPlaces()
@@ -43,7 +44,7 @@ fun TripSearchPlaceScreen(
                     tripInfoViewModel.filterPlaces()
                 },
                 onBackClick = {
-                    tripInfoViewModel.tripSearchNavigationOnClick()
+                    tripInfoViewModel.tripSearchNavigationOnClick(tripDocumentId)
                 }
             )
         }
@@ -97,7 +98,7 @@ fun TripSearchPlaceScreen(
                             subtitle = place.subtitle,
                             location = place.location,
                             onSelectClick = {
-                                tripInfoViewModel.addPlaceToDay(selectedDay, place) // selectedDay를 인자로 전달
+                                tripInfoViewModel.addPlaceToDay(selectedDay, place, tripDocumentId) // selectedDay를 인자로 전달
                             }
                         )
                     }

@@ -21,7 +21,7 @@ class TripVO {
     // 여행 도착 날짜
     var tripEndDate: Long = 0L
     // 여행 지역 목록
-    var tripCityList= mutableListOf<String>()
+    var tripCityList = mutableListOf<Map<String, Any?>>()
     // 여행 공유 코드
     var tripShareCode: String = ""
     // 여행 생성 시간 (데이터가 들어온 시간)

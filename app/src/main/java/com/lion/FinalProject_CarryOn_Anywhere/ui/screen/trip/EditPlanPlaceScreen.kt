@@ -38,7 +38,8 @@ import org.burnoutcrew.reorderable.reorderable
 fun EditPlanPlaceScreen(
     tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
     selectedDay: String,
-    selectedIndex: Int
+    selectedIndex: Int,
+    tripDocumentId: String
 ) {
     val reorderState = rememberReorderableLazyListState(
         onMove = { from, to ->
@@ -56,13 +57,13 @@ fun EditPlanPlaceScreen(
                 title = "장소 편집",
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-                    tripInfoViewModel.editPlaceNavigationOnClick()
+                    tripInfoViewModel.editPlaceNavigationOnClick(tripDocumentId)
                 },
                 menuItems = {
                     LikeLionIconButton(
                         icon = ImageVector.vectorResource(R.drawable.done_24px),
                         iconButtonOnClick = {
-                            tripInfoViewModel.editPlaceDoneOnClick()
+                            tripInfoViewModel.editPlaceDoneOnClick(tripDocumentId)
                         }
                     )
                 }

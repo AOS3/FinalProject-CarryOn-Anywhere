@@ -40,7 +40,7 @@ fun WriteRequestPlaceScreen(
                 title = "장소 등록 요청하기",
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-
+                    writeRequestPlaceViewModel.requestPlaceNavigationOnClick()
                 },
                 menuItems = {
                     LikeLionIconButton(

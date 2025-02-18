@@ -22,8 +22,13 @@ import java.util.Calendar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectTripDateScreen(
-    tripInfoViewModel: TripInfoViewModel = hiltViewModel()
+    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
+    tripDocumentId: String?
 ) {
+    if (!tripDocumentId.isNullOrEmpty()) {
+        tripInfoViewModel.gettingTripData(tripDocumentId)
+    }
+
     val calendar = Calendar.getInstance()
 
     // 현재 월의 시작과 끝 설정
@@ -48,7 +53,7 @@ fun SelectTripDateScreen(
                 title = "여행 일정 선택",
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-                    tripInfoViewModel.tripDateNavigationOnClick()
+                    tripInfoViewModel.tripDateNavigationOnClick(tripDocumentId ?: "")
                 }
             )
         }
@@ -96,19 +101,35 @@ fun SelectTripDateScreen(
                 )
             )
 
-            // 날짜 선택 완료 버튼 (날짜 업데이트 반영)
-            LikeLionFilledButton(
-                text = if (tripInfoViewModel.endDate.value == null || tripInfoViewModel.formattedStartDate.value == tripInfoViewModel.formattedEndDate.value) {
-                    "${tripInfoViewModel.formattedStartDate.value} 등록완료"
-                } else {
-                    "${tripInfoViewModel.formattedStartDate.value} ~ ${tripInfoViewModel.formattedEndDate.value} 등록완료"
-                },
-                onClick = {
-                    tripInfoViewModel.completeDateOnClick()
-                },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),
-                cornerRadius = 5
-            )
+            if (tripDocumentId.isNullOrEmpty()) {
+                // 새 여행 등록
+                LikeLionFilledButton(
+                    text = if (tripInfoViewModel.endDate.value == null || tripInfoViewModel.formattedStartDate.value == tripInfoViewModel.formattedEndDate.value) {
+                        "${tripInfoViewModel.formattedStartDate.value} 등록완료"
+                    } else {
+                        "${tripInfoViewModel.formattedStartDate.value} ~ ${tripInfoViewModel.formattedEndDate.value} 등록완료"
+                    },
+                    onClick = {
+                        tripInfoViewModel.completeDateOnClick()
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),
+                    cornerRadius = 5
+                )
+            } else {
+                // 기존 여행 일정 수정
+                LikeLionFilledButton(
+                    text = if (tripInfoViewModel.endDate.value == null || tripInfoViewModel.formattedStartDate.value == tripInfoViewModel.formattedEndDate.value) {
+                        "${tripInfoViewModel.formattedStartDate.value} 수정완료"
+                    } else {
+                        "${tripInfoViewModel.formattedStartDate.value} ~ ${tripInfoViewModel.formattedEndDate.value} 등록완료"
+                    },
+                    onClick = {
+                        tripInfoViewModel.updateDateOnClick(tripDocumentId)
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),
+                    cornerRadius = 5
+                )
+            }
         }
     }
 }

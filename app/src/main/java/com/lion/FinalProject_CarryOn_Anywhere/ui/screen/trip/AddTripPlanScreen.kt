@@ -45,7 +45,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewMode
 
 @Composable
 fun AddTripPlanScreen(
-    tripInfoViewModel: TripInfoViewModel = hiltViewModel()
+    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
+    tripDocumentId: String
 ) {
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
@@ -70,7 +71,7 @@ fun AddTripPlanScreen(
             LikeLionTopAppBar(
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-                    tripInfoViewModel.addPlanNavigationOnClick()
+                    tripInfoViewModel.addPlanNavigationOnClick(tripDocumentId)
                 },
                 menuItems = {
                     LikeLionIconButton(
@@ -158,7 +159,7 @@ fun AddTripPlanScreen(
                     cameraPositionState = cameraPositionState,
                     modifier = Modifier.fillMaxSize().padding(bottom = 10.dp),
                     onMapClick = {
-                        tripInfoViewModel.mapOnClick()
+                        tripInfoViewModel.mapOnClick(tripDocumentId)
                     },
                     selectedPlaces = selectedDayPlaces,
                     isAddTripPlan = true
@@ -220,7 +221,7 @@ fun AddTripPlanScreen(
                                         style = MaterialTheme.typography.bodyLarge,
                                         modifier = Modifier
                                             .clickable {
-                                                tripInfoViewModel.editPlaceOnClick(day, index)
+                                                tripInfoViewModel.editPlaceOnClick(day, index, tripDocumentId)
                                             },
                                         textAlign = TextAlign.End,
                                         color = GrayColor,
@@ -261,7 +262,7 @@ fun AddTripPlanScreen(
                             contentColor = Color.Black,
                             cornerRadius = 5,
                             onClick = {
-                                tripInfoViewModel.plusPlaceOnClick(day) // 해당 날짜를 전달
+                                tripInfoViewModel.plusPlaceOnClick(day, tripDocumentId) // 해당 날짜를 전달
                             }
                         )
                     }
@@ -279,7 +280,7 @@ fun AddTripPlanScreen(
                     text2 = "여행 날짜 수정",
                     text2OnClick = {
                         tripInfoViewModel.showBottomSheet.value = false
-                        tripInfoViewModel.dialogEditDateOnClick()
+                        tripInfoViewModel.dialogEditDateOnClick(tripDocumentId)
                     }
                 )
             }
