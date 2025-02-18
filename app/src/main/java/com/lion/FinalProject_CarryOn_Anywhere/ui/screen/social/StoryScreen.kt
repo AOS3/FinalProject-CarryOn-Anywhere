@@ -27,13 +27,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lion.FinalProject_CarryOn_Anywhere.R
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.Post
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.StoryViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Post
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,14 +108,14 @@ fun StoryScreen(
                 items(filteredPosts.size) { index ->
                     PostItem(filteredPosts[index], navController, index)
 
-                    // 마지막 아이템이 아닐 경우 구분선 추가
-                    if (index < filteredPosts.size - 1) {
-                        LikeLionDivider(
-                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
-                            color = Color.LightGray,
-                            thickness = 1.dp
-                        )
-                    }
+//                    // 마지막 아이템이 아닐 경우 구분선 추가
+//                    if (index < filteredPosts.size - 1) {
+//                        LikeLionDivider(
+//                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
+//                            color = Color.LightGray,
+//                            thickness = 1.dp
+//                        )
+//                    }
                 }
             }
         }
@@ -131,7 +130,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp, horizontal = 15.dp)
+            .padding(vertical = 5.dp, horizontal = 15.dp)
             .clickable {
                 navController.navigate("storyDetail/$index")
             }

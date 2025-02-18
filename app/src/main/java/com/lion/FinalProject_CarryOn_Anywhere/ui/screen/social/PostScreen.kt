@@ -37,6 +37,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
@@ -64,48 +66,35 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.PostViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreen(
     navController: NavController,
+    postViewModel: PostViewModel = hiltViewModel(),
     onAddClick: () -> Unit
 ) {
-    val postItems = listOf("여행 후기", "여행 이야기")
-    val chipItems = listOf("전체", "맛집", "숙소", "여행 일정", "모임")
+    val context = LocalContext.current
+
+    val postItems = postViewModel.postItems
+    val chipItems = postViewModel.chipItems
+
     val scrollState = rememberScrollState()
-    val selectedPostChip = remember { mutableStateOf(postItems[0]) }
-    val selectedChip = remember { mutableStateOf(chipItems[0]) }
+    val selectedPostChip = postViewModel.selectedPostChip.collectAsState()
+    val selectedChip = postViewModel.selectedChip.collectAsState()
+    val imageUris = postViewModel.imageUris.collectAsState()
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogBackState = remember { mutableStateOf(false) }
     val showDialogCompleteState = remember { mutableStateOf(false) }
 
-    val imageUris = remember { mutableStateListOf<Uri>() }
-    val context = LocalContext.current
-
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.clipData?.let { clipData ->
-                val selectedImages = mutableListOf<Uri>()
-                val totalSelected = clipData.itemCount // 사용자가 선택한 전체 개수
-
-                for (i in 0 until clipData.itemCount) {
-                    if (selectedImages.size + imageUris.size < 10) { // 최대 10개까지만 추가
-                        selectedImages.add(clipData.getItemAt(i).uri)
-                    }
-                }
-
-                imageUris.addAll(selectedImages)
-
-                // 사용자가 11개 이상 선택한 경우 토스트 메시지 표시
-                if (totalSelected > 10) {
-                    Toast.makeText(context, "한번에 최대 10개의 사진 업로드가 가능합니다.", Toast.LENGTH_SHORT).show()
-                }
+                postViewModel.addImages(clipData, context)
             } ?: result.data?.data?.let { uri ->
-                if (imageUris.size < 10) {
-                    imageUris.add(uri)
-                }
+                postViewModel.addSingleImage(uri)
             }
         }
     }
@@ -152,8 +141,8 @@ fun PostScreen(
             textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
             titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
             textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
-            confirmButtonModifier = Modifier.width(140.dp),
-            dismissButtonModifier = Modifier.width(140.dp)
+            confirmButtonModifier = Modifier.width(120.dp),
+            dismissButtonModifier = Modifier.width(120.dp)
         )
 
         // 다이얼로그 표시
@@ -175,8 +164,8 @@ fun PostScreen(
             textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
             titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
             textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
-            confirmButtonModifier = Modifier.width(140.dp),
-            dismissButtonModifier = Modifier.width(140.dp)
+            confirmButtonModifier = Modifier.width(120.dp),
+            dismissButtonModifier = Modifier.width(120.dp)
         )
 
         // LazyColumn을 사용하여 세로 스크롤 가능하게 변경
@@ -216,7 +205,7 @@ fun PostScreen(
                                 .width(80.dp),
                             cornerRadius = 100,
                             onChipClicked = { text, _ ->
-                                selectedPostChip.value = text
+                                postViewModel.updateSelectedPostChip(text)
                             },
                             onDeleteButtonClicked = null
                         )
@@ -250,7 +239,7 @@ fun PostScreen(
                                     .width(60.dp),
                                 cornerRadius = 100,
                                 onChipClicked = { text, _ ->
-                                    selectedChip.value = text
+                                    postViewModel.updateSelectedPostChip(text)
                                 },
                                 onDeleteButtonClicked = null
                             )
@@ -289,14 +278,14 @@ fun PostScreen(
 
 
                 // 추가한 사진
-                if (imageUris.isNotEmpty()) {
+                if (imageUris.value.isNotEmpty()) {
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 10.dp), // ✅ 좌우 여백 20.dp
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(imageUris.size) { index ->
+                        items(imageUris.value.size) { index ->
                             Box(
                                 modifier = Modifier
                                     .size(90.dp) //
@@ -304,11 +293,11 @@ fun PostScreen(
                             ) {
                                 Box(
                                     modifier = Modifier
-                                        .size(80.dp) // ✅ 원래 이미지 크기 유지
+                                        .size(80.dp)
                                         .clip(RoundedCornerShape(10.dp))
                                 ) {
                                     Image(
-                                        painter = rememberAsyncImagePainter(imageUris[index]),
+                                        painter = rememberAsyncImagePainter(imageUris.value[index]),
                                         contentDescription = "Uploaded Image",
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
@@ -317,7 +306,7 @@ fun PostScreen(
 
                                 // X 버튼
                                 IconButton(
-                                    onClick = { imageUris.removeAt(index) },
+                                    onClick = { postViewModel.removeImage(index) },
                                     modifier = Modifier
                                         .size(20.dp)
                                         .align(Alignment.TopEnd)

@@ -54,17 +54,17 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.StoryViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
 
 @Composable
 fun StoryDetailScreen(
     storyViewModel: StoryViewModel = hiltViewModel(),
-    reviewIndex: Int,
+    storyIndex: Int,
     navController: NavController,
     onAddClick: () -> Unit
 ) {
     val posts by storyViewModel.posts.collectAsState()
-    val post = posts.getOrNull(reviewIndex) ?: return
+    val post = posts.getOrNull(storyIndex) ?: return
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogDeleteState = remember { mutableStateOf(false) }
@@ -89,7 +89,7 @@ fun StoryDetailScreen(
                 menuItems = {
                     Row {
                         IconButton(onClick = {
-                            navController.navigate("modifyScreen/${reviewIndex}")
+                            navController.navigate("modifyScreen/story/$storyIndex")
                         }) {
                             Icon(
                                 imageVector = Icons.Default.ModeEdit,
@@ -126,8 +126,8 @@ fun StoryDetailScreen(
                 textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
                 titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
                 textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
-                confirmButtonModifier = Modifier.width(140.dp),
-                dismissButtonModifier = Modifier.width(140.dp)
+                confirmButtonModifier = Modifier.width(120.dp),
+                dismissButtonModifier = Modifier.width(120.dp)
             )
 
             // 본문 내용 (LazyColumn)
@@ -281,7 +281,7 @@ private fun getNavigationBarHeight(): Float {
 private fun StoryDetailScreenPreview() {
     StoryDetailScreen(
         navController = NavController(LocalContext.current),
-        reviewIndex = 0,
+        storyIndex = 0,
         onAddClick = {}
     )
 }
