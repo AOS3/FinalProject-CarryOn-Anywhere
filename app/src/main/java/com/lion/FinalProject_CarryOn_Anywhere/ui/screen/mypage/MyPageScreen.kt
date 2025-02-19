@@ -8,15 +8,31 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.fontResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.*
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.nanumSquareBold
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.nanumSquareRegular
+
+val nanumSquareFamily = FontFamily(
+    Font(R.font.nanumsquare_1, FontWeight.Normal),
+    Font(R.font.nanumsquare_3, FontWeight.Normal) // XML에서 Button과 DialogTitle에 사용됨
+)
 
 @Composable
 fun MyPageScreen(navController: NavController) {
+
+
+
     val showLogoutDialog = remember { mutableStateOf(false) } // 로그아웃 다이얼로그 상태
+    val showTermsDialog = remember { mutableStateOf(false) } // ✅ 서비스 약관 다이얼로그 상태
 
     Column(
         modifier = Modifier
@@ -55,8 +71,9 @@ fun MyPageScreen(navController: NavController) {
 
                 Text(
                     text = "triponandon 님",
-                    fontSize = 20.sp,
-                    color = Color.Black
+                    fontSize = 22.sp,
+                    color = Color.Black,
+                    fontFamily = nanumSquareBold
                 )
             }
 
@@ -75,8 +92,8 @@ fun MyPageScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 SectionTitle("서비스 약관")
-                MenuItem("서비스 이용 약관") { /* TODO: 약관 화면 이동 */ }
-                MenuItem("개인정보 처리방침") { /* TODO: 개인정보 화면 이동 */ }
+                MenuItem("서비스 이용 약관") { navController.navigate(ScreenName.DOCUMENT_SCREEN.name) }
+                MenuItem("개인정보 처리방침") { navController.navigate(ScreenName.DOCUMENT_SCREEN2.name)  }
             }
         }
     }
@@ -98,6 +115,8 @@ fun MyPageScreen(navController: NavController) {
             }
         )
     }
+
+
 }
 
 // ✅ 섹션 타이틀
@@ -105,9 +124,11 @@ fun MyPageScreen(navController: NavController) {
 fun SectionTitle(title: String) {
     Text(
         text = title,
-        fontSize = 20.sp,
+        fontSize = 21.sp,
         color = Color.DarkGray,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(vertical = 8.dp),
+        fontFamily = nanumSquareRegular,
+
     )
 }
 
@@ -115,11 +136,13 @@ fun SectionTitle(title: String) {
 fun MenuItem(text: String, onClick: () -> Unit) {
     Text(
         text = text,
-        fontSize = 14.sp,
+        fontSize = 17.sp,
         color = Color.Black,
+        fontFamily = nanumSquareRegular,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 10.dp)
             .clickable { onClick() }
     )
 }
+

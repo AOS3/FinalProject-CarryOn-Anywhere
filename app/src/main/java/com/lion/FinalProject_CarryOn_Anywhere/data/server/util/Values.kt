@@ -50,7 +50,11 @@ enum class ScreenName{
     // 내 일정 화면
     MY_TRIP_PLAN,
     // 나의 찜 화면
-    MY_LIKE
+    MY_LIKE,
+    // 이용약관
+    DOCUMENT_SCREEN,
+    // 개인정보 처리 방침
+    DOCUMENT_SCREEN2,
 
 }
 
