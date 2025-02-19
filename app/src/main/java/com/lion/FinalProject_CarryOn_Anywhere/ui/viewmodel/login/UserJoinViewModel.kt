@@ -15,8 +15,10 @@ import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.auth
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +31,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UserJoinViewModel
     @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
 ) : ViewModel() {
 
     val carryOnApplication = context as CarryOnApplication
@@ -38,7 +40,7 @@ class UserJoinViewModel
     val textFieldUserJoinIdValue = mutableStateOf("")
     // 비밀번호 입력 요소
     val textFieldUserJoinPwValue = mutableStateOf("")
-    // 비밀번호 입력 요소
+    // 비밀번호 확인 입력 요소
     val textFieldUserJoinCheckPwValue = mutableStateOf("")
     // 이름 입력 요소
     val textFieldUserJoinNameValue = mutableStateOf("")
@@ -49,6 +51,8 @@ class UserJoinViewModel
 
     // 아이디 중복 확인 여부
     val isCheckId = mutableStateOf(false)
+    // 인증 여부
+    val isCheckAuth = mutableStateOf(false)
 
     // 조건 충족 여부 상태
     // 8자 이상
@@ -70,10 +74,26 @@ class UserJoinViewModel
     val showDialogAuthNo = mutableStateOf(false)
     val showDialogJoinOk = mutableStateOf(false)
 
+    // 버튼 활성화 상태 변수
     val isButtonUserJoinIdEnabled = mutableStateOf(false)
     val isButtonUserJoinPhoneNoEnabled = mutableStateOf(false)
     val isButtonUserJoinAuthNoEnabled = mutableStateOf(false)
     val isButtonUserJoinJoinEnabled = mutableStateOf(false)
+
+    // 에러 메시지
+    val textFieldUserJoinIdErrorText = mutableStateOf("")
+    val textFieldUserJoinPwErrorText = mutableStateOf("")
+    val textFieldUserJoinCheckPwErrorText = mutableStateOf("")
+    val textFieldUserJoinNameErrorText = mutableStateOf("")
+    val textFieldUserJoinPhoneNoErrorText = mutableStateOf("")
+    val textFieldUserJoinPhoneAuthNumberErrorText = mutableStateOf("")
+
+    val textFieldUserJoinIdError = mutableStateOf(false)
+    val textFieldUserJoinPwError = mutableStateOf(false)
+    val textFieldUserJoinNameError = mutableStateOf(false)
+    val textFieldUserJoinCheckPwError = mutableStateOf(false)
+    val textFieldUserJoinPhoneNoError = mutableStateOf(false)
+    val textFieldUserJoinPhoneAuthNumberError = mutableStateOf(false)
 
     // 휴대폰 인증
     lateinit var auth: FirebaseAuth
@@ -86,13 +106,6 @@ class UserJoinViewModel
         carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name) {
             launchSingleTop = true
         }
-    }
-
-    // 입력 필드 체크하는 메서드
-    fun joinIdPwCondition() {
-        val id = textFieldUserJoinIdValue.value
-        val pw = textFieldUserJoinPwValue.value
-
     }
 
     init {
@@ -152,6 +165,12 @@ class UserJoinViewModel
 
     // 인증 코드 전송 메서드
     fun sendVerificationCode(phoneNumber: String, context: Context) {
+        val formattedPhoneNumber = if (phoneNumber.startsWith("0")) {
+            "+82" + phoneNumber.substring(1) // 01012345678 → +821012345678
+        } else {
+            phoneNumber
+        }
+
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
                 signInWithCredential(credential, context)
@@ -171,18 +190,23 @@ class UserJoinViewModel
         auth = FirebaseAuth.getInstance()
 
         val activity = context as? Activity ?: run {
-            Log.e("FirebaseAuth", "Activity를 찾을 수 없음") // ✅ 로그만 남기고 실행 중단
+            Log.e("FirebaseAuth", "Activity를 찾을 수 없음")
             return
         }
 
         val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(phoneNumber) // Phone number to verify
+            .setPhoneNumber(formattedPhoneNumber) // Phone number to verify
             .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
             .setActivity(activity) // Activity (for callback binding)
             .setCallbacks(callbacks) // Callbacks
             .build()
 
         PhoneAuthProvider.verifyPhoneNumber(options)
+    }
+
+    // 인증요청 버튼 활성화 메서드
+    fun updateCheckAuthButtonState() {
+        isButtonUserJoinAuthNoEnabled.value = textFieldUserJoinAuthNumberValue.value.isNotBlank()
     }
 
     // 인증 확인 버튼을 눌렀을 때
@@ -196,14 +220,142 @@ class UserJoinViewModel
 
         val credential = PhoneAuthProvider.getCredential(verificationId, code)
 
-        signInWithCredential(credential, context)
+        // signInWithCredential(credential, context)
+
+        // Firebase 인증 진행 (이전 signInWithCredential 함수 대체)
+        FirebaseAuth.getInstance().signInWithCredential(credential)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // 인증 성공
+                    isCheckAuth.value = true
+                    showDialogAuthOk.value = true
+                } else {
+                    // 인증 실패
+                    textFieldUserJoinAuthNumberValue.value = ""
+                    isCheckAuth.value = false
+                    showDialogAuthNo.value = true
+                }
+            }
     }
 
 
     // 가입 완료 버튼을 눌렀을 때
-    fun buttonUserJoinSubmitOnClick(){
-        showDialogAuthOk.value = true
+    fun buttonUserJoinSubmitOnClick() {
+        var isError = false
 
+        // 아이디 입력 여부 확인
+        if (textFieldUserJoinIdValue.value.isBlank()) {
+            textFieldUserJoinIdErrorText.value = "아이디를 입력해주세요."
+            textFieldUserJoinIdError.value = true
+            isError = true
+        } else if (!isCheckId.value) {
+            textFieldUserJoinIdErrorText.value = "아이디를 중복확인해주세요."
+            textFieldUserJoinIdError.value = true
+            isError = true
+        } else {
+            textFieldUserJoinIdErrorText.value = ""
+            textFieldUserJoinIdError.value = false
+        }
+
+        // 비밀번호 검증
+        val password = textFieldUserJoinPwValue.value
+        val confirmPassword = textFieldUserJoinCheckPwValue.value
+
+        if (password.isBlank()) {
+            textFieldUserJoinPwErrorText.value = "비밀번호를 입력해주세요."
+            textFieldUserJoinPwError.value = true
+            isError = true
+        } else if (password.length < 8) {
+            textFieldUserJoinPwErrorText.value = "비밀번호는 8자 이상이어야 합니다."
+            textFieldUserJoinPwError.value = true
+            isError = true
+        } else {
+            textFieldUserJoinPwErrorText.value = ""
+            textFieldUserJoinPwError.value = false
+        }
+
+        // 비밀번호 확인 검증
+        if (confirmPassword.isBlank()) {
+            textFieldUserJoinCheckPwErrorText.value = "비밀번호 확인을 입력해주세요."
+            textFieldUserJoinCheckPwError.value = true
+            isError = true
+        } else if (password != confirmPassword) {
+            textFieldUserJoinCheckPwErrorText.value = "비밀번호를 동일하게 입력해주세요."
+            textFieldUserJoinCheckPwError.value = true
+            isError = true
+        } else {
+            textFieldUserJoinCheckPwErrorText.value = ""
+            textFieldUserJoinCheckPwError.value = false
+        }
+
+        // 이름 입력 여부 확인
+        if (textFieldUserJoinNameValue.value.isBlank()) {
+            textFieldUserJoinNameErrorText.value = "이름을 입력해주세요."
+            textFieldUserJoinNameError.value = true
+            isError = true
+        } else {
+            textFieldUserJoinNameErrorText.value = ""
+            textFieldUserJoinNameError.value = false
+        }
+
+        // 휴대폰 입력 여부 확인
+        if (textFieldUserJoinPhoneValue.value.isBlank()) {
+            textFieldUserJoinPhoneNoErrorText.value = "핸드폰 번호를 입력해주세요."
+            textFieldUserJoinPhoneNoError.value = true
+            isError = true
+        } else {
+            textFieldUserJoinPhoneNoErrorText.value = ""
+            textFieldUserJoinPhoneNoError.value = false
+        }
+
+        // 인증번호 입력 여부 확인
+        if (textFieldUserJoinAuthNumberValue.value.isBlank()) {
+            textFieldUserJoinPhoneAuthNumberErrorText.value = "인증번호를 입력해주세요."
+            textFieldUserJoinPhoneAuthNumberError.value = true
+            isError = true
+        } else {
+            textFieldUserJoinPhoneAuthNumberErrorText.value = ""
+            textFieldUserJoinPhoneAuthNumberError.value = false
+        }
+
+        // 에러가 있으면 가입 진행 불가
+        if (isError) return
+
+        // 모든 조건 충족 → 사용자 데이터 저장
+        saveUserData()
+    }
+
+    // 가입 성공하여 입력된 데이터를 UserData에 추가하는 메서드
+    fun saveUserData() {
+        // 저장할 데이터를 추출
+        val userModel = UserModel()
+
+        userModel.userId = textFieldUserJoinIdValue.value
+        userModel.userPw = textFieldUserJoinPwValue.value
+        userModel.userName = textFieldUserJoinNameValue.value
+        userModel.userPhoneNumber = textFieldUserJoinPhoneValue.value
+        userModel.userTimeStamp = System.nanoTime()
+        userModel.userImage = "none"
+        userModel.userState = UserState.USER_STATE_NORMAL
+
+        // 저장
+        // 저장한다.
+        CoroutineScope(Dispatchers.Main).launch {
+            val work1 = async(Dispatchers.IO){
+                UserService.addUserData(userModel)
+            }
+            work1.join()
+
+            // 다이얼로그 표시
+            showDialogJoinOk.value = true
+
+            if (showDialogJoinOk.value == false) {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.popBackStack(ScreenName.USER_JOIN_SCREEN.name, inclusive = true)
+                carryOnApplication.navHostController.navigate("login")
+            }
+
+        }
     }
 
     // 가입 완료 후 로그인 화면으로 이동

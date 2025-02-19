@@ -50,7 +50,10 @@ enum class ScreenName{
     // 내 일정 화면
     MY_TRIP_PLAN,
     // 나의 찜 화면
-    MY_LIKE
+    MY_LIKE,
+
+    // 시작 화면 (Splash)
+    START_SCREEN
 
 }
 

@@ -18,6 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -67,7 +70,7 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 // 가입 완료 버튼
                 LikeLionFilledButton(
                     text = "가입 완료",
-                    //isEnabled = userJoinViewModel.isButtonJoinEnabled.value,
+                    //isEnabled = userJoinViewModel.isButtonUserJoinJoinEnabled.value,
                     isEnabled = true,
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -115,8 +118,11 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                         userJoinViewModel.updateCheckIdButtonState()
                     },
                     singleLine = true,
+                    isError = userJoinViewModel.textFieldUserJoinIdError,
+                    supportText = userJoinViewModel.textFieldUserJoinIdErrorText,
                     onValueChange = {
                         userJoinViewModel.updateCheckIdButtonState()
+                        userJoinViewModel.updateUserJoinButtonState()
                     },
                 )
 
@@ -152,6 +158,8 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 onValueChange = {
                     userJoinViewModel.updateUserJoinButtonState()
                 },
+                isError = userJoinViewModel.textFieldUserJoinPwError,
+                supportText = userJoinViewModel.textFieldUserJoinPwErrorText,
             )
 
             // 비밀번호 확인 텍스트 필드
@@ -169,6 +177,8 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 onValueChange = {
                     userJoinViewModel.updateUserJoinButtonState()
                 },
+                isError = userJoinViewModel.textFieldUserJoinCheckPwError,
+                supportText = userJoinViewModel.textFieldUserJoinCheckPwErrorText,
             )
 
             LikeLionDivider(
@@ -192,8 +202,10 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 },
                 singleLine = true,
                 onValueChange = {
-                    userJoinViewModel.updateCheckIdButtonState()
+                    userJoinViewModel.updateUserJoinButtonState()
                 },
+                isError = userJoinViewModel.textFieldUserJoinNameError,
+                supportText = userJoinViewModel.textFieldUserJoinNameErrorText,
             )
 
             Row(
@@ -220,6 +232,8 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                     onValueChange = {
                         userJoinViewModel.updateSendAutoButtonState()
                     },
+                    isError = userJoinViewModel.textFieldUserJoinPhoneNoError,
+                    supportText = userJoinViewModel.textFieldUserJoinPhoneNoErrorText,
                 )
 
                 // 인증 요청 버튼
@@ -250,11 +264,11 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
                 inputType = LikeLionOutlinedTextFieldInputType.NUMBER,
                 onTrailingIconClick = {
-                    userJoinViewModel.updateCheckIdButtonState()
+                    userJoinViewModel.updateCheckAuthButtonState()
                 },
                 singleLine = true,
                 onValueChange = {
-                    userJoinViewModel.updateCheckIdButtonState()
+                    userJoinViewModel.updateCheckAuthButtonState()
                 },
             )
 
@@ -265,13 +279,13 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp),
-                paddingTop = 10.dp,
+                paddingTop = 7.dp,
                 onClick = {
                     userJoinViewModel.buttonCheckAuthOnClick(context)
                 },
                 cornerRadius = 5,
                 containerColor = SubColor,
-                buttonHeight = 60.dp,
+                buttonHeight = 50.dp,
             )
 
             // ---------------------------- Dialog ------------------------
@@ -295,12 +309,12 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
 
             // Dialog - 사용할 수 없는 아이디인 경우
             LikeLionAlertDialog(
-                showDialogState = userJoinViewModel.showDialogIdOk,
+                showDialogState = userJoinViewModel.showDialogIdNo,
                 title = "중복 확인",
                 text = "사용할 수 없는 아이디 입니다.",
                 confirmButtonTitle = "확인",
                 confirmButtonOnClick = {
-                    userJoinViewModel.showDialogIdOk.value = false
+                    userJoinViewModel.showDialogIdNo.value = false
                 },
                 titleAlign = TextAlign.Center, // 제목 중앙 정렬
                 textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
@@ -327,14 +341,13 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 dismissButtonModifier = Modifier.width(140.dp)
             )
 
-            // Dialog - 가입 완료
             LikeLionAlertDialog(
-                showDialogState = userJoinViewModel.showDialogJoinOk,
-                title = "가입 완료",
-                text = "가입이 완료되었습니다.\n로그인을 진행해주세요 ",
+                showDialogState = userJoinViewModel.showDialogAuthOk,
+                title = "인증 성공",
+                text = "인증이 완료되었습니다.",
                 confirmButtonTitle = "확인",
                 confirmButtonOnClick = {
-                    userJoinViewModel.moveToLoginScreen()
+                    userJoinViewModel.showDialogAuthOk.value = false
                 },
                 titleAlign = TextAlign.Center, // 제목 중앙 정렬
                 textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
@@ -344,13 +357,15 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 dismissButtonModifier = Modifier.width(140.dp)
             )
 
+            // Dialog - 가입 완료
             LikeLionAlertDialog(
-                showDialogState = userJoinViewModel.showDialogAuthOk,
-                title = "인증 성공",
-                text = "인증이 완료되었습니다.",
+                showDialogState = userJoinViewModel.showDialogJoinOk,
+                title = "가입 완료",
+                text = "가입이 완료되었습니다." +
+                        "로그인을 진행해주세요 ",
                 confirmButtonTitle = "확인",
                 confirmButtonOnClick = {
-                    userJoinViewModel.showDialogAuthOk.value = false
+                    userJoinViewModel.moveToLoginScreen()
                 },
                 titleAlign = TextAlign.Center, // 제목 중앙 정렬
                 textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬

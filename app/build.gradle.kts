@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,10 @@ plugins {
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+}
+
+val properties = Properties().apply {
+    load(rootProject.file("local.properties").inputStream())
 }
 
 android {
@@ -19,7 +25,11 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "KAKAO_API_KEY", "\"${properties["KAKAO_API_KEY"]}\"")
+        resValue("string", "KAKAO_REDIRECT_URI", "\"${properties["KAKAO_REDIRECT_URI"]}\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -40,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -94,7 +105,11 @@ dependencies {
 
     // Authentication
     implementation("com.google.firebase:firebase-auth")
+    implementation ("com.google.firebase:firebase-analytics-ktx")
     implementation ("com.google.firebase:firebase-appcheck-safetynet:16.1.2")
+
+    // 카카오 SDK
+    implementation("com.kakao.sdk:v2-user:2.20.6")
 }
 kapt {
     correctErrorTypes = true

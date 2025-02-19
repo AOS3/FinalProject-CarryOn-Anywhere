@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,13 +22,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.R
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.login.LoginViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionCheckBox
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
@@ -53,6 +58,8 @@ fun LoginScreen(
     LaunchedEffect(Unit) {
         windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
     }
+
+    val activity = LocalContext.current as Activity
 
     Scaffold(
 
@@ -132,6 +139,8 @@ fun LoginScreen(
                 onValueChange = {
                     loginViewModel.isButtonEnabled
                 },
+                isError = loginViewModel.textFieldLoginIdError,
+                supportText = loginViewModel.textFieldLoginIdErrorText
             )
 
             // 비밀번호 텍스트 필드
@@ -149,6 +158,8 @@ fun LoginScreen(
                 onValueChange = {
                     loginViewModel.updateButtonState()
                 },
+                isError = loginViewModel.textFieldLoginPwError,
+                supportText = loginViewModel.textFieldLoginPwErrorText
             )
 
             Row(
@@ -163,9 +174,6 @@ fun LoginScreen(
                     checkedValue = loginViewModel.isAutoLoginEnabled,
                     checkedColor = MainColor,
                     uncheckedColor = Color.LightGray,
-                    onCheckedChange = {
-                        loginViewModel.isAutoLoginEnabled.value = !loginViewModel.isAutoLoginEnabled.value
-                    },
                     modifier = Modifier,
                     textModifier = Modifier
                         .padding(start = 5.dp),
@@ -271,7 +279,26 @@ fun LoginScreen(
                     .height(50.dp)
                     .clickable {
                         // TODO : 카카오 로그인 이벤트 처리
+                        loginViewModel.loginWithKakao(activity)
                     },
+            )
+
+            // ------------------------- Dialog --------------------
+            // Dialog - 탈퇴한 회원
+            LikeLionAlertDialog(
+                showDialogState = loginViewModel.alertDialogLoginSignOutError,
+                title = "로그인 실패",
+                text = "탈퇴한 회원입니다.\n문의해주세요.",
+                confirmButtonTitle = "확인",
+                confirmButtonOnClick = {
+                    loginViewModel.alertDialogLoginSignOutError.value = false
+                },
+                titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                confirmButtonModifier = Modifier.width(140.dp),
+                dismissButtonModifier = Modifier.width(140.dp),
             )
         }
     }
