@@ -33,11 +33,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +70,10 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.PostViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,35 +82,59 @@ fun PostScreen(
     postViewModel: PostViewModel = hiltViewModel(),
     onAddClick: () -> Unit
 ) {
+    // 로딩 상태 감지
+    val isLoading by postViewModel.isLoading.collectAsState()
     val context = LocalContext.current
 
     val postItems = postViewModel.postItems
     val chipItems = postViewModel.chipItems
 
     val scrollState = rememberScrollState()
+
     val selectedPostChip = postViewModel.selectedPostChip.collectAsState()
     val selectedChip = postViewModel.selectedChip.collectAsState()
+
+    val textState = remember { mutableStateOf("") }
+    val contentState = remember { mutableStateOf("") }
     val imageUris = postViewModel.imageUris.collectAsState()
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogBackState = remember { mutableStateOf(false) }
     val showDialogCompleteState = remember { mutableStateOf(false) }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.clipData?.let { clipData ->
-                postViewModel.addImages(clipData, context)
-            } ?: result.data?.data?.let { uri ->
-                postViewModel.addSingleImage(uri)
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.clipData?.let { clipData ->
+                    postViewModel.addImages(clipData, context)
+                } ?: result.data?.data?.let { uri ->
+                    postViewModel.addSingleImage(uri)
+                }
             }
         }
-    }
 
-    Column (
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White) // 배경색을 흰색으로 설정
     ) {
+//        // Firestore에서 데이터를 저장하는 동안 로딩 화면 표시
+//        if (isLoading) {
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(Color.White.copy(alpha = 0.8f)),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//                    // 로딩 애니메이션 추가
+//                    CircularProgressIndicator(color = SubColor)
+//                    Spacer(modifier = Modifier.height(10.dp))
+//                    Text("게시글을 저장하는 중...", color = Color.Gray)
+//                }
+//            }
+//        }
+
         // 상단 AppBar
         LikeLionTopAppBar(
             title = "글 작성",
@@ -145,34 +176,83 @@ fun PostScreen(
             dismissButtonModifier = Modifier.width(120.dp)
         )
 
-        // 다이얼로그 표시
         LikeLionAlertDialog(
             showDialogState = showDialogCompleteState,
             title = "글을 게시하겠습니까?",
-            text = "게시된 글은 마이 페이지 및 게시판에서\n" +
-                    "확인 가능합니다.",
+            text = "게시된 글은 마이 페이지 및 게시판에서\n확인 가능합니다.",
             confirmButtonTitle = "게시",
             confirmButtonOnClick = {
+                val title = textState.value.trim()
+                val content = contentState.value.trim()
+                val imageUrisList = imageUris.value
+
+                val isImageRequired = selectedPostChip.value == "여행 후기"
+                val isTitleAndContentFilled = title.isNotEmpty() && content.isNotEmpty()
+                val isImageFilled = imageUrisList.isNotEmpty() || !isImageRequired
+
+                if (!isTitleAndContentFilled) {
+                    Toast.makeText(context, "제목과 내용을 모두 입력해주세요!", Toast.LENGTH_SHORT).show()
+                } else if (!isImageFilled) {
+                    Toast.makeText(context, "여행 후기는 최소 1개의 이미지를 첨부해야 합니다.", Toast.LENGTH_SHORT)
+                        .show()
+                } else {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val uploadedImageUrls =
+                            if (imageUrisList.isNotEmpty()) {
+                                PostViewModel.ImageUploader.uploadImages(imageUrisList)
+                            } else {
+                                emptyList() // 여행 이야기에서는 이미지 없어도 가능
+                            }
+
+                        withContext(Dispatchers.Main) {
+                            if (!isImageRequired || uploadedImageUrls.isNotEmpty()) {
+                                // Firestore에 저장
+                                postViewModel.savePost(
+                                    title = title,
+                                    content = content,
+                                    userDocumentId = "sampleUserDocId",
+                                    imageUrls = uploadedImageUrls
+                                )
+                                Toast.makeText(
+                                    context,
+                                    "${selectedPostChip.value} 게시 완료!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                navController.popBackStack()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "여행 후기는 최소 1개의 이미지를 첨부해야 합니다.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                }
+
                 showDialogCompleteState.value = false
-                navController.popBackStack()
             },
             dismissButtonTitle = "취소",
             dismissButtonOnClick = {
                 showDialogCompleteState.value = false
             },
-            titleAlign = TextAlign.Center, // 제목 중앙 정렬
-            textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
-            titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
-            textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+            titleAlign = TextAlign.Center,
+            textAlign = TextAlign.Center,
+            titleModifier = Modifier.fillMaxWidth(),
+            textModifier = Modifier.fillMaxWidth(),
             confirmButtonModifier = Modifier.width(120.dp),
             dismissButtonModifier = Modifier.width(120.dp)
         )
+
 
         // LazyColumn을 사용하여 세로 스크롤 가능하게 변경
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+                .padding(
+                    bottom = WindowInsets.navigationBars.asPaddingValues()
+                        .calculateBottomPadding()
+                ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
@@ -239,7 +319,7 @@ fun PostScreen(
                                     .width(60.dp),
                                 cornerRadius = 100,
                                 onChipClicked = { text, _ ->
-                                    postViewModel.updateSelectedPostChip(text)
+                                    postViewModel.updateSelectedChip(text)
                                 },
                                 onDeleteButtonClicked = null
                             )
@@ -254,7 +334,6 @@ fun PostScreen(
                 )
 
                 // 기본 텍스트 입력 필드 (제목)
-                val textState = remember { mutableStateOf("") }
                 LikeLionOutlinedTextField(
                     textFieldValue = textState,
                     label = "제목",
@@ -340,7 +419,10 @@ fun PostScreen(
                     cornerRadius = 10,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 7.dp),
                     onClick = {
-                        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                        val intent = Intent(
+                            Intent.ACTION_PICK,
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        ).apply {
                             type = "image/*"
                             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true) // 다중 선택 허용
                         }
@@ -355,7 +437,6 @@ fun PostScreen(
                 )
 
                 // 여러 줄 입력 필드 (내용 입력)
-                val contentState = remember { mutableStateOf("") }
                 LikeLionOutlinedTextField(
                     textFieldValue = contentState,
                     label = "내용",
