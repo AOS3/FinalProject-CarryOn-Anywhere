@@ -1,7 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.model
 
 import com.google.firebase.Timestamp
-import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.PlanVO
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
 

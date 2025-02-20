@@ -64,4 +64,5 @@ interface TourAPIInterface {
         @Query("MobileApp") mobileApp: String = "AppTest",
         @Query("_type") type: String = "json",
     ): Response<TourApiModel.TouristSpotResponse>
+
 }

@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionIconButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
@@ -53,21 +54,20 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewM
 @Composable
 fun PlaceInfoScreen(
     navController: NavController,
-    title: String,
+    contentId: String,
     placeSearchViewModel: PlaceSearchViewModel,
     placeInfoViewModel: PlaceInfoViewModel = hiltViewModel(),
 ) {
-
-    val place by placeInfoViewModel.placeDetail.collectAsState()
 
     // 찜 버튼 상태
     var isFavorite by remember { mutableStateOf(false) }
 
     // 검색된 장소 정보를 ViewModel에 설정
-    LaunchedEffect(title) {
-        println("Loading place info for title: $title")
-        placeInfoViewModel.settingPlaceInfo(title, placeSearchViewModel)
+    LaunchedEffect(contentId) {
+        placeInfoViewModel.fetchPlaceInfo(contentId)
     }
+
+    val placeDetail by placeInfoViewModel.placeDetail.collectAsState()
 
     Scaffold(
         topBar = {
@@ -93,7 +93,7 @@ fun PlaceInfoScreen(
             contentPadding = PaddingValues(bottom = 60.dp)
         ) {
             item {
-                place?.let {
+                placeDetail?.let { place ->
                     Column {
                         // 장소 이름 + 대분류 (카테고리)
                         Row(
@@ -104,7 +104,7 @@ fun PlaceInfoScreen(
                                 )
                         ) {
                             Text(
-                                text = it.title,
+                                text = place["title"] as String,
                                 style = Typography.titleLarge,
 
                             )
@@ -112,7 +112,7 @@ fun PlaceInfoScreen(
                             Spacer(modifier = Modifier.height(20.dp))
 
                             Text(
-                                text = "${it.category}",
+                                text = place["contentTypeId"] as String,
                                 style = Typography.titleMedium,
                                 color = GrayColor,
                                 modifier = Modifier
@@ -129,8 +129,8 @@ fun PlaceInfoScreen(
                             contentAlignment = Alignment.BottomEnd
                         ) {
                             // 장소 이미지
-                            Image(
-                                painter = painterResource(id = it.imageRes ?: R.drawable.sampleplace1),
+                            AsyncImage(
+                                model = place["imageRes"] as String,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -168,20 +168,20 @@ fun PlaceInfoScreen(
                             color = SubTextColor
                         )
                         Text(
-                            text = "${it.address}",
+                            text = place["address"] as String,
                             color = Color.Black
                         )
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // 대분류 (카테고리)
+                        // 연락처
                         Text(
                             text = "연락처",
                             style = Typography.labelLarge,
                             color = SubTextColor
                         )
                         Text(
-                            text = "${it.call}",
+                            text = place["call"] as String,
                             color = Color.Black
                         )
 
@@ -195,7 +195,7 @@ fun PlaceInfoScreen(
                             color = SubTextColor
                         )
                         Text(
-                            text = "${it.content}",
+                            text = place["content"] as String,
                             color = Color.Black
                         )
                     }

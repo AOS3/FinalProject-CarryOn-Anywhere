@@ -1,11 +1,12 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -13,6 +14,8 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -26,6 +29,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionSearchTopAppBarT
 import com.lion.FinalProject_CarryOn_Anywhere.component.PlaceSearchListItem
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun PlaceSearchScreen(
@@ -35,14 +39,23 @@ fun PlaceSearchScreen(
 
     // 키보드 컨트롤러
     val keyboardController = LocalSoftwareKeyboardController.current
+    val listState = rememberLazyListState()
 
-    // 검색 화면 진입 시 자동으로 키보드 올리기
-    LaunchedEffect(Unit) {
-        keyboardController?.show()
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex + listState.layoutInfo.visibleItemsInfo.size }
+            .distinctUntilChanged()
+            .collect { lastVisibleItemIndex ->
+                val totalItemCount = listState.layoutInfo.totalItemsCount
+                Log.d("SCROLL_EVENT", "스크롤 감지됨: 마지막 인덱스 = $lastVisibleItemIndex, 전체 개수 = $totalItemCount")
+
+                if (totalItemCount > 0 && lastVisibleItemIndex >= totalItemCount - 3) {
+                    placeSearchViewModel.fetchNextPage()
+                }
+            }
     }
 
     // 검색어 입력 전
-    val isSearchEmpty = placeSearchViewModel.searchValue.value.isEmpty()
+    //val isSearchEmpty = placeSearchViewModel.searchValue.value.isEmpty()
 
     Scaffold(
         topBar = {
@@ -51,7 +64,6 @@ fun PlaceSearchScreen(
                 textFieldValue = placeSearchViewModel.searchValue,
                 onSearchTextChange = {
                     placeSearchViewModel.searchValue.value = it
-                    placeSearchViewModel.performSearch()
                 },
                 onSearchClick = {
                     placeSearchViewModel.searchAndHideKeyboard(keyboardController)
@@ -82,19 +94,14 @@ fun PlaceSearchScreen(
                     .fillMaxWidth()
             )
 
-            Row(
-
-            ) {
-
-            }
-
             // 검색 리스트
             LikeLionPlaceSearchList(
-                dataList = placeSearchViewModel.placeSearchList,
+                dataList = placeSearchViewModel.placeSearchList.collectAsState().value.toMutableList(),
+                listState = listState,
+                isLoading = placeSearchViewModel.isLoading.collectAsState().value,
                 rowComposable = { place ->
-                    // 검색 아이템
                     PlaceSearchListItem(
-                        place = place as Map<String, Any>,
+                        place = place,
                         icon = if (placeSearchViewModel.isFavoriteEnable.value)
                             Icons.Filled.Favorite
                         else
@@ -107,8 +114,8 @@ fun PlaceSearchScreen(
                     )
                 },
                 onRowClick = { place ->
-                    val title = (place as Map<String, Any>)["title"] as String
-                    navController.navigate("${ScreenName.PLACE_INFO_SCREEN.name}/$title")
+                    val contentId = (place as Map<String, Any>)["contentid"] as String
+                    navController.navigate("${ScreenName.PLACE_INFO_SCREEN.name}/$contentId")
                 }
             )
         }

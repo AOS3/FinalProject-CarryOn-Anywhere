@@ -11,22 +11,32 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -45,11 +55,16 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubTextColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.nanumSquareExtraBold
 
 @Composable
 fun LoginScreen(
     windowInsetsController:WindowInsetsControllerCompat,
     loginViewModel: LoginViewModel = hiltViewModel()) {
+
+    // 키보드 포커스 상태
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(windowInsetsController) {
         windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
@@ -79,7 +94,8 @@ fun LoginScreen(
                 Text(
                     text = "둘러보기",
                     color = SubTextColor,
-                    style = Typography.bodyLarge,
+                    style = Typography.bodySmall,
+                    fontSize = 13.sp,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier
                         .padding(end = 10.dp)
@@ -96,31 +112,44 @@ fun LoginScreen(
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(it)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 20.dp)
+                .imePadding(),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+
+            Spacer(modifier = Modifier.height(50.dp))
+
             // 로고 이미지
             LikeLionImage(
-                painter = painterResource(id = R.drawable.carryonlogo),
+                painter = painterResource(id = R.drawable.carryonslogan),
                 modifier = Modifier
-                    .size(150.dp)
-                    .padding(vertical = 5.dp),
+                    .width(300.dp),
                 contentScale = ContentScale.Fit,
                 isCircular = false,
             )
 
+            Spacer(modifier = Modifier.height(20.dp))
+
             // 홍보 문구
             Text(
-                text = "지금 CarryOn에서\n일정을 공유해보세요!",
-                style = Typography.headlineMedium,
+                text = buildAnnotatedString {
+                    append("✈️ 지금 ")
+                    withStyle(style = SpanStyle(fontFamily = nanumSquareExtraBold)) {
+                        append("CarryOn")
+                    }
+                    append("에서 ")
+                    withStyle(style = SpanStyle(fontFamily = nanumSquareExtraBold)) {
+                        append("일정을 공유")
+                    }
+                    append("해보세요!")
+                },
+                //style = Typography.headlineMedium,
                 color = SubColor,
                 modifier = Modifier
-                    .padding(
-                        top = 5.dp,
-                        bottom = 5.dp
-                    )
+                    .padding(top = 20.dp),
             )
+
 
             // 아이디 텍스트 필드
             LikeLionOutlinedTextField(
@@ -128,7 +157,8 @@ fun LoginScreen(
                 label = "아이디",
                 placeHolder = "아이디",
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 paddingTop = 10.dp,
                 inputCondition = "[^a-zA-Z0-9_]",
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
@@ -140,7 +170,11 @@ fun LoginScreen(
                     loginViewModel.isButtonEnabled
                 },
                 isError = loginViewModel.textFieldLoginIdError,
-                supportText = loginViewModel.textFieldLoginIdErrorText
+                supportText = loginViewModel.textFieldLoginIdErrorText,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions.Default
             )
 
             // 비밀번호 텍스트 필드
@@ -150,7 +184,8 @@ fun LoginScreen(
                 label = "비밀번호",
                 placeHolder = "비밀번호",
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 inputCondition = "[^a-zA-Z0-9_]",
                 inputType = LikeLionOutlinedTextFieldInputType.PASSWORD,
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
@@ -159,13 +194,20 @@ fun LoginScreen(
                     loginViewModel.updateButtonState()
                 },
                 isError = loginViewModel.textFieldLoginPwError,
-                supportText = loginViewModel.textFieldLoginPwErrorText
+                supportText = loginViewModel.textFieldLoginPwErrorText,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                    }
+                ),
             )
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 0.dp),
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 자동 로그인 체크박스
@@ -175,9 +217,8 @@ fun LoginScreen(
                     checkedColor = MainColor,
                     uncheckedColor = Color.LightGray,
                     modifier = Modifier,
-                    textModifier = Modifier
-                        .padding(start = 5.dp),
-                    )
+                    textModifier = Modifier,
+                )
             }
 
             LikeLionFilledButton(
@@ -199,12 +240,12 @@ fun LoginScreen(
                 modifier = Modifier
                     .padding(
                         top = 30.dp,
-                        bottom = 20.dp)
+                        bottom = 10.dp)
             ) {
                 Text(
                     text = "회원가입",
                     color = SubTextColor,
-                    style = Typography.bodyLarge,
+                    style = Typography.bodySmall,
                     modifier = Modifier
                         .padding(end = 10.dp)
                         .clickable {
@@ -215,13 +256,13 @@ fun LoginScreen(
                 Text(
                     text = "|",
                     color = SubTextColor,
-                    style = Typography.bodyLarge,
+                    style = Typography.bodySmall,
                 )
 
                 Text(
                     text = "아이디 찾기",
                     color = SubTextColor,
-                    style = Typography.bodyLarge,
+                    style = Typography.bodySmall,
                     modifier = Modifier
                         .padding(
                             start = 10.dp,
@@ -235,13 +276,13 @@ fun LoginScreen(
                 Text(
                     text = "|",
                     color = SubTextColor,
-                    style = Typography.bodyLarge,
+                    style = Typography.bodySmall,
                 )
 
                 Text(
                     text = "비밀번호 찾기",
                     color = SubTextColor,
-                    style = Typography.bodyLarge,
+                    style = Typography.bodySmall,
                     modifier = Modifier
                         .padding(start = 10.dp)
                         .clickable {
@@ -251,7 +292,7 @@ fun LoginScreen(
             }
 
             LikeLionDivider(
-                paddingTop = 10.dp,
+                paddingTop = 5.dp,
                 modifier = Modifier
                     .fillMaxWidth()
 
@@ -262,7 +303,7 @@ fun LoginScreen(
                 color = Color.Black,
                 modifier = Modifier
                     .padding(top = 20.dp),
-                style = Typography.bodyLarge,
+                style = Typography.bodySmall,
             )
 
             Spacer(
@@ -278,9 +319,9 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(50.dp)
                     .clickable {
-                        // TODO : 카카오 로그인 이벤트 처리
                         loginViewModel.loginWithKakao(activity)
-                    },
+                    }
+                    .padding(horizontal = 10.dp),
             )
 
             // ------------------------- Dialog --------------------

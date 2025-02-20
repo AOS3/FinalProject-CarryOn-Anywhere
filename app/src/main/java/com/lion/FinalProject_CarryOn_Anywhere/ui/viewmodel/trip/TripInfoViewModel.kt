@@ -14,9 +14,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.ChipState
-import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIInterface
-import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
-import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.PlanService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripService

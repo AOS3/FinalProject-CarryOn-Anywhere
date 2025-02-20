@@ -337,6 +337,7 @@ class UserJoinViewModel
         userModel.userTimeStamp = System.nanoTime()
         userModel.userImage = "none"
         userModel.userState = UserState.USER_STATE_NORMAL
+        // TODO : 앱푸시 추가 예정
 
         // 저장
         // 저장한다.
