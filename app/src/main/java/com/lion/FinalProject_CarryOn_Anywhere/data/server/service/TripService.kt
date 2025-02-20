@@ -18,6 +18,12 @@ class TripService(val tripRepository: TripRepository) {
         tripRepository.updateTripDate(tripVO, tripModel.tripDocumentId)
     }
 
+    // 사용자 데이터를 수정한다.
+    suspend fun updateTripPlanList(tripModel: TripModel, tripDocumentId: String){
+        val tripVO = tripModel.toTripVO()
+        tripRepository.updateTripPlanList(tripVO, tripDocumentId)
+    }
+
     // 글의 문서 id를 통해 글 데이터를 가져온다.
     suspend fun selectTripDataOneById(documentId:String) : TripModel{
         // 글 데이터를 가져온다.

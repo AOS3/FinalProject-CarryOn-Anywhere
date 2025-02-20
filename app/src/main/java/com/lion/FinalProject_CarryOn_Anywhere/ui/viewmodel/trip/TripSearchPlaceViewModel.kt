@@ -31,7 +31,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TripSearchPlaceViewModel @Inject constructor(
     @ApplicationContext context: Context,
-    val planService: PlanService
+    val planService: PlanService,
+    val tripService: TripService
 ):ViewModel() {
 
     val carryOnApplication = context as CarryOnApplication
@@ -39,11 +40,7 @@ class TripSearchPlaceViewModel @Inject constructor(
     // 필터링된 장소 리스트
     var filteredPlaces = SnapshotStateList<TourApiModel.TouristSpotItem>()
 
-    // 일별 장소선택
-    var placesByDay = mutableStateMapOf<String, MutableList<TourApiModel.TouristSpotItem>>()
-
-    var regionCode = mutableStateOf("")
-    var subRegionCode = mutableStateOf("")
+    val tripModel = TripModel()
 
     // 검색 키워드
     val searchTextFieldValue = mutableStateOf("")
@@ -106,7 +103,6 @@ class TripSearchPlaceViewModel @Inject constructor(
                 }
 
                 if (allPlaces.isEmpty()) {
-                    Log.e("TripInfoViewModel", "장소 데이터를 찾을 수 없음")
                     return@launch
                 }
 
@@ -190,22 +186,32 @@ class TripSearchPlaceViewModel @Inject constructor(
                     planTimeStamp = System.currentTimeMillis()
                 }
 
-                // 기존 데이터가 있으면 업데이트, 없으면 새로 추가 (async 사용)
-                val work2 = async(Dispatchers.IO) {
-                    if (existingPlan != null) {
-                        // 기존 데이터 업데이트
+                if (existingPlan != null) {
+                    val work2 = async(Dispatchers.IO) {
                         planService.updatePlanData(planModel)
-                    } else {
-                        // 새 데이터 추가
+                    }
+
+                    work2.await()
+
+                    carryOnApplication.navHostController.popBackStack()
+                    carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$documentId")
+                } else {
+                    val work3 = async(Dispatchers.IO) {
                         planService.addPlanData(planModel)
                     }
+                    val planDocumentId = work3.await()
+
+                    if (!planDocumentId.isNullOrEmpty()) {
+                        val work4 = async(Dispatchers.IO) {
+                            tripService.updateTripPlanList(tripModel.apply { planList.add(planDocumentId) }, documentId)
+                        }
+
+                        work4.await()
+                    }
+
+                    carryOnApplication.navHostController.popBackStack()
+                    carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$documentId")
                 }
-
-                work2.await()
-
-                carryOnApplication.navHostController.popBackStack()
-                carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$documentId")
-
             } catch (e: Exception) {
                 Toast.makeText(carryOnApplication, "오류 발생: ${e.message}", Toast.LENGTH_SHORT).show()
             }

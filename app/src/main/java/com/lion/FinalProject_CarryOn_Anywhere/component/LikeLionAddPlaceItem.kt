@@ -35,7 +35,7 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 @Composable
 fun LikeLionAddPlaceItem(
     index: Int,
-    place: TourApiModel.TouristSpotItem,  // ✅ `Place` → `TouristSpotItem` 변경
+    place: Map<String, Any?>,  // ✅ `Place` → `TouristSpotItem` 변경
     isEdit: Boolean = false,
     state: ReorderableLazyListState = rememberReorderableLazyListState(onMove = { from, to -> } ),
     distanceToNext: Float? = null, // ✅ 다음 장소와의 거리 추가
@@ -92,18 +92,22 @@ fun LikeLionAddPlaceItem(
                     .weight(1f)
                     .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
             ) {
-                Column {
+                Column(
+                    modifier = Modifier.padding(10.dp)
+                ) {
                     Text(
-                        text = place.title ?: "알 수 없는 장소",  // 관광지명
+                        text = (place["title"] as? String) ?: "알 수 없는 장소",  // 관광지명 안전 변환
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Black,
-                        modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 5.dp)
+                        color = Color.Black
                     )
                     Text(
-                        text = "${place.addr1 ?: "주소 없음"} / ${place.addr2 ?: ""}", // 기본 주소 / 상세 주소
+                        text = if (place["addr2"] == "") {
+                            (place["addr1"] as? String) ?: "주소 없음"
+                        } else {
+                            "${(place["addr1"] as? String)} / ${(place["addr2"] as? String)}"
+                        },
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(start = 10.dp, top = 5.dp, bottom = 10.dp)
+                        color = Color.Gray
                     )
                 }
             }

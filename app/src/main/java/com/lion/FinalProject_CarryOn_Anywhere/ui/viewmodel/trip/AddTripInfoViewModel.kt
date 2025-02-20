@@ -288,6 +288,8 @@ class AddTripInfoViewModel @Inject constructor(
             tripModel.tripEndDate = endDate.value!!
         }
 
+        tripModel.tripTimeStamp = System.currentTimeMillis()
+
         // Firebase 저장 실행
         CoroutineScope(Dispatchers.Main).launch {
             val work1 = async(Dispatchers.IO) {

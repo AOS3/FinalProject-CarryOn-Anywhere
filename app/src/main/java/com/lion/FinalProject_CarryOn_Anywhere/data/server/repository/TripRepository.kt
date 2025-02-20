@@ -33,6 +33,32 @@ class TripRepository {
         documentReference.update(customerMap).await()
     }
 
+    // 여행 데이터를 수정한다.
+    suspend fun updateTripPlanList(tripVO: TripVO, tripDocumentId: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        val collectionReference = firestore.collection("TripData")
+        val documentReference = collectionReference.document(tripDocumentId)
+
+        try {
+            // Firestore에서 기존 planList 가져오기
+            val snapshot = documentReference.get().await()
+            val existingPlanList = snapshot.get("planList") as? MutableList<String> ?: mutableListOf()
+
+            // 새로운 planDocumentId 추가 후 중복 제거
+            val updatedPlanList = (existingPlanList + tripVO.planList).distinct()
+
+            // 업데이트할 데이터 맵 생성
+            val updateMap = mapOf("planList" to updatedPlanList)
+
+            // Firestore 업데이트 실행
+            documentReference.update(updateMap).await()
+
+            Log.d("TripRepository", "Firestore planList 업데이트 완료: $updatedPlanList")
+        } catch (e: Exception) {
+            Log.e("TripRepository", "Firestore planList 업데이트 실패", e)
+        }
+    }
+
     // 글의 문서 id를 통해 글 데이터를 가져온다.
     suspend fun selectTripDataOneById(documentId:String) : TripVO{
         val firestore = FirebaseFirestore.getInstance()

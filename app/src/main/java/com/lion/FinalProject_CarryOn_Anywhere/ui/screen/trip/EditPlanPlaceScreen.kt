@@ -100,9 +100,13 @@ fun EditPlanPlaceScreen(
             tripInfoViewModel.placesByDay[selectedDay]?.let { places ->
                 LazyColumn(
                     state = reorderState.listState,
-                    modifier = Modifier.reorderable(reorderState) // 드래그 가능하게 설정
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .reorderable(reorderState) // ⬅ 리스트가 드래그를 감지하도록 설정
                 ) {
-                    itemsIndexed(places, key = { _, item -> item.contentid ?: item.title ?: "" }) { index, place ->
+                    itemsIndexed(places, key = { _, item ->
+                        (item["contentid"] as? String) ?: (item["title"] as? String) ?: ""
+                    }) { index, place ->
                         LikeLionAddPlaceItem(
                             index = index,
                             place = place,
@@ -112,7 +116,8 @@ fun EditPlanPlaceScreen(
                                 tripInfoViewModel.deletePlaceDialogState.value = true
                             },
                             modifier = Modifier
-                                .detectReorderAfterLongPress(reorderState) // 드래그 감지 추가
+                                .fillMaxWidth()
+                                .detectReorderAfterLongPress(reorderState) // ⬅ 아이템이 드래그 가능하도록 설정
                         )
                     }
                 }

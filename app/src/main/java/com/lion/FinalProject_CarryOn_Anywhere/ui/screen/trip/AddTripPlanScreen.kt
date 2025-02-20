@@ -64,9 +64,9 @@ fun AddTripPlanScreen(
 
     val selectedDayPlaces = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]
         ?.mapNotNull { place ->
-            val lat = place.mapy?.toDoubleOrNull()
-            val lng = place.mapx?.toDoubleOrNull()
-            if (lat != null && lng != null) LatLng(lat, lng) else null
+            val placeLat = (place["mapy"] as? String)?.toDoubleOrNull()
+            val placeLng = (place["mapx"] as? String)?.toDoubleOrNull()
+            if (placeLat != null && placeLng != null) LatLng(placeLat, placeLng) else null
         } ?: emptyList()
 
     // 여행 날짜 목록 업데이트
@@ -80,7 +80,7 @@ fun AddTripPlanScreen(
             LikeLionTopAppBar(
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-                    tripInfoViewModel.addPlanNavigationOnClick(tripDocumentId)
+                    tripInfoViewModel.addPlanNavigationOnClick()
                 },
                 menuItems = {
                     LikeLionIconButton(
@@ -241,12 +241,12 @@ fun AddTripPlanScreen(
                                     // 거리 계산 시에도 같은 방식 적용
                                     tripInfoViewModel.calculateDistance(
                                         LatLng(
-                                            place.mapy?.toDoubleOrNull() ?: 0.0,
-                                            place.mapx?.toDoubleOrNull() ?: 0.0
+                                            (place["mapy"] as? String)?.toDoubleOrNull() ?: 0.0,
+                                            (place["mapx"] as? String)?.toDoubleOrNull() ?: 0.0
                                         ),
                                         LatLng(
-                                            places[index + 1].mapy?.toDoubleOrNull() ?: 0.0,
-                                            places[index + 1].mapx?.toDoubleOrNull() ?: 0.0
+                                            (places[index + 1]["mapy"] as? String)?.toDoubleOrNull() ?: 0.0,
+                                            (places[index + 1]["mapx"] as? String)?.toDoubleOrNull() ?: 0.0
                                         )
                                     )
                                 } else {
@@ -257,7 +257,7 @@ fun AddTripPlanScreen(
                                     index = index,
                                     lastIndex = places.lastIndex,
                                     place = place,
-                                    distanceToNext = distanceToNext // ✅ 거리 정보 전달
+                                    distanceToNext = distanceToNext // 거리 정보 전달
                                 )
                             }
                         }
