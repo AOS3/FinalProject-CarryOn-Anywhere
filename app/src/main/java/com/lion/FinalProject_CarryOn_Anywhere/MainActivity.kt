@@ -16,10 +16,12 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionBottomNavItems
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionBottomNavigation
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
@@ -58,7 +60,9 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.StoryDetailScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.StoryScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.FinalProject_CarryOn_AnywhereTheme
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.AddTripInfoViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 
@@ -91,6 +95,8 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
     carryOnApplication.navHostController = navHostController
 
     val tripInfoViewModel : TripInfoViewModel = hiltViewModel()
+    val addTripInfoViewModel : AddTripInfoViewModel = hiltViewModel()
+    val tripSearchPlaceViewModel: TripSearchPlaceViewModel = hiltViewModel()
 
     // BottomNavigation 표시 화면 목록
     val bottomNaviScreens = listOf(
@@ -227,52 +233,65 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             composable(
                 route = ScreenName.SELECT_TRIP_REGION.name
             ) {
-                SelectTripRegionScreen(tripInfoViewModel)
+                SelectTripRegionScreen(addTripInfoViewModel)
             }
 
             // 날짜 선택 화면
             composable(
-                route = ScreenName.SELECT_TRIP_DATE.name
+                route = "${ScreenName.SELECT_TRIP_DATE.name}?tripDocumentId={tripDocumentId}",
+                arguments = listOf(
+                    navArgument("tripDocumentId") {
+                        type = NavType.StringType
+                        nullable = true
+                    }
+                )
             ) {
-                SelectTripDateScreen(tripInfoViewModel)
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")
+                SelectTripDateScreen(addTripInfoViewModel, tripDocumentId)
             }
 
             // 지도 출력 화면
             composable(
-                route = ScreenName.SHOW_TRIP_MAP.name
+                route = "${ScreenName.SHOW_TRIP_MAP.name}/{tripDocumentId}"
             ) {
-                ShowTripMapScreen(tripInfoViewModel)
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                ShowTripMapScreen(tripInfoViewModel, tripDocumentId)
             }
 
             // 여행 장소 검색 화면
             composable(
-                route = "${ScreenName.TRIP_SEARCH_PLACE.name}/{selectedDay}"
+                route = "${ScreenName.TRIP_SEARCH_PLACE.name}/{selectedDay}/{tripDocumentId}/{regionCodes}/{subRegionCodes}"
             ) {
                 val selectedDay = it.arguments?.getString("selectedDay")!!
-                TripSearchPlaceScreen(tripInfoViewModel, selectedDay)
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                val regionCodes = it.arguments?.getString("regionCodes")?.split(",") ?: emptyList()
+                val subRegionCodes = it.arguments?.getString("subRegionCodes")?.split(",") ?: emptyList()
+                TripSearchPlaceScreen(tripSearchPlaceViewModel, selectedDay, tripDocumentId, regionCodes, subRegionCodes)
             }
 
             // 장소 등록 요청 화면
             composable(
                 route = ScreenName.WRITE_REQUEST_PLACE.name
             ) {
-                WriteRequestPlaceScreen()
+                WriteRequestPlaceScreen(tripSearchPlaceViewModel)
             }
 
             // 일정 편집 화면
             composable(
-                route = "${ScreenName.EDIT_PLAN_PLACE.name}/{selectedDay}/{selectedIndex}"
+                route = "${ScreenName.EDIT_PLAN_PLACE.name}/{selectedDay}/{selectedIndex}/{tripDocumentId}"
             ) {
                 val selectedDay = it.arguments?.getString("selectedDay")!!
                 val selectedIndex = it.arguments?.getString("selectedIndex")?.toIntOrNull() ?: 0
-                EditPlanPlaceScreen(tripInfoViewModel, selectedDay, selectedIndex)
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                EditPlanPlaceScreen(tripInfoViewModel, selectedDay, selectedIndex, tripDocumentId)
             }
 
             // 일정 생성 화면
             composable(
-                route = ScreenName.ADD_TRIP_PLAN.name
+                route = "${ScreenName.ADD_TRIP_PLAN.name}/{tripDocumentId}"
             ) {
-                AddTripPlanScreen(tripInfoViewModel)
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                AddTripPlanScreen(tripInfoViewModel, tripDocumentId)
             }
 
             // 소셜 화면

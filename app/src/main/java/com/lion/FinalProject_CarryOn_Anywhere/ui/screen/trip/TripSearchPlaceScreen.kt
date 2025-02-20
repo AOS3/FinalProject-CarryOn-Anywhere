@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,26 +25,41 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionPlaceListItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionSearchTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
 
 @Composable
 fun TripSearchPlaceScreen(
-    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
-    selectedDay: String
+    tripSearchPlaceViewModel: TripSearchPlaceViewModel = hiltViewModel(),
+    selectedDay: String,
+    tripDocumentId: String,
+    regionCodes: List<String>,
+    subRegionCodes: List<String>
 ) {
-    LaunchedEffect(tripInfoViewModel.searchTextFieldValue.value) {
-        tripInfoViewModel.filterPlaces()
+    LaunchedEffect(Unit) {
+        tripSearchPlaceViewModel.dayVal.value = selectedDay
+        tripSearchPlaceViewModel.tripDocumentIdVal.value = tripDocumentId
+        tripSearchPlaceViewModel.regionCodesParam.value = regionCodes.joinToString(",")
+        tripSearchPlaceViewModel.subRegionCodesParam.value = subRegionCodes.joinToString(",")
+    }
+
+    LaunchedEffect(regionCodes, subRegionCodes) {
+        tripSearchPlaceViewModel.fetchPlaces(regionCodes, subRegionCodes)
+    }
+
+    LaunchedEffect(tripSearchPlaceViewModel.searchTextFieldValue.value) {
+        tripSearchPlaceViewModel.filterPlaces()
     }
 
     Scaffold(
         topBar = {
             LikeLionSearchTopAppBar(
-                textFieldValue = tripInfoViewModel.searchTextFieldValue,
-                onSearchTextChange = { tripInfoViewModel.searchTextFieldValue.value = it },
+                textFieldValue = tripSearchPlaceViewModel.searchTextFieldValue,
+                onSearchTextChange = { tripSearchPlaceViewModel.searchTextFieldValue.value = it },
                 onSearchClick = {
-                    tripInfoViewModel.filterPlaces()
+                    tripSearchPlaceViewModel.filterPlaces()
                 },
                 onBackClick = {
-                    tripInfoViewModel.tripSearchNavigationOnClick()
+                    tripSearchPlaceViewModel.tripSearchNavigationOnClick(tripDocumentId)
                 }
             )
         }
@@ -55,7 +71,7 @@ fun TripSearchPlaceScreen(
             .imePadding()
             .padding(horizontal = 20.dp)
         ) {
-            if (tripInfoViewModel.filteredPlaces.isEmpty()) {
+            if (tripSearchPlaceViewModel.filteredPlaces.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -81,23 +97,23 @@ fun TripSearchPlaceScreen(
                     LikeLionFilledButton(
                         text = "장소 등록 요청하기",
                         onClick = {
-                            tripInfoViewModel.requestPlaceOnClick()
+                            tripSearchPlaceViewModel.requestPlaceOnClick()
                         },
                         modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
                         cornerRadius = 5,
                     )
                 }
             } else {
-                // 검색 결과 리스트
                 LazyColumn {
-                    items(tripInfoViewModel.filteredPlaces) { place ->
+                    items(tripSearchPlaceViewModel.filteredPlaces) { place ->
                         LikeLionPlaceListItem(
-                            imageUrl = place.imageUrl,
-                            title = place.title,
-                            subtitle = place.subtitle,
-                            location = place.location,
+                            imageUrl = place.firstimage ?: "",
+                            title = place.title ?: "알 수 없는 장소",
+                            subtitle = place.addr1 ?: "주소 없음",
+                            location = place.addr2 ?: "",
                             onSelectClick = {
-                                tripInfoViewModel.addPlaceToDay(selectedDay, place) // selectedDay를 인자로 전달
+                                val placeMap = tripSearchPlaceViewModel.toPlaceMap(place) // 변환 후 전달
+                                tripSearchPlaceViewModel.addPlaceToDay(selectedDay, placeMap, tripDocumentId)
                             }
                         )
                     }
@@ -106,13 +122,3 @@ fun TripSearchPlaceScreen(
         }
     }
 }
-
-// 장소 데이터 클래스
-data class Place(
-    val imageUrl: String,
-    val title: String,
-    val subtitle: String,
-    val location: String,
-    val latitude: Double,
-    val longitude: Double,
-)

@@ -1,11 +1,11 @@
 package com.lion.FinalProject_CarryOn_Anywhere.component
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -22,11 +22,23 @@ fun LikeLionRegionSelect(
     modifier: Modifier = Modifier,
     regions: List<String>,
     subRegionsMap: Map<String, List<String>>,
+    regionOnClick: (String) -> Unit,
     onClick: (String) -> Unit = {}
 ) {
     var selectedRegion by remember { mutableStateOf(regions[0]) } // 선택된 시/도
-    val selectedSubRegions by remember(selectedRegion) {
+    val selectedSubRegions by remember(selectedRegion, subRegionsMap) {
         derivedStateOf { subRegionsMap[selectedRegion] ?: emptyList() }
+    }
+
+    // 이전 선택한 지역을 기억하고, 변경될 때만 fetchSubRegions 실행
+    var previousRegion by remember { mutableStateOf(selectedRegion) }
+
+    // selectedRegion 변경 시 자동으로 fetchSubRegions 실행
+    LaunchedEffect(selectedRegion) {
+        if (previousRegion != selectedRegion) {
+            regionOnClick(selectedRegion)
+            previousRegion = selectedRegion
+        }
     }
 
     Row(
@@ -52,7 +64,9 @@ fun LikeLionRegionSelect(
                 Box(
                     modifier = Modifier
                         .width(100.dp)
-                        .clickable { selectedRegion = region }
+                        .clickable {
+                            selectedRegion = region
+                        }
                         .background(
                             if (isSelected) SubColor else Color(0xFFEFEFEF),
                             shape = cornerRadius
@@ -73,7 +87,7 @@ fun LikeLionRegionSelect(
 
         // 오른쪽: 선택된 시/도의 구/군 목록
         LazyColumn(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f).height(600.dp)
         ) {
             itemsIndexed(selectedSubRegions) { index, subRegion ->
                 val isFirst = index == 0
@@ -91,28 +105,12 @@ fun LikeLionRegionSelect(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            if (selectedRegion == "서울" ||
-                                selectedRegion == "부산" ||
-                                selectedRegion == "인천" ||
-                                selectedRegion == "대구" ||
-                                selectedRegion == "대전" ||
-                                selectedRegion == "울산"
-                                ) {
-                                val fullRegion = "${selectedRegion}시 $subRegion"
-                                onClick(fullRegion)
-                            } else if (
-                                selectedRegion == "경기" ||
-                                selectedRegion == "강원" ||
-                                selectedRegion == "충청" ||
-                                selectedRegion == "경상" ||
-                                selectedRegion == "전라"
-                            ) {
-                                val fullRegion = "${selectedRegion}도 $subRegion"
-                                onClick(fullRegion)
-                            } else {
-                                val fullRegion = "${selectedRegion}특별자치도 $subRegion"
-                                onClick(fullRegion)
+                            val fullRegion = when (selectedRegion) {
+                                "서울", "부산", "인천", "대구", "대전", "울산", "광주", "세종" -> "${selectedRegion}시 $subRegion"
+                                "경기", "강원", "충청", "경상", "전라" -> "${selectedRegion}도 $subRegion"
+                                else -> "${selectedRegion}특별자치도 $subRegion"
                             }
+                            onClick(fullRegion)
                         }
                         .background(color = Color.Transparent, shape = cornerRadius)
                         .border(width = 1.dp, color = Color.LightGray, shape = cornerRadius)

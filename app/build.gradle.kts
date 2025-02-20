@@ -103,6 +103,9 @@ dependencies {
     implementation("com.google.accompanist:accompanist-pager:0.28.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
 
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
     // Authentication
     implementation("com.google.firebase:firebase-auth")
     implementation ("com.google.firebase:firebase-analytics-ktx")

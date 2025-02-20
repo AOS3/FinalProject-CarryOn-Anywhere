@@ -22,7 +22,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewMode
 
 @Composable
 fun ShowTripMapScreen(
-    tripInfoViewModel: TripInfoViewModel = hiltViewModel()
+    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
+    tripDocumentId: String
 ) {
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
@@ -34,7 +35,7 @@ fun ShowTripMapScreen(
                 title = "지도 상세 보기",
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-                    tripInfoViewModel.showMapNavigationOnClick()
+                    tripInfoViewModel.showMapNavigationOnClick(tripDocumentId)
                 }
             )
         }
