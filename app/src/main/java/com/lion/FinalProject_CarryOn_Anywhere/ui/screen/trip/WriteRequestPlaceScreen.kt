@@ -28,11 +28,12 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.WriteRequestPlaceViewModel
 
 @Composable
 fun WriteRequestPlaceScreen(
-    writeRequestPlaceViewModel: WriteRequestPlaceViewModel = hiltViewModel()
+    tripSearchPlaceViewModel: TripSearchPlaceViewModel = hiltViewModel(),
 ) {
     Scaffold(
         topBar = {
@@ -40,13 +41,13 @@ fun WriteRequestPlaceScreen(
                 title = "장소 등록 요청하기",
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-                    writeRequestPlaceViewModel.requestPlaceNavigationOnClick()
+                    tripSearchPlaceViewModel.requestPlaceNavigationOnClick()
                 },
                 menuItems = {
                     LikeLionIconButton(
                         icon = ImageVector.vectorResource(R.drawable.send_24px),
                         iconButtonOnClick = {
-                            writeRequestPlaceViewModel.requestPlaceDialogState.value = true
+                            tripSearchPlaceViewModel.requestPlaceDialogState.value = true
                         },
                         iconColor = MainColor
                     )
@@ -90,7 +91,7 @@ fun WriteRequestPlaceScreen(
             )
 
             LikeLionOutlinedTextField(
-                textFieldValue = writeRequestPlaceViewModel.textFieldPlaceName,
+                textFieldValue = tripSearchPlaceViewModel.textFieldPlaceName,
                 showCharCount = true,
                 maxLength = 30,
                 singleLine = true,
@@ -99,41 +100,41 @@ fun WriteRequestPlaceScreen(
                 inputCondition = "[^a-zA-Z0-9ㄱ-ㅎㅏ-ㅣ가-힣]",
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
                 onTrailingIconClick = {
-                    writeRequestPlaceViewModel.textFieldPlaceName.value = ""
+                    tripSearchPlaceViewModel.textFieldPlaceName.value = ""
                 }
             )
 
             LikeLionOutlinedTextField(
-                textFieldValue = writeRequestPlaceViewModel.textFieldAddress,
+                textFieldValue = tripSearchPlaceViewModel.textFieldAddress,
                 singleLine = true,
                 label = "주소",
                 placeHolder = "주소 검색",
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
                 readOnly = true,
                 modifier = Modifier.clickable {
-                    writeRequestPlaceViewModel.showAddressSearch.value = true
+                    tripSearchPlaceViewModel.showAddressSearch.value = true
                 }
             )
 
-            if (writeRequestPlaceViewModel.showAddressSearch.value) {
+            if (tripSearchPlaceViewModel.showAddressSearch.value) {
                 LikeLionAddressSearchWebView(
                     context = LocalContext.current,
                     onAddressSelected = { address ->
-                        writeRequestPlaceViewModel.textFieldAddress.value = address
+                        tripSearchPlaceViewModel.textFieldAddress.value = address
                     }
                 )
-                writeRequestPlaceViewModel.showAddressSearch.value = false
+                tripSearchPlaceViewModel.showAddressSearch.value = false
             }
 
             // 여행 제목 수정 시 띄우는 다이얼로그
             LikeLionAlertDialog(
-                showDialogState = writeRequestPlaceViewModel.requestPlaceDialogState,
+                showDialogState = tripSearchPlaceViewModel.requestPlaceDialogState,
                 confirmButtonTitle = "확인",
                 confirmButtonModifier = Modifier
                     .weight(1f)
                     .padding(start = 10.dp),
                 confirmButtonOnClick = {
-                    writeRequestPlaceViewModel.requestPlaceDialogState.value = false
+                    tripSearchPlaceViewModel.requestPlaceDialogState.value = false
                 },
                 title = "장소 등록 요청 완료",
                 titleModifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),

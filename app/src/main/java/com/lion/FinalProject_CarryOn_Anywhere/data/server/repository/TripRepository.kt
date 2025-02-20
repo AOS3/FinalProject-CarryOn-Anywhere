@@ -2,6 +2,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
 import kotlinx.coroutines.tasks.await
 
@@ -33,6 +34,41 @@ class TripRepository {
         documentReference.update(customerMap).await()
     }
 
+    suspend fun gettingTripList(userDocumentId: String): MutableList<Map<String, *>> {
+        val firestore = FirebaseFirestore.getInstance()
+        val collectionReference = firestore.collection("TripData")
+
+        // Firestore에서 userDocument 값이 특정 ID와 일치하는 문서만 가져오기
+        val query = collectionReference
+            .whereEqualTo("userDocumentId", userDocumentId) // ✅ 특정 사용자의 문서만 필터링
+            .orderBy("tripTimeStamp", Query.Direction.DESCENDING) // ✅ 최신 순 정렬
+
+        // Firestore에서 데이터 가져오기
+        val result = query.get().await()
+
+        // 반환할 리스트
+        val resultList = mutableListOf<Map<String, *>>()
+
+        // 데이터 변환
+        result.forEach { document ->
+            val map = mapOf(
+                "documentId" to document.id, // 문서 ID 저장
+                "tripVO" to document.toObject(TripVO::class.java) // TripVO 객체 변환
+            )
+            resultList.add(map)
+        }
+
+        return resultList
+    }
+
+    // 서버에서 글을 삭제한다.
+    suspend fun deleteTripData(tripDocumentId:String){
+        val firestore = FirebaseFirestore.getInstance()
+        val collectionReference = firestore.collection("TripData")
+        val documentReference = collectionReference.document(tripDocumentId)
+        documentReference.delete().await()
+    }
+
     // 여행 데이터를 수정한다.
     suspend fun updateTripPlanList(tripVO: TripVO, tripDocumentId: String) {
         val firestore = FirebaseFirestore.getInstance()
@@ -59,7 +95,7 @@ class TripRepository {
         }
     }
 
-    // 글의 문서 id를 통해 글 데이터를 가져온다.
+    // 여행 문서 id를 통해 여행 데이터를 가져온다.
     suspend fun selectTripDataOneById(documentId:String) : TripVO{
         val firestore = FirebaseFirestore.getInstance()
         val collectionReference = firestore.collection("TripData")

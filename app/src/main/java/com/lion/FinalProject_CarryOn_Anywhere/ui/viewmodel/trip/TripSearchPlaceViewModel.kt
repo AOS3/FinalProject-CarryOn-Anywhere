@@ -45,6 +45,19 @@ class TripSearchPlaceViewModel @Inject constructor(
     // 검색 키워드
     val searchTextFieldValue = mutableStateOf("")
 
+    val textFieldPlaceName = mutableStateOf("")
+
+    val textFieldAddress = mutableStateOf("")
+
+    val showAddressSearch = mutableStateOf(false)
+
+    val requestPlaceDialogState = mutableStateOf(false)
+
+    val dayVal = mutableStateOf("")
+    val regionCodesParam = mutableStateOf("")
+    val subRegionCodesParam = mutableStateOf("")
+    val tripDocumentIdVal = mutableStateOf("")
+
     // 지역별 관광지 데이터를 저장할 MutableState
     val placesByRegion = mutableStateOf(
         mutableMapOf<String, MutableList<Map<String, TourApiModel.TouristSpotItem>>>()
@@ -228,5 +241,11 @@ class TripSearchPlaceViewModel @Inject constructor(
     fun tripSearchNavigationOnClick(tripDocumentId:String){
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
+    }
+
+    // 장소 등록 요청 에서 뒤로가기 눌렀을 때
+    fun requestPlaceNavigationOnClick(){
+        carryOnApplication.navHostController.popBackStack(ScreenName.WRITE_REQUEST_PLACE.name, true)
+        carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/${dayVal.value}/${tripDocumentIdVal.value}/${regionCodesParam.value}/${subRegionCodesParam.value}")
     }
 }

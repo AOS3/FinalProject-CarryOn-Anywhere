@@ -35,6 +35,13 @@ fun TripSearchPlaceScreen(
     regionCodes: List<String>,
     subRegionCodes: List<String>
 ) {
+    LaunchedEffect(Unit) {
+        tripSearchPlaceViewModel.dayVal.value = selectedDay
+        tripSearchPlaceViewModel.tripDocumentIdVal.value = tripDocumentId
+        tripSearchPlaceViewModel.regionCodesParam.value = regionCodes.joinToString(",")
+        tripSearchPlaceViewModel.subRegionCodesParam.value = subRegionCodes.joinToString(",")
+    }
+
     LaunchedEffect(regionCodes, subRegionCodes) {
         tripSearchPlaceViewModel.fetchPlaces(regionCodes, subRegionCodes)
     }

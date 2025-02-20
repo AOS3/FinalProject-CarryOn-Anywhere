@@ -49,8 +49,11 @@ fun AddTripPlanScreen(
     tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
     tripDocumentId: String
 ) {
-    if (!tripDocumentId.isNullOrEmpty()) {
-        tripInfoViewModel.gettingTripData(tripDocumentId)
+    // 🔹 최초 한 번만 실행하도록 `LaunchedEffect`로 감싸기
+    LaunchedEffect(tripDocumentId) {
+        if (tripDocumentId.isNotEmpty()) {
+            tripInfoViewModel.gettingTripData(tripDocumentId)
+        }
     }
 
     val cameraPositionState = rememberCameraPositionState {
@@ -68,6 +71,13 @@ fun AddTripPlanScreen(
             val placeLng = (place["mapx"] as? String)?.toDoubleOrNull()
             if (placeLat != null && placeLng != null) LatLng(placeLat, placeLng) else null
         } ?: emptyList()
+
+    // 마커 타이틀과 스니펫 설정 (타이틀: 장소명, 스니펫: 주소)
+    val markerTitles = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]
+        ?.mapNotNull { place -> place["title"] as? String } ?: emptyList()
+
+    val markerSnippets = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]
+        ?.mapNotNull { place -> place["addr1"] as? String } ?: emptyList()
 
     // 여행 날짜 목록 업데이트
     LaunchedEffect(tripInfoViewModel.startDate.value, tripInfoViewModel.endDate.value) {
@@ -167,7 +177,9 @@ fun AddTripPlanScreen(
                         tripInfoViewModel.mapOnClick(tripDocumentId)
                     },
                     selectedPlaces = selectedDayPlaces,
-                    isAddTripPlan = true
+                    isAddTripPlan = true,
+                    markerTitle = markerTitles,
+                    markerSnippet = markerSnippets,
                 )
             }
 
@@ -304,7 +316,8 @@ fun AddTripPlanScreen(
                     .weight(1f)
                     .padding(start = 10.dp),
                 confirmButtonOnClick = {
-                    tripInfoViewModel.deletePlanOnClick()
+                    tripInfoViewModel.deletePlanOnClick(tripDocumentId)
+                    tripInfoViewModel.deletePlanDialogState.value = false
                 },
                 dismissButtonTitle = "취소",
                 dismissContainerColor = Color.Transparent,

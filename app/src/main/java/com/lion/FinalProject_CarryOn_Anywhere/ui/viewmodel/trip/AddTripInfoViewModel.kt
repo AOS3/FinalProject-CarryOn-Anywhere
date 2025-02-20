@@ -289,6 +289,7 @@ class AddTripInfoViewModel @Inject constructor(
         }
 
         tripModel.tripTimeStamp = System.currentTimeMillis()
+        tripModel.userDocumentId = carryOnApplication.loginUserModel.userDocumentId
 
         // Firebase 저장 실행
         CoroutineScope(Dispatchers.Main).launch {
@@ -300,6 +301,10 @@ class AddTripInfoViewModel @Inject constructor(
 
             if (documentId != null) {
                 // `ADD_TRIP_PLAN`으로 `documentId` 전달하며 이동
+
+                selectedRegions.clear()
+                updateRegionButtonState()
+
                 carryOnApplication.navHostController.popBackStack()
                 carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$documentId")
             }

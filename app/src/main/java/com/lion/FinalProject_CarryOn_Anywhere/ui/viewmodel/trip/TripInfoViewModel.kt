@@ -48,7 +48,7 @@ class TripInfoViewModel @Inject constructor(
 
     // ViewModel
     var selectedPlaces = mutableStateListOf<LatLng>() // 선택된 장소 리스트
-    var selectedPlaceLocation = mutableStateOf(LatLng(35.8714, 128.6014)) // 기본 위치 (대구)
+    var selectedPlaceLocation = mutableStateOf(LatLng(37.5665, 126.9780)) // 기본 위치 (대구)
 
     // 다이얼로그 상태
     val deletePlanDialogState = mutableStateOf(false)
@@ -145,6 +145,21 @@ class TripInfoViewModel @Inject constructor(
                     place
                 }.toMutableList()
             }
+
+            selectedPlaces.clear()
+            planData?.placeList?.forEach { place ->
+                val lat = (place["mapy"] as? String)?.toDoubleOrNull()
+                val lng = (place["mapx"] as? String)?.toDoubleOrNull()
+                if (lat != null && lng != null) {
+                    selectedPlaces.add(LatLng(lat, lng))
+                }
+            }
+
+            // 마지막 좌표로 `selectedPlaceLocation` 업데이트 (중복 방지)
+            val lastLocation = selectedPlaces.lastOrNull()
+            if (lastLocation != null && selectedPlaceLocation.value != lastLocation) {
+                selectedPlaceLocation.value = lastLocation
+            }
         }
     }
 
@@ -166,31 +181,24 @@ class TripInfoViewModel @Inject constructor(
 
     fun removePlaceFromDay(day: String, place: Map<String, Any?>) {
         placesByDay[day]?.let { places ->
-            // `mapx`, `mapy`를 `Double`로 변환
-            val placeLat = (place["mapy"] as? String)?.toDoubleOrNull()
-            val placeLng = (place["mapx"] as? String)?.toDoubleOrNull()
-            val placeId = place["contentid"] as? String
+            // Firestore에서 받아온 데이터가 `Map<String, Any?>` 형태이므로 `contentid`를 추출
+            val placeIdToRemove = place["contentid"] as? String
 
-            // 유효한 위도/경도 값이 있는지 확인 후 삭제
-            if (placeLat != null && placeLng != null) {
-                selectedPlaces.removeIf { it.latitude == placeLat && it.longitude == placeLng }
+            if (placeIdToRemove == null) {
+                Log.e("TripInfoViewModel", "삭제할 contentid가 없음: ${place["title"]}")
+                return
             }
 
-            // `contentid` 기준으로 삭제
-            val removed = places.removeIf { it["contentid"] == placeId }
+            // 기존 리스트를 복사하여 변경 (Compose가 감지할 수 있도록)
+            val updatedList = places.toMutableList()
+            val removed = updatedList.removeIf { it["contentid"] == placeIdToRemove }
 
             if (removed) {
-                println("🗑 장소 삭제됨: ${place["title"]}, 날짜: $day")
-            } else {
-                println("⚠ 삭제할 장소를 찾을 수 없음: ${place["title"]}")
+                // 변경된 리스트를 placesByDay에 다시 할당하여 Compose가 감지할 수 있도록 함
+                placesByDay[day] = updatedList.toMutableList()
             }
 
-            // 만약 해당 날짜에 장소가 없다면 리스트에서 제거
-            if (places.isEmpty()) {
-                placesByDay.remove(day)
-            }
-
-            // 남아있는 장소가 있으면 마지막 장소로 지도 중심 이동
+            // 삭제 후 지도 중심 좌표 업데이트
             selectedPlaceLocation.value = if (selectedPlaces.isNotEmpty()) {
                 selectedPlaces.last()
             } else {
@@ -213,8 +221,6 @@ class TripInfoViewModel @Inject constructor(
 
                 // 변경된 리스트를 새로 할당하여 Compose가 감지하도록 함
                 placesByDay[day] = newList
-
-                Log.d("TripInfoViewModel", "장소 순서 변경: $fromIndex -> $toIndex, 새로운 리스트: $newList")
             }
         }
     }
@@ -230,8 +236,18 @@ class TripInfoViewModel @Inject constructor(
         return results[0]
     }
 
-    fun deletePlanOnClick() {
-
+    fun deletePlanOnClick(tripDocumentId: String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            // 여행 정보를 삭제한다.
+            val work1 = async(Dispatchers.IO){
+                tripService.deleteTripData(tripDocumentId = tripDocumentId)
+                planService.deleteAllPlansByTripId(tripDocumentId = tripDocumentId)
+            }
+            work1.join()
+            // 홈 화면으로 이동한다.
+            carryOnApplication.navHostController.popBackStack()
+            carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+        }
     }
 
     // 서버에서 받아온 데이터를 담을 변수
@@ -268,9 +284,9 @@ class TripInfoViewModel @Inject constructor(
         // `selectedDay` 업데이트
         selectedDay.value = day
 
-        // 🔹 `regionCodes`와 `subRegionCodes`를 문자열로 변환
-        val regionCodesParam = regionCodes.joinToString(",")  // "1,2,3"
-        val subRegionCodesParam = subRegionCodes.joinToString(",")  // "101,102,103"
+        // `regionCodes`와 `subRegionCodes`를 문자열로 변환
+        val regionCodesParam = regionCodes.joinToString(",")
+        val subRegionCodesParam = subRegionCodes.joinToString(",")
 
         // selectedDay가 비어있지 않으면 이동
         carryOnApplication.navHostController.popBackStack()
@@ -309,8 +325,7 @@ class TripInfoViewModel @Inject constructor(
     fun editPlaceOnClick(day: String, index: Int, tripDocumentId: String) {
         selectedDay.value = day
         selectedIndex.value = index
-        // 로그 추가
-        Log.d("TripInfoViewModel", "editPlaceOnClick - day: $day, index: $index")
+
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate("${ScreenName.EDIT_PLAN_PLACE.name}/$day/$index/$tripDocumentId")
     }

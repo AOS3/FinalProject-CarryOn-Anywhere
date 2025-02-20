@@ -18,17 +18,26 @@ class TripService(val tripRepository: TripRepository) {
         tripRepository.updateTripDate(tripVO, tripModel.tripDocumentId)
     }
 
+    suspend fun gettingTripList(userDocumentId: String): MutableList<Map<String, *>> {
+        return tripRepository.gettingTripList(userDocumentId)
+    }
+
+    // 서버에서 글을 삭제한다.
+    suspend fun deleteTripData(tripDocumentId:String){
+        tripRepository.deleteTripData(tripDocumentId)
+    }
+
     // 사용자 데이터를 수정한다.
     suspend fun updateTripPlanList(tripModel: TripModel, tripDocumentId: String){
         val tripVO = tripModel.toTripVO()
         tripRepository.updateTripPlanList(tripVO, tripDocumentId)
     }
 
-    // 글의 문서 id를 통해 글 데이터를 가져온다.
+    // 여행 문서 id를 통해 여행 데이터를 가져온다.
     suspend fun selectTripDataOneById(documentId:String) : TripModel{
-        // 글 데이터를 가져온다.
+        // 여행 데이터를 가져온다.
         val tripVO = tripRepository.selectTripDataOneById(documentId)
-        // BoardModel객체를 생성한다.
+        // TripModel객체를 생성한다.
         val tripModel = tripVO.toTripModel(documentId)
 
         return tripModel

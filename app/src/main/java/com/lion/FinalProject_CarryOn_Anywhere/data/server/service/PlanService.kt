@@ -30,4 +30,9 @@ class PlanService(val planRepository: PlanRepository) {
     suspend fun updatePlanByDocumentIdAndDay(tripDocumentId: String, day: String, newPlaceList: List<Map<String, Any?>>) {
         planRepository.updatePlanByDocumentIdAndDay(tripDocumentId, day, newPlaceList)
     }
+
+    // 서버에서 글을 삭제한다.
+    suspend fun deleteAllPlansByTripId(tripDocumentId:String){
+        planRepository.deleteAllPlansByTripId(tripDocumentId)
+    }
 }
