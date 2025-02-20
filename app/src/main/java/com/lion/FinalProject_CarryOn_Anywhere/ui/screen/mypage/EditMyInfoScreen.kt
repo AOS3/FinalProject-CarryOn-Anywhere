@@ -11,7 +11,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -111,7 +110,7 @@ fun EditMyInfoScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(140.dp), // 전체 높이 설정
+                        .height(130.dp), // 전체 높이 설정
                     contentAlignment = Alignment.Center
                 ) {
                     // 이미지 요소

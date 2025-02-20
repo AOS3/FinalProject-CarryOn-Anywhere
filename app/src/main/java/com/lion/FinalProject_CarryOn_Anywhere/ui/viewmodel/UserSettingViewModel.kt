@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.storage.FirebaseStorage
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.Tools
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,12 +35,12 @@ class UserSettingViewModel @Inject constructor(
 
     val carryOnApplication = context as CarryOnApplication
 
-    val textFieldModifyIdValue = mutableStateOf(carryOnApplication.loginCustomerModel.userId)
-    val textFieldModifyNameValue = mutableStateOf(carryOnApplication.loginCustomerModel.userName)
-    val textFieldModifyPhoneValue = mutableStateOf(carryOnApplication.loginCustomerModel.userPhoneNumber)
+    val textFieldModifyIdValue = mutableStateOf(carryOnApplication.loginUserModel.userId)
+    val textFieldModifyNameValue = mutableStateOf(carryOnApplication.loginUserModel.userName)
+    val textFieldModifyPhoneValue = mutableStateOf(carryOnApplication.loginUserModel.userPhoneNumber)
 
     val selectedPushAgree: MutableState<String> =
-        mutableStateOf(carryOnApplication.loginCustomerModel.userAppPushAgree)
+        mutableStateOf(carryOnApplication.loginUserModel.userAppPushAgree)
 
 
     // 보여줄 이미지 요소
@@ -52,7 +53,7 @@ class UserSettingViewModel @Inject constructor(
     // 서버로 부터 이미지를 받아올 수 있는 Uri를 담을 상태 변수
     val imageUriState = mutableStateOf<Uri?>(null)
     // 서버상에서의 파일 이름
-    var newFileName = carryOnApplication.loginCustomerModel.userImage
+    var newFileName = carryOnApplication.loginUserModel.userImage
 
 
     // 다이얼로그 제어 변수 -> 유효성 검사시 코드 추가
@@ -75,7 +76,7 @@ class UserSettingViewModel @Inject constructor(
 
 
     fun loadProfileImage() {
-        val profileImage = carryOnApplication.loginCustomerModel.userImage
+        val profileImage = carryOnApplication.loginUserModel.userImage
 
         // 값이 비어 있거나 기본값으로 설정된 경우
         if (profileImage.isNullOrEmpty() || profileImage == "none") {
@@ -106,7 +107,7 @@ class UserSettingViewModel @Inject constructor(
 
     // Firebase Storage에서 이미지 로드
     fun loadImageFromFirebaseStorage(fileName: String) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("profile_images/$fileName")
+        val storageRef = FirebaseStorage.getInstance().reference.child("image/$fileName")
         storageRef.downloadUrl.addOnSuccessListener { uri ->
             showImage2State.value = true
             imageUriState.value = uri
@@ -156,7 +157,8 @@ class UserSettingViewModel @Inject constructor(
                 if(showImage1State.value){
                     // 이미지 파일을 삭제한다.
                     val work1 = async(Dispatchers.IO) {
-                       // customerService.removeImageFile(shoppingApplication.loginCustomerModel.customerUserNickName)
+                        //customerService.removeImageFile(shoppingApplication.loginCustomerModel.customerUserNickName)
+                        UserService.removeImageFile(carryOnApplication.loginUserModel.userImage)
                     }
                     work1.join()
                     newFileName = "none"
@@ -170,6 +172,7 @@ class UserSettingViewModel @Inject constructor(
                     // 이미지 파일을 삭제한다.
                     val work1 = async(Dispatchers.IO) {
                        // customerService.removeImageFile(shoppingApplication.loginCustomerModel.customerUserNickName)
+                        UserService.removeImageFile(carryOnApplication.loginUserModel.userImage)
                     }
                     work1.join()
                 }
@@ -181,20 +184,20 @@ class UserSettingViewModel @Inject constructor(
 
                 val work2 = async(Dispatchers.IO){
                     val filePath = carryOnApplication.getExternalFilesDir(null).toString()
-                    //customerService.uploadImage("${filePath}/uploadTemp.jpg", newFileName)
+                    UserService.uploadImage("${filePath}/uploadTemp.jpg", newFileName)
                 }
                 work2.join()
             }
 
-            carryOnApplication.loginCustomerModel.userImage = newFileName
-            carryOnApplication.loginCustomerModel.userName = textFieldModifyNameValue.value
+            carryOnApplication.loginUserModel.userImage = newFileName
+            carryOnApplication.loginUserModel.userName = textFieldModifyNameValue.value
             //carryOnApplication.loginCustomerModel.userPhoneNumber = textFieldModifyPhoneValue.value
             //carryOnApplication.loginCustomerModel.userId = textFieldModifyIdValue.value
-            carryOnApplication.loginCustomerModel.userAppPushAgree = selectedPushAgree.value
+            carryOnApplication.loginUserModel.userAppPushAgree = selectedPushAgree.value
 
             val work3 = async(Dispatchers.IO) {
                 // 저장 로직
-               // customerService.updateUserData(shoppingApplication.loginCustomerModel)
+                UserService.updateUserData(carryOnApplication.loginUserModel)
             }
             work3.join()
 

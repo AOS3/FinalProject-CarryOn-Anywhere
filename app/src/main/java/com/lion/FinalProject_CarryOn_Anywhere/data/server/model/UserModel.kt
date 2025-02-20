@@ -52,7 +52,7 @@ class UserModel {
     var userState = UserState.USER_STATE_NORMAL
 
     // 추가 : 앱 푸시 수신 동의 (false: 미동의, true: 동의)
-    var userAppPushAgree: String = ""
+    var userAppPushAgree: String = "미동의"
 
     fun toUserVO(): UserVO {
         val userVO = UserVO()
