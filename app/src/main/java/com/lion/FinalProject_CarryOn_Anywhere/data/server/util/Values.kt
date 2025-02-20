@@ -56,6 +56,9 @@ enum class ScreenName{
     // 개인정보 처리 방침
     DOCUMENT_SCREEN2,
 
+    // 시작 화면 (Splash)
+    START_SCREEN
+
 }
 
 // 사용자 상태

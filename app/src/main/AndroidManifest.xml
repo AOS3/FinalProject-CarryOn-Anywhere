@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 인터넷 권한 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- 외부 저장소 읽기 권한 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <!-- 외부 저장소 쓰기 권한 (Android 10 이하에서 필요) -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29"/>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -19,6 +29,20 @@
             android:value="AIzaSyCQEC8qCCiD3MVjJR-fAeutsa_jZa9uI5U"/>
 
         <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Redirect URI: "kakao${NATIVE_APP_KEY}://oauth" -->
+                <data android:host="oauth"
+                    android:scheme="@string/KAKAO_REDIRECT_URI" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".MainActivity"
             android:windowSoftInputMode="adjustResize"
             android:exported="true"
@@ -26,8 +50,9 @@
             android:theme="@style/Theme.FinalProject_CarryOn_Anywhere">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
+
             </intent-filter>
         </activity>
     </application>

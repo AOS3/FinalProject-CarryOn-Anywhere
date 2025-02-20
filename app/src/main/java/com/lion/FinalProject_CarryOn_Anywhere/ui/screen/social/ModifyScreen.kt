@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +41,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -90,52 +93,70 @@ fun ModifyScreen(
     val reviews by reviewViewModel.reviews.collectAsState()
     val posts by storyViewModel.posts.collectAsState()
 
-    LaunchedEffect(reviewIndex) {
-        reviewIndex?.let {
-            reviews.getOrNull(it)?.let { review ->
-                modifyViewModel.loadData(review = review)
-            }
-        }
+    // 공통 변수 선언
+    val titleState: MutableState<String>
+    val contentState: MutableState<String>
+    val allImages: MutableList<String>
+    val postItems: List<String>
+    val chipItems: List<String>
+
+    if (reviewIndex != null && storyIndex == null) {
+        val review = reviews.getOrNull(reviewIndex) ?: return
+
+        titleState = remember { mutableStateOf(review.title) }
+        contentState = remember { mutableStateOf(review.content) }
+        allImages = remember { mutableStateListOf(*review.imageUrls.toTypedArray()) }
+
+        postItems = modifyViewModel.postItems
+        chipItems = modifyViewModel.chipItems
+
+        modifyViewModel.updateSelectedPostChip("여행 후기")
+
+    } else if (storyIndex != null && reviewIndex == null) {
+        val post = posts.getOrNull(storyIndex) ?: return
+
+        titleState = remember { mutableStateOf(post.title) }
+        contentState = remember { mutableStateOf(post.content) }
+        allImages = remember { mutableStateListOf(*post.imageUrls.toTypedArray()) }
+
+        postItems = modifyViewModel.postItems
+        chipItems = modifyViewModel.chipItems
+
+        modifyViewModel.updateSelectedPostChip("여행 이야기") // 이야기 기본값 설정
+        modifyViewModel.updateSelectedChip(post.tag)
+
+    } else {
+        return
     }
 
-    LaunchedEffect(storyIndex) {
-        storyIndex?.let {
-            posts.getOrNull(it)?.let { post ->
-                modifyViewModel.loadData(post = post)
-            }
-        }
-    }
 
     val scrollState = rememberScrollState()
 
-    val postItems = modifyViewModel.postItems
-    val chipItems = modifyViewModel.chipItems
     val selectedPostChip = modifyViewModel.selectedPostChip.collectAsState()
     val selectedChip = modifyViewModel.selectedChip.collectAsState()
 
     val imageUris = modifyViewModel.imageUris.collectAsState()
-    val title by modifyViewModel.title.collectAsState()
-    val content by modifyViewModel.content.collectAsState()
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogBackState = remember { mutableStateOf(false) }
     val showDialogCompleteState = remember { mutableStateOf(false) }
 
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.clipData?.let { clipData ->
-                modifyViewModel.addImages(clipData, context)
-            } ?: result.data?.data?.let { uri ->
-                modifyViewModel.addSingleImage(uri)
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.clipData?.let { clipData ->
+                    modifyViewModel.addImages(clipData, context)
+                } ?: result.data?.data?.let { uri ->
+                    modifyViewModel.addSingleImage(uri)
+                }
             }
         }
-    }
 
-    Column (
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White) // 배경색을 흰색으로 설정
+            .background(Color.White)
     ) {
         // 상단 AppBar
         LikeLionTopAppBar(
@@ -205,7 +226,9 @@ fun ModifyScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+                .padding(
+                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                ),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
@@ -288,7 +311,7 @@ fun ModifyScreen(
 
                 // 기본 텍스트 입력 필드 (제목)
                 LikeLionOutlinedTextField(
-                    textFieldValue = mutableStateOf(title),
+                    textFieldValue = titleState,
                     label = "제목",
                     placeHolder = "제목을 입력하세요",
                     maxLength = 30,
@@ -309,37 +332,39 @@ fun ModifyScreen(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                // 새로 추가한 이미지 동적으로 업데이트
+                LaunchedEffect(imageUris.value) {
+                    allImages.addAll(imageUris.value.map { it.toString() }) // 새로 추가한 이미지 뒤쪽에 붙이기
+                }
 
-                // 추가한 사진
-                if (imageUris.value.isNotEmpty()) {
+                // 기존 업로드된 사진 + 새로 추가한 사진을 한 줄로 정렬
+                if (allImages.isNotEmpty()) {
                     LazyRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(imageUris.value.size) { index ->
+                        items(allImages) { imageUrl ->
                             Box(
                                 modifier = Modifier
-                                    .size(90.dp) //
+                                    .size(90.dp)
                                     .padding(top = 4.dp, end = 4.dp)
                             ) {
-                                Box(
+                                Image(
+                                    painter = rememberAsyncImagePainter(imageUrl),
+                                    contentDescription = "Review Image",
                                     modifier = Modifier
-                                        .size(80.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                ) {
-                                    Image(
-                                        painter = rememberAsyncImagePainter(imageUris.value[index]),
-                                        contentDescription = "Uploaded Image",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(10.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
 
-                                // X 버튼
+                                // X 버튼 (삭제 기능 추가)
                                 IconButton(
-                                    onClick = { modifyViewModel.removeImage(index) },
+                                    onClick = {
+                                        allImages.remove(imageUrl) // UI에서 삭제
+                                    },
                                     modifier = Modifier
                                         .size(20.dp)
                                         .align(Alignment.TopEnd)
@@ -368,12 +393,16 @@ fun ModifyScreen(
                     )
                 }
 
+
                 LikeLionFilledButton(
                     text = "사진 추가",
                     cornerRadius = 10,
                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 7.dp),
                     onClick = {
-                        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+                        val intent = Intent(
+                            Intent.ACTION_PICK,
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        ).apply {
                             type = "image/*"
                             putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true) // 다중 선택 허용
                         }
@@ -389,7 +418,7 @@ fun ModifyScreen(
 
                 // 여러 줄 입력 필드 (내용 입력)
                 LikeLionOutlinedTextField(
-                    textFieldValue = mutableStateOf(content),
+                    textFieldValue = contentState,
                     label = "내용",
                     placeHolder = "내용을 입력하세요",
                     maxLength = 500,

@@ -1,14 +1,18 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.service
 
 import android.content.Context
+import android.util.Log
 import androidx.core.content.edit
+import com.kakao.sdk.user.model.User
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.UserRepository
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.LoginResult
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.UserVO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class UserService {
+class UserService() {
     companion object {
         // 사용자 정보 추가 메서드
         fun addUserData(userModel: UserModel){
@@ -104,6 +108,20 @@ class UserService {
         // 탈퇴 처리 메서드(해당 유저의 상태값 변경)
         suspend fun updateUserState(userDocumentId:String, newState: UserState){
             UserRepository.updateUserState(userDocumentId,newState)
+        }
+
+        // 카카오 로그인 후 Firestore에서 사용자 정보 가져오기
+        suspend fun handleKakaoLogin(email: String, userName: String, userProfileImage: String, kakaoToken: String): UserModel? {
+            return try {
+                withContext(Dispatchers.IO) {
+                    val user = UserRepository.getOrCreateUser(email, userName, userProfileImage, kakaoToken)
+                    Log.d("test100", "Firestore에서 유저 처리 완료: ${user.userId}")
+                    user
+                }
+            } catch (e: Exception) {
+                Log.e("test100", "Firestore 사용자 처리 중 오류 발생", e)
+                null
+            }
         }
 
     }

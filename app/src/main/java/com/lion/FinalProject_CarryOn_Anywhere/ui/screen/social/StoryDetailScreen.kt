@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,8 +46,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
@@ -54,7 +57,11 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun StoryDetailScreen(
@@ -65,6 +72,8 @@ fun StoryDetailScreen(
 ) {
     val posts by storyViewModel.posts.collectAsState()
     val post = posts.getOrNull(storyIndex) ?: return
+
+    val context = LocalContext.current
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogDeleteState = remember { mutableStateOf(false) }
@@ -116,7 +125,15 @@ fun StoryDetailScreen(
                 confirmButtonTitle = "삭제",
                 confirmButtonOnClick = {
                     showDialogDeleteState.value = false
-                    navController.popBackStack()
+                    storyViewModel.deleteCarryTalk(
+                        post.documentId,
+                        onSuccess = {
+                            navController.popBackStack() // ✅ 삭제 후 ReviewScreen으로 이동
+                        },
+                        onError = { errorMessage ->
+                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                        }
+                    )
                 },
                 dismissButtonTitle = "취소",
                 dismissButtonOnClick = {
@@ -162,7 +179,7 @@ fun StoryDetailScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
-                            text = "${post.author} • ${post.postDate}",
+                            text = "${post.author} • ${formattedDate(post.postDate)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = GrayColor
                         )
@@ -178,6 +195,18 @@ fun StoryDetailScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
+                    // 태그
+                    Text(
+                        text = post.tag,
+                        fontSize = 12.sp,
+                        color = Color.White,
+                        modifier = Modifier
+                            .background(SubColor, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
                     // 내용
                     Text(
                         text = post.content,
@@ -188,11 +217,11 @@ fun StoryDetailScreen(
                 }
 
                 // 이미지 리스트
-                post.imageRes?.let { images ->
+                post.imageUrls?.let { images ->
                     if (images.isNotEmpty()) {
-                        items(images) { imageRes ->
+                        items(images) { imageUrl ->
                             Image(
-                                painter = painterResource(imageRes),
+                                painter = rememberAsyncImagePainter(imageUrl),
                                 contentDescription = "Review Image",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -268,6 +297,12 @@ fun StoryDetailScreen(
             }
         }
     }
+}
+
+private fun formattedDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return format.format(date)
 }
 
 // 시스템 바텀바 높이를 가져오는 함수

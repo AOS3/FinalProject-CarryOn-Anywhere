@@ -28,12 +28,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lion.FinalProject_CarryOn_Anywhere.R
 
 
@@ -99,6 +103,7 @@ fun LikeLionOutlinedTextField(
             }
         },
         onValueChange = { newValue ->
+            textFieldValue.value = newValue
             val filteredValue = if (inputCondition == null) {
                 newValue
             } else {
@@ -112,9 +117,16 @@ fun LikeLionOutlinedTextField(
         },
         singleLine = singleLine,
         readOnly = readOnly,
-        visualTransformation = if (!isShowingPasswordFlag && inputType == LikeLionOutlinedTextFieldInputType.PASSWORD) {
+        visualTransformation = if (isShowingPasswordFlag == false && inputType == LikeLionOutlinedTextFieldInputType.PASSWORD) {
             // 비밀번호 숨김
-            PasswordVisualTransformation()
+            // PasswordVisualTransformation()
+            // 길이만큼 * 보여주기
+            VisualTransformation { text ->
+                TransformedText(
+                    AnnotatedString("*".repeat(text.text.length)),
+                    OffsetMapping.Identity
+                )
+            }
         } else {
             // 비밀번호 보이기
             VisualTransformation.None
@@ -168,16 +180,15 @@ fun LikeLionOutlinedTextField(
             }
         },
         supportingText = {
-            if (showCharCount) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    // 오른쪽 정렬
-                    Spacer(modifier = Modifier.weight(1f))
-                    Text(
-                        text = "${textFieldValue.value.length} / $maxLength",
-                        color = if (textFieldValue.value.length == maxLength) Color.Red else Color.Gray,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
+            // 🚀 `supportText`가 있으면 텍스트 표시
+            if (!supportText?.value.isNullOrEmpty()) {
+                Text(
+                    text = supportText?.value ?: "",
+                    color = Color.Red, // 에러 메시지 색상
+                    style = MaterialTheme.typography.bodySmall,
+                    fontSize = 13.sp
+                )
+
             }
         }
     )

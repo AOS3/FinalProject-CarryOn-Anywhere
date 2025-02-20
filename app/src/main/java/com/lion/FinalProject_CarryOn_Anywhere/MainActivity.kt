@@ -125,7 +125,7 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             navController = navHostController,
             modifier = Modifier
                 .padding(paddingValues),
-            startDestination = ScreenName.LOGIN_SCREEN.name,
+            startDestination = ScreenName.START_SCREEN.name,
             enterTransition = {
                 fadeIn(
                     tween(300)
@@ -155,6 +155,12 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                 )
             },
         ) {
+            // 시작 화면
+            composable(
+                route = ScreenName.START_SCREEN.name
+            ){
+                StartScreen()
+            }
             // 로그인 화면
             composable(
                 route = ScreenName.LOGIN_SCREEN.name
