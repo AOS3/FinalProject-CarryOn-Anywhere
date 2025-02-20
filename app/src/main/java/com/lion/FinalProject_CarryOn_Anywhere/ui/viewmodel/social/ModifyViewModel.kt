@@ -21,7 +21,7 @@ class ModifyViewModel @Inject constructor(
 ) : ViewModel() {
 
     val postItems = listOf("여행 후기", "여행 이야기")
-    val chipItems = listOf("전체", "맛집", "숙소", "여행 일정", "모임")
+    val chipItems = listOf("맛집", "숙소", "여행 일정", "모임")
 
     private val _title = MutableStateFlow("")
     val title: StateFlow<String> = _title
@@ -63,7 +63,7 @@ class ModifyViewModel @Inject constructor(
             _title.value = it.title
             _content.value = it.content
             _selectedPostChip.value = "여행 후기"
-            _imageUris.value = it.imageRes as List<Uri>
+            _imageUris.value = it.imageUrls as List<Uri>
         }
 
         post?.let {
@@ -71,7 +71,7 @@ class ModifyViewModel @Inject constructor(
             _content.value = it.content
             _selectedPostChip.value = "여행 이야기"
             _selectedChip.value = it.tag
-            _imageUris.value = (it.imageRes ?: emptyList()) as List<Uri>
+            _imageUris.value = (it.imageUrls ?: emptyList()) as List<Uri>
         }
     }
 

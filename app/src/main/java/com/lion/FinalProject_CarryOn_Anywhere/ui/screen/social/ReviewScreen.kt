@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.review
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,9 +23,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
 
@@ -34,9 +37,39 @@ fun ReviewScreen(
     navController: NavController
 ) {
     val reviews by reviewViewModel.reviews.collectAsState()
+    val isLoading by reviewViewModel.isLoading.collectAsState()
+
+    // 최신 데이터 반영
+    LaunchedEffect(Unit) {
+        reviewViewModel.fetchTripReviews()
+    }
+
+    // Firestore에서 데이터를 가져오는 동안 로딩 표시
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(color = SubColor)
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("데이터를 불러오는 중...", color = Color.Gray)
+            }
+        }
+        return
+    }
 
     if (reviews.isEmpty()) {
-        LikeLionEmptyView(message = "작성된 후기가 없습니다.")
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            LikeLionEmptyView(message = "작성된 후기가 없습니다.")
+        }
     } else {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -70,16 +103,19 @@ private fun ReviewCard(review: Review, onClick: () -> Unit) {
             .clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            Image(
-                painter = painterResource(id = review.imageRes[0]),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .padding(bottom = 10.dp)
-                    .clip(RoundedCornerShape(10.dp))
-            )
+            // Firestore에서 가져온 첫 번째 이미지 출력
+            if (review.imageUrls.isNotEmpty()) {
+                Image(
+                    painter = rememberAsyncImagePainter(review.imageUrls[0]),
+                    contentDescription = "여행 후기 이미지",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .padding(bottom = 10.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                )
+            }
 
             Text(
                 text = review.title,
@@ -90,7 +126,7 @@ private fun ReviewCard(review: Review, onClick: () -> Unit) {
             )
 
             Text(
-                text = review.date,
+                text = "여행 기간",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 modifier = Modifier.padding(vertical = 5.dp)
@@ -123,7 +159,7 @@ private fun ReviewCard(review: Review, onClick: () -> Unit) {
                         colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Black)
                     )
                     Text(
-                        text = " ${review.comments}",
+                        text = "${review.comments}",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 1.dp)
                     )
