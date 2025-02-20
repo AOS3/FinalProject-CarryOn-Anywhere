@@ -62,8 +62,8 @@ class TourApiModel {
         val mapy: String?,        // 위도
         val tel: String?,         // 전화번호
         val zipcode: String?,      // 우편번호
-    )
 
+    )
 
 
 }

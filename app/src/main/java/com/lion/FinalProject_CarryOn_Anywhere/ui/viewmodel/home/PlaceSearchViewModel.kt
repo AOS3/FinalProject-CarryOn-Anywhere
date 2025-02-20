@@ -2,27 +2,20 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.JsonSyntaxException
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
-import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourApiHelper
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,7 +35,11 @@ class PlaceSearchViewModel @Inject constructor(
     var isFavoriteEnable = mutableStateOf(false)
     // 검색 버튼 누름 여부
     var isSearchTriggered = mutableStateOf(false)
-
+    // 현재 페이지 번호
+    var currentPage = 1
+    // 로딩 상태 관리
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     // Back 버튼 동작 메서드
     fun navigationBackIconOnClick() {
@@ -55,55 +52,82 @@ class PlaceSearchViewModel @Inject constructor(
         }
     }
 
-    // 검색 결과 처리
+    // `TouristSpotItem`을 `Map<String, Any>`로 변환하는 메서드
+    private fun convertToMap(place: TourApiModel.TouristSpotItem): Map<String, Any> {
+        return mapOf(
+            "contentid" to (place.contentid ?: ""),
+            "firstimage" to (place.firstimage ?: ""),
+            "title" to (place.title ?: "장소 정보 없음"),
+            "region" to TourApiHelper.getAreaName(place.areacode),
+            "category" to TourApiHelper.getContentType(place.contenttypeid),
+            "address" to (place.addr1 ?: "주소 정보 없음"),
+            "call" to (place.tel ?: "전화번호 정보 없음")
+        )
+    }
+
+    // 검색 실행 (첫 페이지)
     fun fetchPlace() {
         val keyword = searchValue.value.trim()
+        if (keyword.isEmpty() || _isLoading.value) return
 
-        if (keyword.isEmpty()) {
-            return
-        }
+        _isLoading.value = true
+        currentPage = 1
 
         viewModelScope.launch {
             try {
                 val response = TourAPIRetrofitClient.instance.getSearchPlaces(
-                    serviceKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ==",
-                    keyword = keyword
+                    serviceKey = "Dv9oAbX/dy1WYtUtdQlhwy6o0rZyscllzmIsF9l4iLwlLtX2YeGQo9vzZl7ZUz4ez4BzWLCoBIvih9MgPFpiYQ==",
+                    keyword = keyword,
+                    pageNo = currentPage
                 )
 
                 if (response.isSuccessful) {
                     val places = response.body()?.response?.body?.items?.item ?: emptyList()
-                    Log.d("API_ERROR", "결과 수: ${places.size}")
 
-                    // 변환 후 저장
-                    _placeSearchList.value = places.map { place ->
-                        val regionName = TourApiHelper.getAreaName(place.areacode)
-                        val categoryName = TourApiHelper.getContentType(place.contenttypeid)
+                    Log.d("API_CALL", "첫 페이지 로드 완료. 개수: ${places.size}")
 
-                        val imageUrl = place.firstimage ?: "https://example.com/default_image.jpg"
-
-                        Log.d("API_CALL", "설정된 이미지 URL: $imageUrl") // ✅ 값이 정상적으로 들어가는지 확인
-
-                        mapOf(
-                            "contentid" to (place.contentid ?: ""),
-                            "firstimage" to (place.firstimage ?: ""),
-                            "title" to (place.title ?: "장소 정보 없음"),
-                            "region" to regionName,
-                            "category" to categoryName,
-                            "address" to (place.addr1 ?: "주소 정보 없음"),
-                            "call" to (place.tel ?: "전화번호 정보 없음")
-                        )
-                    }
+                    _placeSearchList.value = places.map { convertToMap(it) }
                 } else {
                     Log.e("API_ERROR", "API 응답 실패: ${response.errorBody()?.string()}")
                 }
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Log.e("API_ERROR", "네트워크 오류: ${e.message}")
-            } catch (e: HttpException) {
-                Log.e("API_ERROR", "HTTP 오류: ${e.message}")
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 
+    // 다음 페이지 로드
+    fun fetchNextPage() {
+        if (_isLoading.value) return
+
+        _isLoading.value = true
+        currentPage++  // 다음 페이지 요청
+
+        viewModelScope.launch {
+            try {
+                val response = TourAPIRetrofitClient.instance.getSearchPlaces(
+                    serviceKey = "Dv9oAbX/dy1WYtUtdQlhwy6o0rZyscllzmIsF9l4iLwlLtX2YeGQo9vzZl7ZUz4ez4BzWLCoBIvih9MgPFpiYQ==",
+                    keyword = searchValue.value.trim(),
+                    pageNo = currentPage
+                )
+
+                if (response.isSuccessful) {
+                    val newPlaces = response.body()?.response?.body?.items?.item ?: emptyList()
+
+                    if (newPlaces.isNotEmpty()) {
+                        _placeSearchList.value = _placeSearchList.value + newPlaces.map { convertToMap(it) }
+                        Log.d("API_CALL", "다음 페이지 로드 완료. 현재 페이지: $currentPage")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("API_ERROR", "네트워크 오류: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     // 검색 버튼 동작 메서드
     fun searchAndHideKeyboard(keyboardController: SoftwareKeyboardController?) {

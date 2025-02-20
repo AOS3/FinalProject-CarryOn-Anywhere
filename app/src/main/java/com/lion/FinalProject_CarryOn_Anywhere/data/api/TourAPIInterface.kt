@@ -53,4 +53,16 @@ interface TourAPIInterface {
         @Query("arrange") arrange:String = "C",
     ): Response<TourApiModel.TouristSpotResponse>
 
+    // 소개 정보
+    @GET("detailIntro1")
+    suspend fun getDetailIntro1(
+        @Query("serviceKey") serviceKey: String,
+        @Query("numOfRows") numOfRows: Int = 10,
+        @Query("contentId") contentId: String,
+        @Query("contentTypeId") contentTypeId: String,
+        @Query("MobileOS") mobileOS: String = "AND",
+        @Query("MobileApp") mobileApp: String = "AppTest",
+        @Query("_type") type: String = "json",
+    ): Response<TourApiModel.TouristSpotResponse>
+
 }
