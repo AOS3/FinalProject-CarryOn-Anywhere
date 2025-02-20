@@ -51,6 +51,9 @@ class UserModel {
     // 유저 상태 (1: 정상, 2: 탈퇴)
     var userState = UserState.USER_STATE_NORMAL
 
+    // 추가 : 앱 푸시 수신 동의 (false: 미동의, true: 동의)
+    var userAppPushAgree: String = "미동의"
+
     fun toUserVO(): UserVO {
         val userVO = UserVO()
         userVO.userKakaoToken = userKakaoToken
@@ -67,6 +70,8 @@ class UserModel {
         userVO.userAutoLoginToken = userAutoLoginToken
         userVO.userTimeStamp = userTimeStamp
         userVO.userState = userState.number
+        userVO.userAppPushAgree = userAppPushAgree
+
         return userVO
     }
 }

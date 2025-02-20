@@ -4,18 +4,30 @@ import android.content.Context
 import android.location.Location
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.ChipState
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIInterface
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.PlanService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
-import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.Place
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -24,57 +36,44 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TripInfoViewModel @Inject constructor(
-    @ApplicationContext context: Context
-) : ViewModel(){
+    @ApplicationContext context: Context,
+    val tripService: TripService,
+    val planService: PlanService
+) : ViewModel() {
 
     val carryOnApplication = context as CarryOnApplication
 
+    val regionCodes = mutableStateListOf<String>()
+    val subRegionCodes = mutableStateListOf<String>()
+
     // ViewModel
-    var selectedPlaces = mutableStateListOf<LatLng>() // ✅ 선택된 장소 리스트
-    var selectedPlaceLocation = mutableStateOf(LatLng(35.8714, 128.6014)) // ✅ 기본 위치 (대구)
+    var selectedPlaces = mutableStateListOf<LatLng>() // 선택된 장소 리스트
+    var selectedPlaceLocation = mutableStateOf(LatLng(37.5665, 126.9780)) // 기본 위치 (대구)
 
     // 다이얼로그 상태
     val deletePlanDialogState = mutableStateOf(false)
     val editTripNameDialogState = mutableStateOf(false)
     val deletePlaceDialogState = mutableStateOf(false)
 
-    var deleteTargetPlace = mutableStateOf<Place?>(null)
-
-    // 검색 키워드
-    val searchTextFieldValue = mutableStateOf("")
+    var deleteTargetPlace = mutableStateOf<Map<String, Any?>?>(null)
 
     var currentTripName = mutableStateOf("여행1")
     val editTripNameTextFieldValue = mutableStateOf("")
 
+    // 날짜별 리스트 자동 생성
+    var tripDays = mutableStateListOf<String>()
+
     // 바텀시트 상태
     val showBottomSheet = mutableStateOf(false)
 
-    // 시/도 목록
-    val regions = listOf("서울", "부산", "경기", "인천", "강원", "경상", "전라", "충청", "제주")
-
-    // 시/도를 클릭하면 해당 시/도의 구/군 목록을 보여줌
-    val subRegionsMap = mapOf(
-        "서울" to listOf("노원구", "은평구", "강남구", "서초구", "종로구", "마포구"),
-        "부산" to listOf("해운대구", "남구", "부산진구", "사하구"),
-        "제주" to listOf("제주시", "서귀포시"),
-        "경기" to listOf("수원시", "고양시", "성남시", "부천시"),
-        "인천" to listOf("연수구", "남동구", "부평구"),
-        "강원" to listOf("춘천시", "강릉시", "원주시"),
-        "경상" to listOf("대구", "창원", "포항"),
-        "전라" to listOf("전주시", "광주시", "여수시"),
-        "충청" to listOf("청주시", "천안시", "공주시")
-    )
-
-    // 선택된 지역 리스트 (예: "서울시 노원구")
-    var selectedRegions: SnapshotStateList<ChipState> = mutableStateListOf()
+    val selectRegion = mutableStateListOf<String>()
 
     // 날짜 선택
     var startDate = mutableStateOf<Long?>(null)
     var endDate = mutableStateOf<Long?>(null)
 
-    val dateFormatter = SimpleDateFormat("yyyy. M. d", Locale.getDefault())
-
     val planDateFormatter = SimpleDateFormat("M.d (E)", Locale.KOREA)
+    val dateFormatter = SimpleDateFormat("yyyy. M. d", Locale.getDefault())
 
     var formattedStartDate = mutableStateOf("")
     var formattedEndDate = mutableStateOf("")
@@ -85,8 +84,84 @@ class TripInfoViewModel @Inject constructor(
         formattedEndDate.value = endDate.value?.let { dateFormatter.format(Date(it)) } ?: ""
     }
 
-    // 날짜별 리스트 자동 생성
-    var tripDays = mutableStateListOf<String>()
+    // 데이터를 가져와 상태 관리 변수에 담아준다.
+    fun gettingTripData(tripDocumentId: String) {
+        // 서버에서 데이터를 가져온다.
+        CoroutineScope(Dispatchers.Main).launch {
+            val work1 = async(Dispatchers.IO) {
+                tripService.selectTripDataOneById(tripDocumentId)
+            }
+            tripModel = work1.await()
+
+            currentTripName.value = tripModel.tripTitle
+            startDate.value = tripModel.tripStartDate
+            endDate.value = tripModel.tripEndDate
+            selectRegion.clear()
+
+            tripModel.tripCityList.forEach { cityMap ->
+                val regionName = cityMap["regionName"] as? String ?: ""
+                val regionCode = cityMap["regionCode"] as? String ?: ""
+                val subRegionName = cityMap["subRegionName"] as? String ?: ""
+                val subRegionCode = cityMap["subRegionCode"] as? String ?: ""
+
+                regionCodes.add(regionCode)
+                subRegionCodes.add(subRegionCode)
+
+                // 🔹 "서울시 마포구" 형태로 저장
+                val fullRegionInfo = if (regionName == "서울" ||
+                    regionName == "부산" || regionName == "대구" || regionName == "인천" ||
+                    regionName == "광주" || regionName == "대전" || regionName == "울산"
+                ) {
+                    "${regionName}시 $subRegionName"
+                } else if (regionName == "세종") {
+                    "${regionName}특별자치시 $subRegionName"
+                } else if (regionName == "강원" || regionName == "경기" || regionName == "충청" ||
+                    regionName == "경상" || regionName == "전라"
+                ) {
+                    "${regionName}도 $subRegionName"
+                } else {
+                    "${regionName}특별자치도 $subRegionName"
+                }
+                selectRegion.add(fullRegionInfo)
+            }
+
+            // 날짜별로 Firestore에서 PlanData 불러오기
+            tripDays.forEach { day ->
+                getPlanDataByTripAndDay(tripDocumentId, day)
+            }
+        }
+    }
+
+    fun getPlanDataByTripAndDay(tripDocumentId: String, day: String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            val work1 = async(Dispatchers.IO) {
+                planService.getPlanByDocumentIdAndDay(tripDocumentId, day)
+            }
+            val planData = work1.await()
+
+            if (planData != null) {
+                // Firestore에서 불러온 데이터를 placesByDay에 저장
+                placesByDay[day] = planData.placeList.map { place ->
+                    place
+                }.toMutableList()
+            }
+
+            selectedPlaces.clear()
+            planData?.placeList?.forEach { place ->
+                val lat = (place["mapy"] as? String)?.toDoubleOrNull()
+                val lng = (place["mapx"] as? String)?.toDoubleOrNull()
+                if (lat != null && lng != null) {
+                    selectedPlaces.add(LatLng(lat, lng))
+                }
+            }
+
+            // 마지막 좌표로 `selectedPlaceLocation` 업데이트 (중복 방지)
+            val lastLocation = selectedPlaces.lastOrNull()
+            if (lastLocation != null && selectedPlaceLocation.value != lastLocation) {
+                selectedPlaceLocation.value = lastLocation
+            }
+        }
+    }
 
     fun updateTripDays() {
         tripDays.clear()
@@ -101,136 +176,35 @@ class TripInfoViewModel @Inject constructor(
     }
 
     // 일별 장소선택
-    var placesByDay = mutableStateMapOf<String, MutableList<Place>>()
+    var placesByDay = mutableStateMapOf<String, MutableList<Map<String, Any?>>>()
     var selectedDay = mutableStateOf("")
 
-    // 장소 검색화면에서 선택을 눌렀을때
-    fun addPlaceToDay(day: String, place: Place) {
-        if (day.isEmpty()) {
-            println("오류: 추가할 날짜가 없음!")
-            return
-        }
-
-        val placesList = placesByDay[day]
-
-        // 마지막으로 추가된 장소와 현재 추가할 장소가 동일하면 추가하지 않음
-        if (placesList?.isNotEmpty() == true && placesList.last().title == place.title) {
-
-            Toast.makeText(carryOnApplication, "동일한 장소를 연속으로 추가할 수 없습니다.", Toast.LENGTH_SHORT).show()
-
-            carryOnApplication.navHostController.popBackStack(ScreenName.TRIP_SEARCH_PLACE.name, true)
-            carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
-
-            return
-        }
-
-        // placesByDay에 장소 추가
-        if (placesList != null) {
-            placesList.add(place)
-        } else {
-            placesByDay[day] = mutableStateListOf(place)
-        }
-
-        // 새로운 장소 좌표를 selectedPlaces 리스트에 추가
-        val newLocation = LatLng(place.latitude, place.longitude)
-        selectedPlaces.add(newLocation)
-
-        // 지도 중심을 새 장소로 이동
-        selectedPlaceLocation.value = newLocation
-
-        println("장소 추가됨: ${place.title}, 날짜: $day")
-
-        carryOnApplication.navHostController.popBackStack(ScreenName.TRIP_SEARCH_PLACE.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
-    }
-
-    fun removePlaceFromDay(day: String, place: Place) {
+    fun removePlaceFromDay(day: String, place: Map<String, Any?>) {
         placesByDay[day]?.let { places ->
-            // ✅ 장소 삭제
-            places.remove(place)
+            // Firestore에서 받아온 데이터가 `Map<String, Any?>` 형태이므로 `contentid`를 추출
+            val placeIdToRemove = place["contentid"] as? String
 
-            // ✅ 만약 해당 날짜에 장소가 없다면, 리스트에서 제거
-            if (places.isEmpty()) {
-                placesByDay.remove(day)
+            if (placeIdToRemove == null) {
+                Log.e("TripInfoViewModel", "삭제할 contentid가 없음: ${place["title"]}")
+                return
             }
 
-            // ✅ `selectedPlaces`에서도 해당 장소의 좌표 삭제
-            selectedPlaces.removeIf { it.latitude == place.latitude && it.longitude == place.longitude }
+            // 기존 리스트를 복사하여 변경 (Compose가 감지할 수 있도록)
+            val updatedList = places.toMutableList()
+            val removed = updatedList.removeIf { it["contentid"] == placeIdToRemove }
 
-            // ✅ 남아있는 장소가 있으면 마지막 장소로 지도 중심 이동
+            if (removed) {
+                // 변경된 리스트를 placesByDay에 다시 할당하여 Compose가 감지할 수 있도록 함
+                placesByDay[day] = updatedList.toMutableList()
+            }
+
+            // 삭제 후 지도 중심 좌표 업데이트
             selectedPlaceLocation.value = if (selectedPlaces.isNotEmpty()) {
                 selectedPlaces.last()
             } else {
                 LatLng(35.8714, 128.6014) // 기본값 (대구)
             }
-
-            println("🗑 장소 삭제됨: ${place.title}, 날짜: $day")
         }
-    }
-
-    // 원본 장소 리스트
-    private val allPlaces = listOf(
-        Place("https://image-url.com/image1.jpg", "관암사 (대구)", "관광지", "대구광역시 동구", 35.977827, 128.733872),
-        Place("https://image-url.com/image2.jpg", "서울 N타워", "관광지", "서울특별시 용산구", 37.551187, 126.988240),
-        Place("https://image-url.com/image3.jpg", "홍대", "관광지", "서울특별시 마포구", 37.558182, 126.926180),
-        Place("https://image-url.com/image4.jpg", "서울 경복궁", "관광지", "서울특별시 종로구", 37.579808, 126.977756),
-        Place("https://image-url.com/image5.jpg", "부산 해운대", "해변", "부산광역시 해운대구", 35.172465, 129.175751),
-        Place("https://image-url.com/image6.jpg", "을왕리 해수욕장", "해변", "인천광역시 중구", 37.448277, 126.374478),
-        Place("https://image-url.com/image7.jpg", "경주 첨성대", "관광지", "경상도 경주시", 35.894480, 129.324250),
-        Place("https://image-url.com/image8.jpg", "서울 강남", "관광지", "서울특별시 강남구", 37.498553, 127.027764),
-    )
-
-    // 필터링된 장소 리스트
-    var filteredPlaces = SnapshotStateList<Place>()
-
-    init {
-        filteredPlaces
-    }
-
-    // 장소 필터링
-    fun filterPlaces() {
-        val query = searchTextFieldValue.value.lowercase().trim()
-        // 1️⃣ selectedRegions 디버깅 로그 출력
-        println("🟢 선택된 지역 목록: ${selectedRegions.joinToString { it.text }}")
-
-        // selectedRegions 값 변환 (서울시 → 서울특별시, 부산시 → 부산광역시 등)
-        val normalizedRegions = selectedRegions.map { region ->
-            region.text
-                .replace("서울시", "서울특별시")
-                .replace("부산시", "부산광역시")
-                .replace("대구시", "대구광역시")
-                .replace("인천시", "인천광역시")
-                .replace("광주시", "광주광역시")
-                .replace("대전시", "대전광역시")
-                .replace("울산시", "울산광역시")
-                .replace("경기도", "경기도")
-                .replace("강원도", "강원도")
-                .replace("충청도", "충청도")
-                .replace("전라도", "전라도")
-                .replace("경상도", "경상도")
-                .replace("제주시", "제주특별자치도")
-        }
-
-        // 변환된 지역명으로 필터링 (포함 여부 확인)
-        val filteredByRegion = if (selectedRegions.isNotEmpty()) {
-            allPlaces.filter { place ->
-                normalizedRegions.any { region ->
-                    place.location.lowercase().contains(region.lowercase()) // ✅ 포함 여부 체크
-                }
-            }
-        } else {
-            allPlaces // 선택된 지역이 없으면 모든 장소 사용
-        }
-
-        // 검색어 기반으로 한 번 더 필터링
-        filteredPlaces.clear()
-        filteredPlaces.addAll(
-            filteredByRegion.filter { place ->
-                place.title.lowercase().contains(query) ||
-                        place.subtitle.lowercase().contains(query) ||
-                        place.location.lowercase().contains(query)
-            }
-        )
     }
 
     val selectedIndex = mutableStateOf<Int?>(null)
@@ -238,9 +212,15 @@ class TripInfoViewModel @Inject constructor(
     fun reorderPlaces(day: String, fromIndex: Int, toIndex: Int) {
         placesByDay[day]?.let { list ->
             if (fromIndex in list.indices && toIndex in list.indices) {
-                val movedItem = list.removeAt(fromIndex)
-                list.add(toIndex, movedItem)
-                println("🚀 장소 순서 변경: $fromIndex -> $toIndex")
+                // 기존 리스트를 복사해서 새로운 리스트 생성
+                val newList = list.toMutableList()
+                // 기존 위치에서 제거
+                val movedItem = newList.removeAt(fromIndex)
+                // 새로운 위치에 추가
+                newList.add(toIndex, movedItem)
+
+                // 변경된 리스트를 새로 할당하여 Compose가 감지하도록 함
+                placesByDay[day] = newList
             }
         }
     }
@@ -252,109 +232,107 @@ class TripInfoViewModel @Inject constructor(
             end.latitude, end.longitude,
             results
         )
-        return results[0] // 미터(m) 단위 거리 반환
+        // 미터(m) 단위 거리 반환
+        return results[0]
     }
 
-    // 이전 화면 저장
-    var previousScreen = mutableStateOf<String?>(null)
-
-    fun deletePlanOnClick(){
-
-    }
-
-    // 지역 선택 버튼 눌렀을 때
-    fun completeRegionOnClick(){
-        previousScreen.value = ScreenName.SELECT_TRIP_REGION.name
-        carryOnApplication.navHostController.popBackStack(ScreenName.SELECT_TRIP_REGION.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.SELECT_TRIP_DATE.name)
-    }
-
-    // 날짜 선택 버튼 눌렀을 때
-    fun completeDateOnClick(){
-        carryOnApplication.navHostController.popBackStack(ScreenName.SELECT_TRIP_DATE.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
-    }
-
-    // 지도를 눌렀을 때
-    fun mapOnClick(){
-        carryOnApplication.navHostController.popBackStack(ScreenName.ADD_TRIP_PLAN.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.SHOW_TRIP_MAP.name)
-    }
-
-    fun tripDateNavigationOnClick() {
-        when (previousScreen.value) {
-            ScreenName.SELECT_TRIP_REGION.name -> {
-                carryOnApplication.navHostController.popBackStack(ScreenName.SELECT_TRIP_DATE.name, true)
-                carryOnApplication.navHostController.navigate(ScreenName.SELECT_TRIP_REGION.name)
+    fun deletePlanOnClick(tripDocumentId: String) {
+        CoroutineScope(Dispatchers.Main).launch {
+            // 여행 정보를 삭제한다.
+            val work1 = async(Dispatchers.IO){
+                tripService.deleteTripData(tripDocumentId = tripDocumentId)
+                planService.deleteAllPlansByTripId(tripDocumentId = tripDocumentId)
             }
-            ScreenName.ADD_TRIP_PLAN.name -> {
-                carryOnApplication.navHostController.popBackStack(ScreenName.SELECT_TRIP_DATE.name, true)
-                carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
-            }
-            else -> {
-                carryOnApplication.navHostController.popBackStack(ScreenName.SELECT_TRIP_DATE.name, true)
-            }
+            work1.join()
+            // 홈 화면으로 이동한다.
+            carryOnApplication.navHostController.popBackStack()
+            carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
         }
     }
 
+    // 서버에서 받아온 데이터를 담을 변수
+    lateinit var tripModel: TripModel
+
+    // 지도를 눌렀을 때
+    fun mapOnClick(tripDocumentId: String) {
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate("${ScreenName.SHOW_TRIP_MAP.name}/$tripDocumentId")
+    }
+
     // 일정 만들기에서 뒤로가기 눌렀을 때
-    fun addPlanNavigationOnClick(){
-        carryOnApplication.navHostController.popBackStack(ScreenName.ADD_TRIP_PLAN.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.SELECT_TRIP_REGION.name)
+    fun addPlanNavigationOnClick() {
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
     }
 
-    // 장소 검색에서 뒤로가기 눌렀을 때
-    fun tripSearchNavigationOnClick(){
-        carryOnApplication.navHostController.popBackStack(ScreenName.TRIP_SEARCH_PLACE.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
-    }
+    fun dialogEditDateOnClick(tripDocumentId: String?) {
+        carryOnApplication.previousScreen.value = "${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId"
 
-    // 다이얼로그에서 여행날짜 수정 눌렀을 때
-    fun dialogEditDateOnClick(){
-        previousScreen.value = ScreenName.ADD_TRIP_PLAN.name
-        carryOnApplication.navHostController.popBackStack(ScreenName.ADD_TRIP_PLAN.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.SELECT_TRIP_DATE.name)
+        carryOnApplication.navHostController.popBackStack()
+
+        val route = if (tripDocumentId.isNullOrEmpty()) {
+            "${ScreenName.SELECT_TRIP_DATE.name}"
+        } else {
+            "${ScreenName.SELECT_TRIP_DATE.name}?tripDocumentId=$tripDocumentId"
+        }
+
+        carryOnApplication.navHostController.navigate(route)
     }
 
     // 장소추가 버튼 눌렀을 때
-    fun plusPlaceOnClick(day: String) {
-        selectedDay.value = day // `selectedDay` 업데이트
+    fun plusPlaceOnClick(day: String, tripDocumentId: String) {
+        // `selectedDay` 업데이트
+        selectedDay.value = day
+
+        // `regionCodes`와 `subRegionCodes`를 문자열로 변환
+        val regionCodesParam = regionCodes.joinToString(",")
+        val subRegionCodesParam = subRegionCodes.joinToString(",")
 
         // selectedDay가 비어있지 않으면 이동
-        carryOnApplication.navHostController.popBackStack(ScreenName.ADD_TRIP_PLAN.name, true)
-        carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/${day}")
-    }
-
-    // 장소추가 요청 버튼 눌렀을 때
-    fun requestPlaceOnClick() {
-        carryOnApplication.navHostController.popBackStack(ScreenName.TRIP_SEARCH_PLACE.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.WRITE_REQUEST_PLACE.name)
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/$day/$tripDocumentId/${regionCodesParam}/${subRegionCodesParam}")
     }
 
     // 장소 편집에서 뒤로가기 눌렀을 때
-    fun editPlaceNavigationOnClick() {
-        carryOnApplication.navHostController.popBackStack(ScreenName.EDIT_PLAN_PLACE.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
+    fun editPlaceNavigationOnClick(tripDocumentId: String) {
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
     }
 
     // 장소 편집 완료 눌렀을 때
-    fun editPlaceDoneOnClick() {
-        carryOnApplication.navHostController.popBackStack(ScreenName.EDIT_PLAN_PLACE.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
+    fun editPlaceDoneOnClick(tripDocumentId: String) {
+        // 현재 선택된 날짜의 장소 리스트 가져오기
+        val day = selectedDay.value
+        CoroutineScope(Dispatchers.Main).launch {
+            val work1 = async(Dispatchers.IO){
+                placesByDay[day]?.let { updatedPlaceList ->
+                    planService.updatePlanByDocumentIdAndDay(
+                        tripDocumentId = tripDocumentId,
+                        day = day,
+                        newPlaceList = updatedPlaceList
+                    )
+                }
+            }
+            work1.await()
+        }
+
+        // 화면 이동
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
     }
 
     // 날짜별 장소 편집을 눌렀을 때
-    fun editPlaceOnClick(day: String, index:Int){
+    fun editPlaceOnClick(day: String, index: Int, tripDocumentId: String) {
         selectedDay.value = day
         selectedIndex.value = index
-        Log.d("TripInfoViewModel", "editPlaceOnClick - day: $day, index: $index") // ✅ 로그 추가
-        carryOnApplication.navHostController.popBackStack(ScreenName.ADD_TRIP_PLAN.name, true)
-        carryOnApplication.navHostController.navigate("${ScreenName.EDIT_PLAN_PLACE.name}/$day/$index")
+
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate("${ScreenName.EDIT_PLAN_PLACE.name}/$day/$index/$tripDocumentId")
     }
 
     // 지도상세보기에서 뒤로가기 눌렀을 때
-    fun showMapNavigationOnClick(){
-        carryOnApplication.navHostController.popBackStack(ScreenName.SHOW_TRIP_MAP.name, true)
-        carryOnApplication.navHostController.navigate(ScreenName.ADD_TRIP_PLAN.name)
+    fun showMapNavigationOnClick(tripDocumentId: String) {
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
     }
 }

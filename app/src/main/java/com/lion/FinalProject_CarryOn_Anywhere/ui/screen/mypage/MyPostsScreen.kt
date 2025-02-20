@@ -249,26 +249,6 @@ fun TravelStoryScreen() {
         }
     }
 
-
-
-
-
-//    Column(modifier = Modifier.fillMaxSize().padding(5.dp)) {
-//      //  Text("여행 이야기 리스트!!", style = MaterialTheme.typography.h6)
-//
-//
-//        // ✅ 여행 이야기 리스트 출력 (LazyColumn 사용)
-//        LazyColumn(
-//            modifier = Modifier.fillMaxSize(),
-//            verticalArrangement = Arrangement.spacedBy(8.dp)
-//        ) {
-//            items(tripStories) { story ->
-//                LikeLionTripStoryList(post = story, onClick = {
-//                    // ✅ 클릭 시 동작 추가 가능
-//                })
-//            }
-//        }
-//    }
 }
 
 

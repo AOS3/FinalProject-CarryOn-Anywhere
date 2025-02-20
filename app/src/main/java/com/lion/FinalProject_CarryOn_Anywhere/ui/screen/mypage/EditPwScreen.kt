@@ -15,13 +15,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.lion.FinalProject_CarryOn_Anywhere.component.*
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.UserSettingViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.EditPwViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun EditPwScreen() {
+fun EditPwScreen(
+    //navController: NavController,
+    editPwViewModel: EditPwViewModel = hiltViewModel()
+) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     // ⚡ MutableState<String>으로 선언하여 상태를 유지
@@ -35,7 +45,7 @@ fun EditPwScreen() {
                 title = "비밀번호 변경",
                 backColor = Color.White,
                 navigationIconImage = Icons.AutoMirrored.Filled.ArrowBack,
-                navigationIconOnClick = { /* TODO: 뒤로 가기 기능 추가 */ },
+                navigationIconOnClick = { editPwViewModel.navigationIconOnClick() },
             )
         }
     ) { innerPadding ->
@@ -51,10 +61,11 @@ fun EditPwScreen() {
 
             // ✅ 비밀번호 입력 필드 섹션
             Column {
+
                 // 현재 비밀번호 입력
                 LikeLionOutlinedTextField(
-                    textFieldValue = currentPassword,
-                    onValueChange = { currentPassword.value = it },
+                    textFieldValue = editPwViewModel.textFieldCurrentPw,
+                    onValueChange = { editPwViewModel.textFieldCurrentPw.value = it },
                     label = "현재 비밀번호",
                     placeHolder = "현재 비밀번호를 입력해 주세요.",
                     trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
@@ -68,8 +79,8 @@ fun EditPwScreen() {
 
                 // 새 비밀번호 입력
                 LikeLionOutlinedTextField(
-                    textFieldValue = newPassword,
-                    onValueChange = { newPassword.value = it },
+                    textFieldValue = editPwViewModel.textFieldNewPw,
+                    onValueChange = { editPwViewModel.textFieldNewPw.value = it },
                     label = "새 비밀번호",
                     placeHolder = "새 비밀번호를 입력해 주세요.",
                     trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
@@ -101,8 +112,8 @@ fun EditPwScreen() {
 
                 // 새 비밀번호 확인 입력
                 LikeLionOutlinedTextField(
-                    textFieldValue = confirmPassword,
-                    onValueChange = { confirmPassword.value = it },
+                    textFieldValue = editPwViewModel.textFieldNewPw2,
+                    onValueChange = { editPwViewModel.textFieldNewPw2.value = it },
                     label = "새 비밀번호 확인",
                     placeHolder = "새 비밀번호를 입력해 주세요.",
                     trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
@@ -120,27 +131,71 @@ fun EditPwScreen() {
                         .padding(bottom = 5.dp)
                 )
 
-                Row(modifier = Modifier.padding(bottom = 15.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Check",
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(end = 4.dp)
-                    )
-                    Text(
-                        text = "비밀번호 일치",
-                        fontSize = 14.sp
-                    )
-                }
 
-                // ✅ 버튼을 비밀번호 일치 아래에 배치
+                // ✅ 등록 버튼
                 LikeLionFilledButton(
                     text = "등록",
                     cornerRadius = 5,
+                    onClick = {
+                        editPwViewModel.buttonChangePwDoneOnClick()
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
         }
     }
+
+    // 비밀번호 변경 성공 다이얼로그
+    LikeLionAlertDialog(
+        showDialogState = editPwViewModel.showDialogPwOk,
+        confirmButtonTitle = "확인",
+        confirmButtonOnClick = {
+            editPwViewModel.navigationConfirmButtonClick()
+        },
+        title = "비밀번호 변경",
+        titleAlign = TextAlign.Center,
+        text = "비밀번호 변경에 성공하셨습니다.",
+        textAlign = TextAlign.Center,
+        titleModifier = Modifier
+            .fillMaxWidth(),
+        textModifier = Modifier
+            .fillMaxWidth()
+    )
+
+    // ✅ 유효성 검사 다이얼로그
+    if (editPwViewModel.showDialogPwEmpty.value) {
+        LikeLionAlertDialog(
+            showDialogState = editPwViewModel.showDialogPwEmpty,
+            title = "입력 오류",
+            text = "현재 비밀번호를 입력해 주세요.",
+            confirmButtonTitle = "확인"
+        )
+    }
+
+    if (editPwViewModel.showDialogPwShort.value) {
+        LikeLionAlertDialog(
+            showDialogState = editPwViewModel.showDialogPwShort,
+            title = "입력 오류",
+            text = "새 비밀번호는 10자 이상 입력해야 합니다.",
+            confirmButtonTitle = "확인"
+        )
+    }
+
+    if (editPwViewModel.showDialogPwMismatch.value) {
+        LikeLionAlertDialog(
+            showDialogState = editPwViewModel.showDialogPwMismatch,
+            title = "입력 오류",
+            text = "새 비밀번호가 일치하지 않습니다.",
+            confirmButtonTitle = "확인"
+        )
+    }
+
+
 }
+
+//// ✅ 프리뷰 추가
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewEditPwScreen() {
+//    EditPwScreen()
+//}

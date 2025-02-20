@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.component
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,8 @@ fun LikeLionPlaceListItem(
     onSelectClick: () -> Unit
 
 ) {
+    val fixedImageUrl = imageUrl.replace("http://", "https://")
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -40,7 +43,7 @@ fun LikeLionPlaceListItem(
     ) {
         // 이미지 (비율 유지)
         AsyncImage(
-            model = imageUrl,
+            model = fixedImageUrl.also { Log.d("ImageTest", "이미지 URL: $it") }, // 🔹 로그 찍기
             contentDescription = "장소 이미지",
             contentScale = ContentScale.Crop,
             modifier = Modifier

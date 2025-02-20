@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.maps.model.CameraPosition
@@ -45,8 +46,16 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewMode
 
 @Composable
 fun AddTripPlanScreen(
-    tripInfoViewModel: TripInfoViewModel = hiltViewModel()
+    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
+    tripDocumentId: String
 ) {
+    // 🔹 최초 한 번만 실행하도록 `LaunchedEffect`로 감싸기
+    LaunchedEffect(tripDocumentId) {
+        if (tripDocumentId.isNotEmpty()) {
+            tripInfoViewModel.gettingTripData(tripDocumentId)
+        }
+    }
+
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
     }
@@ -56,12 +65,23 @@ fun AddTripPlanScreen(
         cameraPositionState.position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
     }
 
-    // 현재 선택된 날짜에 해당하는 장소 리스트만 필터링하여 LatLng 리스트로 변환
     val selectedDayPlaces = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]
-        ?.map { LatLng(it.latitude, it.longitude) } ?: emptyList()
+        ?.mapNotNull { place ->
+            val placeLat = (place["mapy"] as? String)?.toDoubleOrNull()
+            val placeLng = (place["mapx"] as? String)?.toDoubleOrNull()
+            if (placeLat != null && placeLng != null) LatLng(placeLat, placeLng) else null
+        } ?: emptyList()
+
+    // 마커 타이틀과 스니펫 설정 (타이틀: 장소명, 스니펫: 주소)
+    val markerTitles = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]
+        ?.mapNotNull { place -> place["title"] as? String } ?: emptyList()
+
+    val markerSnippets = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]
+        ?.mapNotNull { place -> place["addr1"] as? String } ?: emptyList()
 
     // 여행 날짜 목록 업데이트
     LaunchedEffect(tripInfoViewModel.startDate.value, tripInfoViewModel.endDate.value) {
+        tripInfoViewModel.updateFormattedDates()
         tripInfoViewModel.updateTripDays()
     }
 
@@ -131,22 +151,18 @@ fun AddTripPlanScreen(
                 modifier = Modifier.padding(bottom = 15.dp)
             )
 
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 15.dp)
             ) {
-                tripInfoViewModel.selectedRegions.forEachIndexed { index, it ->
-                    Text(
-                        text = if (index == tripInfoViewModel.selectedRegions.lastIndex) {
-                            it.text // 마지막 요소일 경우 `/` 제외
-                        } else {
-                            "${it.text} / "
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = GrayColor,
-                    )
-                }
+                Text(
+                    text = tripInfoViewModel.selectRegion.joinToString(" / "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = GrayColor,
+                    maxLines = Int.MAX_VALUE, // 최대 줄 수 제한 없음
+                    overflow = TextOverflow.Clip // 넘치는 텍스트 잘리지 않게
+                )
             }
 
             // Google Map을 감싸는 Box 추가
@@ -158,10 +174,12 @@ fun AddTripPlanScreen(
                     cameraPositionState = cameraPositionState,
                     modifier = Modifier.fillMaxSize().padding(bottom = 10.dp),
                     onMapClick = {
-                        tripInfoViewModel.mapOnClick()
+                        tripInfoViewModel.mapOnClick(tripDocumentId)
                     },
                     selectedPlaces = selectedDayPlaces,
-                    isAddTripPlan = true
+                    isAddTripPlan = true,
+                    markerTitle = markerTitles,
+                    markerSnippet = markerSnippets,
                 )
             }
 
@@ -220,7 +238,7 @@ fun AddTripPlanScreen(
                                         style = MaterialTheme.typography.bodyLarge,
                                         modifier = Modifier
                                             .clickable {
-                                                tripInfoViewModel.editPlaceOnClick(day, index)
+                                                tripInfoViewModel.editPlaceOnClick(day, index, tripDocumentId)
                                             },
                                         textAlign = TextAlign.End,
                                         color = GrayColor,
@@ -232,10 +250,16 @@ fun AddTripPlanScreen(
                         tripInfoViewModel.placesByDay[day]?.let { places ->
                             places.forEachIndexed { index, place ->
                                 val distanceToNext = if (index < places.lastIndex) {
-                                    // ✅ 다음 장소와의 거리 계산
+                                    // 거리 계산 시에도 같은 방식 적용
                                     tripInfoViewModel.calculateDistance(
-                                        LatLng(place.latitude, place.longitude),
-                                        LatLng(places[index + 1].latitude, places[index + 1].longitude)
+                                        LatLng(
+                                            (place["mapy"] as? String)?.toDoubleOrNull() ?: 0.0,
+                                            (place["mapx"] as? String)?.toDoubleOrNull() ?: 0.0
+                                        ),
+                                        LatLng(
+                                            (places[index + 1]["mapy"] as? String)?.toDoubleOrNull() ?: 0.0,
+                                            (places[index + 1]["mapx"] as? String)?.toDoubleOrNull() ?: 0.0
+                                        )
                                     )
                                 } else {
                                     null // 마지막 장소는 거리 표시 X
@@ -245,7 +269,7 @@ fun AddTripPlanScreen(
                                     index = index,
                                     lastIndex = places.lastIndex,
                                     place = place,
-                                    distanceToNext = distanceToNext // ✅ 거리 정보 전달
+                                    distanceToNext = distanceToNext // 거리 정보 전달
                                 )
                             }
                         }
@@ -261,7 +285,7 @@ fun AddTripPlanScreen(
                             contentColor = Color.Black,
                             cornerRadius = 5,
                             onClick = {
-                                tripInfoViewModel.plusPlaceOnClick(day) // 해당 날짜를 전달
+                                tripInfoViewModel.plusPlaceOnClick(day, tripDocumentId) // 해당 날짜를 전달
                             }
                         )
                     }
@@ -279,7 +303,7 @@ fun AddTripPlanScreen(
                     text2 = "여행 날짜 수정",
                     text2OnClick = {
                         tripInfoViewModel.showBottomSheet.value = false
-                        tripInfoViewModel.dialogEditDateOnClick()
+                        tripInfoViewModel.dialogEditDateOnClick(tripDocumentId)
                     }
                 )
             }
@@ -292,7 +316,8 @@ fun AddTripPlanScreen(
                     .weight(1f)
                     .padding(start = 10.dp),
                 confirmButtonOnClick = {
-                    tripInfoViewModel.deletePlanOnClick()
+                    tripInfoViewModel.deletePlanOnClick(tripDocumentId)
+                    tripInfoViewModel.deletePlanDialogState.value = false
                 },
                 dismissButtonTitle = "취소",
                 dismissContainerColor = Color.Transparent,

@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.model
 
 import com.google.firebase.Timestamp
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.PlanVO
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
 
@@ -9,8 +10,10 @@ class PlanModel {
     var planDocumentId:String = ""
     // 여행 문서 아이디
     var tripDocumentId:String = ""
+    // 여행 날짜
+    var planDay:String = ""
     // 장소 목록 (contentId)
-    var placeList = mutableListOf<String>()
+    var placeList = mutableListOf<Map<String, Any?>>()
     // 일정 데이터 생성 시간
     var planTimeStamp = 0L
 
@@ -19,6 +22,7 @@ class PlanModel {
 
         planVO.tripDocumentId = tripDocumentId
         planVO.placeList = placeList.toMutableList()
+        planVO.planDay = planDay
         planVO.planTimeStamp = planTimeStamp
 
         return planVO

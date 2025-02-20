@@ -22,7 +22,7 @@ class TripModel {
     // 여행 도착 날짜
     var tripEndDate: Long = 0L
     // 여행 지역 목록
-    var tripCityList= mutableListOf<String>()
+    var tripCityList = mutableListOf<Map<String, Any?>>()
     // 여행 공유 코드
     var tripShareCode: String = ""
     // 여행 생성 시간 (데이터가 들어온 시간)
@@ -38,7 +38,7 @@ class TripModel {
         tripVO.tripTitle = tripTitle
         tripVO.tripStartDate = tripStartDate
         tripVO.tripEndDate = tripEndDate
-        tripVO.tripCityList = tripCityList.toMutableList()
+        tripVO.tripCityList = tripCityList.toMutableList() // ✅ Map 그대로 저장
         tripVO.tripShareCode = tripShareCode
         tripVO.tripTimeStamp = tripTimeStamp
         tripVO.tripState = tripState.number
