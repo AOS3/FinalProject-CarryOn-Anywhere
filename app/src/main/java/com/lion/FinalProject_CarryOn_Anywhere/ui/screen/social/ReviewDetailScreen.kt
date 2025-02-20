@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
@@ -55,6 +57,9 @@ import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
 import androidx.compose.foundation.layout.Spacer as Spacer1
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ReviewDetailScreen(
@@ -65,6 +70,8 @@ fun ReviewDetailScreen(
 ) {
     val reviews by reviewViewModel.reviews.collectAsState()
     val review = reviews.getOrNull(reviewIndex) ?: return
+
+    val context = LocalContext.current
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogDeleteState = remember { mutableStateOf(false) }
@@ -116,7 +123,15 @@ fun ReviewDetailScreen(
                 confirmButtonTitle = "삭제",
                 confirmButtonOnClick = {
                     showDialogDeleteState.value = false
-                    navController.popBackStack()
+                    reviewViewModel.deleteTripReview(
+                        review.documentId,
+                        onSuccess = {
+                            navController.popBackStack()
+                        },
+                        onError = { errorMessage ->
+                            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                        }
+                    )
                 },
                 dismissButtonTitle = "취소",
                 dismissButtonOnClick = {
@@ -162,7 +177,7 @@ fun ReviewDetailScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
-                            text = "${review.author} • ${review.postDate}",
+                            text = "${review.author} • ${formattedDate(review.postDate)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = GrayColor
                         )
@@ -188,9 +203,9 @@ fun ReviewDetailScreen(
                 }
 
                 // 이미지 리스트
-                items(review.imageRes) { imageRes ->
+                items(review.imageUrls) { imageUrl ->
                     Image(
-                        painter = painterResource(imageRes),
+                        painter = rememberAsyncImagePainter(imageUrl), // URL 개별로 전달
                         contentDescription = "Review Image",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -264,6 +279,12 @@ fun ReviewDetailScreen(
             }
         }
     }
+}
+
+private fun formattedDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return format.format(date)
 }
 
 // 시스템 바텀바 높이를 가져오는 함수

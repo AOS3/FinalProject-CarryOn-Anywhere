@@ -1,76 +1,90 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
 import android.content.Context
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
-import com.lion.FinalProject_CarryOn_Anywhere.R
+import androidx.lifecycle.viewModelScope
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TripReviewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// UI에 보여줄 데이터 구조
 data class Review(
-    val imageRes: List<Int>,
+    val documentId: String = "",
+    val imageUrls: List<String>,
     val title: String,
-    val author: String,
-    val content: String,
-    val postDate: String,
-    val date: String,
+    val author: String = "알 수 없음",
+    val content: String = "",
+    val postDate: Long = 0L,
     val likes: Int,
     val comments: Int
 )
 
 @HiltViewModel
-class ReviewViewModel@Inject constructor(
+class ReviewViewModel @Inject constructor(
     @ApplicationContext context: Context
 ) : ViewModel() {
 
-    private val _reviews = MutableStateFlow(
-        listOf(
-            Review(
-                imageRes = listOf(R.drawable.sample1, R.drawable.sample2),
-                title = "서울 경복궁 여행 후기!!",
-                author = "홍길동",
-                content = "안녕하세요",
-                postDate = "2025-02-12",
-                date = "25-01-07 ~ 25-01-10",
-                likes = 3,
-                comments = 18
-            ),
-            Review(
-                imageRes = listOf(R.drawable.sample1),
-                title = "대전 빵투어 여행 후기",
-                author = "김길동",
-                content = "뷰가 정말 예뻐요!",
-                postDate = "2025-02-12",
-                date = "25-01-13 ~ 25-01-15",
-                likes = 1,
-                comments = 200
-            ),
-            Review(
-                imageRes = listOf(R.drawable.sample2),
-                title = "제주도 한달 살기",
-                author = "박길동",
-                content = "이런 일정 어때요?",
-                postDate = "2025-02-13",
-                date = "25-01-01 ~ 25-01-31",
-                likes = 12,
-                comments = 54
-            ),
-            Review(
-                imageRes = listOf(R.drawable.sample2),
-                title = "부산 야경 투어 후기",
-                author = "이길동",
-                content = "경복궁 근처 맛집 추천",
-                postDate = "2025-02-14",
-                date = "25-02-10 ~ 25-02-12",
-                likes = 5,
-                comments = 36
-            )
-        )
-    )
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
 
-//    private val _reviews = MutableStateFlow<List<Review>>(emptyList())
+    private val _reviews = MutableStateFlow<List<Review>>(emptyList())
+    val reviews: StateFlow<List<Review>> get() = _reviews
 
-    val reviews: StateFlow<List<Review>> = _reviews
+    init {
+        fetchTripReviews()
+
+    }
+
+    // Firstore에서 TRIP_REVIEW_STATE_NORMAL 인 데이터 가져오기
+    fun fetchTripReviews() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val tripReviews = TripReviewService.fetchAllTripReviews()
+
+                val reviewList = tripReviews
+                    .filter { it.tripReviewState == TripReviewState.TRIP_REVIEW_STATE_NORMAL}
+                    .map { tripReview ->
+                        Review(
+                            documentId = tripReview.tripReviewDocumentId,
+                            imageUrls = tripReview.tripReviewImage,
+                            title = tripReview.tripReviewTitle,
+                            likes = tripReview.tripReviewLikeCount,
+                            comments = tripReview.tripReviewReplyList.size,
+                            postDate = tripReview.tripReviewTimestamp,
+                            content = tripReview.tripReviewContent,
+                            author = tripReview.userDocumentId
+                        )
+                    }.sortedByDescending { it.postDate }
+
+                _reviews.value = reviewList
+            } catch (e: Exception) {
+                Log.e("ReviewViewModel", "데이터 불러오기 실패: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // TripReviewState를 TRIP_REVIEW_STATE_DELETE 로 변경 (삭제 - 안 보이게 처리)
+    fun deleteTripReview(documentId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                TripReviewService.deleteTripReview(documentId)
+                fetchTripReviews()
+                onSuccess()
+            } catch (e: Exception) {
+                onError("삭제 실패: ${e.message}")
+            }
+        }
+    }
 }

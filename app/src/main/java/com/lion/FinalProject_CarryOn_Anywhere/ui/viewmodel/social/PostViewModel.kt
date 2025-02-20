@@ -3,14 +3,27 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel
 import android.content.ClipData
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.storage.FirebaseStorage
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.CarryTalkModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
-
 
 @HiltViewModel
 class PostViewModel @Inject constructor(
@@ -19,7 +32,7 @@ class PostViewModel @Inject constructor(
 
     // UI에서 사용할 데이터 리스트
     val postItems = listOf("여행 후기", "여행 이야기")
-    val chipItems = listOf("전체", "맛집", "숙소", "여행 일정", "모임")
+    val chipItems = listOf("맛집", "숙소", "여행 일정", "모임")
 
     // 선택된 Chip 상태
     private val _selectedPostChip = MutableStateFlow(postItems[0])
@@ -31,6 +44,10 @@ class PostViewModel @Inject constructor(
     // 이미지 URI 리스트
     private val _imageUris = MutableStateFlow<List<Uri>>(emptyList())
     val imageUris: StateFlow<List<Uri>> get() = _imageUris
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
 
     // 선택된 Post Chip 업데이트
     fun updateSelectedPostChip(chip: String) {
@@ -71,5 +88,145 @@ class PostViewModel @Inject constructor(
     // 이미지 삭제
     fun removeImage(index: Int) {
         _imageUris.value = _imageUris.value.toMutableList().apply { removeAt(index) }
+    }
+
+    // 카테고리에 따라 데이터 저장
+    fun savePost(
+        title: String,
+        content: String,
+        userDocumentId: String,
+        imageUrls: List<String>
+    ) {
+        val job = Job()
+        val coroutineScope = CoroutineScope(Dispatchers.IO + job)
+
+        coroutineScope.launch {
+            _isLoading.value = true
+
+            when (_selectedPostChip.value) {
+                "여행 후기" -> {
+                    val tripReview = TripReviewModel().apply {
+                        this.userDocumentId = userDocumentId
+                        this.tripReviewTitle = title
+                        this.tripReviewContent = content
+                        this.tripReviewImage = imageUrls.toMutableList()
+                        this.tripReviewLikeCount = 0
+                        this.tripReviewReplyList = mutableListOf()
+                        this.tripReviewTimestamp = System.currentTimeMillis()
+                    }
+
+                    try {
+                        val documentRef = TripReviewService.addTripReview(tripReview)
+                        tripReview.tripDocumentId = documentRef.id
+                        documentRef.set(tripReview).await()
+
+                        Log.d("PostViewModel", "여행 후기 업로드 성공: ${tripReview.tripDocumentId}")
+                    } catch (e: Exception) {
+                        Log.e("PostViewModel", "여행 후기 업로드 실패: ${e.message}")
+                    }
+                }
+
+                "여행 이야기" -> {
+                    val carryTalk = CarryTalkModel().apply {
+                        this.userDocumentId = userDocumentId
+                        this.talkTitle = title
+                        this.talkContent = content
+                        this.talkImage = imageUrls.toMutableList()
+                        this.talkLikeCount = 0
+                        this.talkReplyList = mutableListOf()
+                        this.talkTimeStamp = System.currentTimeMillis()
+                        this.talkTag = when (_selectedChip.value) {
+                            "맛집" -> TalkTag.TALK_TAG_RESTAURANT
+                            "숙소" -> TalkTag.TALK_TAG_ACCOMMODATION
+                            "여행 일정" -> TalkTag.TALK_TAG_TRIP_PLAN
+                            "모임" -> TalkTag.TALK_TAG_MEET
+                            else -> TalkTag.TALK_TAG_ALL
+                        }
+                    }
+
+                    try {
+                        val documentRef = CarryTalkService.addCarryTalkReview(carryTalk)
+                        carryTalk.talkDocumentId = documentRef.id  // 🔹 생성된 다큐먼트 ID 저장
+                        documentRef.set(carryTalk).await() // 🔹 Firestore 업데이트
+
+                        Log.d("PostViewModel", "여행 이야기 업로드 성공: ${carryTalk.talkDocumentId}")
+                    } catch (e: Exception) {
+                        Log.e("PostViewModel", "여행 이야기 업로드 실패: ${e.message}")
+                    }
+                }
+            }
+            _isLoading.value = false
+        }
+    }
+
+    object ImageUploader {
+
+        private val storage = FirebaseStorage.getInstance()
+        private val storageRef = storage.reference.child("images")
+
+        // 이미지 업로드 메서드
+        suspend fun uploadImages(uriList: List<Uri>): List<String> {
+            val downloadUrls = mutableListOf<String>()
+            for (uri in uriList) {
+                try {
+                    // 고유 파일명 생성
+                    val fileName = "IMG_${UUID.randomUUID()}.jpg"
+                    val imageRef = storageRef.child(fileName)
+
+                    // 파일 업로드
+                    val uploadTask = imageRef.putFile(uri).await()
+
+                    // 🛠업로드 상태 확인
+                    if (uploadTask.task.isSuccessful) {
+                        val downloadUrl = imageRef.downloadUrl.await().toString()
+                        downloadUrls.add(downloadUrl)
+                        Log.d("ImageUploader", "이미지 업로드 성공: $downloadUrl")
+                    } else {
+                        Log.e("ImageUploader", "이미지 업로드 실패: ${uploadTask.error?.message}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("ImageUploader", "이미지 업로드 예외 발생: ${e.message}", e)
+                }
+            }
+            return downloadUrls
+        }
+    }
+
+    fun startPostUpload(
+        title: String,
+        content: String,
+        userDocumentId: String,
+        imageUrisList: List<Uri>,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (title.isEmpty() || content.isEmpty()) {
+            onError("제목과 내용을 모두 입력해주세요!")
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            try {
+                val uploadedImageUrls = ImageUploader.uploadImages(imageUrisList)
+                if (uploadedImageUrls.isNotEmpty()) {
+                    savePost(
+                        title = title,
+                        content = content,
+                        userDocumentId = userDocumentId,
+                        imageUrls = uploadedImageUrls
+                    )
+                    _isLoading.value = false
+                    onSuccess()
+                } else {
+                    _isLoading.value = false
+                    onError("이미지 업로드 실패! 다시 시도해 주세요.")
+                }
+            } catch (e: Exception) {
+                _isLoading.value = false
+                onError("저장 중 오류 발생: ${e.message}")
+            }
+        }
     }
 }

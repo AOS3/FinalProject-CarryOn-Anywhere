@@ -1,5 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
@@ -33,7 +36,11 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Post
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StoryScreen(
@@ -41,6 +48,7 @@ fun StoryScreen(
     navController: NavController
 ) {
     val posts by storyViewModel.posts.collectAsState()
+    val isLoading by storyViewModel.isLoading.collectAsState()
 
     val chipItems = listOf("전체", "맛집", "숙소", "여행 일정", "모임")
     val scrollState = rememberScrollState()
@@ -51,6 +59,11 @@ fun StoryScreen(
         posts // 전체 글 보기
     } else {
         posts.filter { it.tag == selectedChip.value }
+    }
+
+    // 최신 데이터 반영
+    LaunchedEffect(Unit) {
+        storyViewModel.fetchCarryTalkPosts()
     }
 
     Column(
@@ -92,6 +105,21 @@ fun StoryScreen(
                     onDeleteButtonClicked = null
                 )
             }
+        }
+
+        // Firestore에서 데이터를 가져오는 동안 로딩 표시
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = SubColor)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("데이터를 불러오는 중...", color = Color.Gray)
+                }
+            }
+            return
         }
 
         // 필터링된 게시글이 없을 경우
@@ -185,7 +213,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
 
                 // 작성자 · 작성 날짜
                 Text(
-                    text = "${post.author} · ${post.postDate}",
+                    text = "${post.author} · ${formattedDate(post.postDate)}",
                     fontSize = 12.sp,
                     color = Color.LightGray
                 )
@@ -206,9 +234,10 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
                         .size(70.dp)
                         .padding(bottom = 8.dp)
                 ) {
-                    post.imageRes?.let { imageRes ->
+                    // 🔍 Firebase Storage URL을 위한 Coil 이미지 로더 사용
+                    post.imageUrls.firstOrNull()?.let { imageUrl ->
                         Image(
-                            painter = painterResource(imageRes[0]),
+                            painter = rememberAsyncImagePainter(imageUrl),
                             contentDescription = "Post Image",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -253,6 +282,13 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
         }
     }
 }
+
+private fun formattedDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return format.format(date)
+}
+
 
 @Preview(showBackground = true)
 @Composable
