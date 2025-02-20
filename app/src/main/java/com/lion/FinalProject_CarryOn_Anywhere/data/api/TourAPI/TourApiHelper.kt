@@ -1,4 +1,4 @@
-package com.lion.FinalProject_CarryOn_Anywhere.data.api
+package com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI
 
 object TourApiHelper {
 

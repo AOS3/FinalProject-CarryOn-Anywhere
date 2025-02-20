@@ -8,8 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiHelper
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
-import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourApiHelper
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext

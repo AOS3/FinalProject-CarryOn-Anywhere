@@ -38,4 +38,30 @@ interface TourAPIInterface {
         @Query("sigunguCode") sigunguCode: String? = null, // 선택적 파라미터 유지
         @Query("contentTypeId") contentTypeId: String? = null // 선택적 파라미터 유지
     ): Response<TourApiModel.TouristSpotResponse>
+
+    // 키워드 검색
+    @GET("searchKeyword1")
+    suspend fun getSearchPlaces(
+        @Query("serviceKey") serviceKey: String,
+        @Query("numOfRows") numOfRows: Int = 10,
+        @Query("pageNo") pageNo: Int = 1,
+        @Query("MobileOS") mobileOS: String = "AND",
+        @Query("MobileApp") mobileApp: String = "AppTest",
+        @Query("keyword") keyword: String,
+        @Query("_type") type: String = "json",
+        @Query("listYN") listYN:String = "Y",
+        @Query("arrange") arrange:String = "C",
+    ): Response<TourApiModel.TouristSpotResponse>
+
+    // 소개 정보
+    @GET("detailIntro1")
+    suspend fun getDetailIntro1(
+        @Query("serviceKey") serviceKey: String,
+        @Query("numOfRows") numOfRows: Int = 10,
+        @Query("contentId") contentId: String,
+        @Query("contentTypeId") contentTypeId: String,
+        @Query("MobileOS") mobileOS: String = "AND",
+        @Query("MobileApp") mobileApp: String = "AppTest",
+        @Query("_type") type: String = "json",
+    ): Response<TourApiModel.TouristSpotResponse>
 }
