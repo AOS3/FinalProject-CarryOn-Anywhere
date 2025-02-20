@@ -131,21 +131,8 @@ fun EditPwScreen(
                         .padding(bottom = 5.dp)
                 )
 
-                Row(modifier = Modifier.padding(bottom = 15.dp)) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Check",
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(end = 4.dp)
-                    )
-                    Text(
-                        text = "비밀번호 일치",
-                        fontSize = 14.sp
-                    )
-                }
 
-                // ✅ 버튼을 비밀번호 일치 아래에 배치
+                // ✅ 등록 버튼
                 LikeLionFilledButton(
                     text = "등록",
                     cornerRadius = 5,
@@ -174,6 +161,36 @@ fun EditPwScreen(
         textModifier = Modifier
             .fillMaxWidth()
     )
+
+    // ✅ 유효성 검사 다이얼로그
+    if (editPwViewModel.showDialogPwEmpty.value) {
+        LikeLionAlertDialog(
+            showDialogState = editPwViewModel.showDialogPwEmpty,
+            title = "입력 오류",
+            text = "현재 비밀번호를 입력해 주세요.",
+            confirmButtonTitle = "확인"
+        )
+    }
+
+    if (editPwViewModel.showDialogPwShort.value) {
+        LikeLionAlertDialog(
+            showDialogState = editPwViewModel.showDialogPwShort,
+            title = "입력 오류",
+            text = "새 비밀번호는 10자 이상 입력해야 합니다.",
+            confirmButtonTitle = "확인"
+        )
+    }
+
+    if (editPwViewModel.showDialogPwMismatch.value) {
+        LikeLionAlertDialog(
+            showDialogState = editPwViewModel.showDialogPwMismatch,
+            title = "입력 오류",
+            text = "새 비밀번호가 일치하지 않습니다.",
+            confirmButtonTitle = "확인"
+        )
+    }
+
+
 }
 
 //// ✅ 프리뷰 추가

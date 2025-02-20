@@ -65,16 +65,6 @@ fun EditMyInfoScreen(
         )
     )
 
-    // 사진 촬영용 런처
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
-        if (it) {
-            Tools.takePictureData(context, contentUri, userSettingViewModel.imageBitmapState)
-            userSettingViewModel.showImage1State.value = false
-            userSettingViewModel.showImage2State.value = false
-            userSettingViewModel.showImage3State.value = true
-        }
-    }
-
     // 앨범용 런처
     val albumLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {
@@ -278,6 +268,10 @@ fun EditMyInfoScreen(
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
                 inputType = LikeLionOutlinedTextFieldInputType.TEXT,
                 singleLine = true,
+                onValueChange = {
+                    userSettingViewModel.textFieldModifyNameValue.value = it
+                    userSettingViewModel.validateName() // 이름 유효성 검사 수행
+                }
             )
 
             LikeLionOutlinedTextField(
@@ -331,10 +325,16 @@ fun EditMyInfoScreen(
                 text = "저장하기",
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    userSettingViewModel.saveSettingButtonOnClick()
+                    userSettingViewModel.validateName()
+                    if (userSettingViewModel.isNameValid.value) {
+                        userSettingViewModel.saveSettingButtonOnClick()
+                    } else {
+                        userSettingViewModel.showNameErrorDialog.value = true // 이름이 비어 있으면 다이얼로그 표시
+                    }
                 },
                 cornerRadius = 5
             )
+
 
 
             // ✅ 바텀시트 (사진 추가 / 삭제)
@@ -379,6 +379,21 @@ fun EditMyInfoScreen(
                     dismissBorder = BorderStroke(1.dp, Color.LightGray),
                 )
             }
+
+
+            // 이름 입력 여부에 대한 유효성 검사
+            if (userSettingViewModel.showNameErrorDialog.value) {
+                LikeLionAlertDialog(
+                    showDialogState = userSettingViewModel.showNameErrorDialog,
+                    title = "입력 오류",
+                    text = "이름을 입력해 주세요.",
+                    confirmButtonTitle = "확인",
+                    confirmButtonOnClick = {
+                        userSettingViewModel.showNameErrorDialog.value = false
+                    }
+                )
+            }
+
 
 
         }

@@ -239,4 +239,15 @@ class UserSettingViewModel @Inject constructor(
     }
 
 
+    // 이름 입력 여부에 대한 유효성 검사
+    val isNameValid = mutableStateOf(true)
+    val showNameErrorDialog = mutableStateOf(false)
+
+
+    fun validateName() {
+        isNameValid.value = textFieldModifyNameValue.value.isNotBlank()
+    }
+
+
+
 }
