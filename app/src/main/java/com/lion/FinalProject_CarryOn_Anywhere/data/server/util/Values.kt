@@ -51,6 +51,10 @@ enum class ScreenName{
     MY_TRIP_PLAN,
     // 나의 찜 화면
     MY_LIKE,
+    // 이용약관
+    DOCUMENT_SCREEN,
+    // 개인정보 처리 방침
+    DOCUMENT_SCREEN2,
 
     // 시작 화면 (Splash)
     START_SCREEN

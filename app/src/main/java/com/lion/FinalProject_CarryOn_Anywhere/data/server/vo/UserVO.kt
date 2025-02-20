@@ -35,6 +35,9 @@ class UserVO {
     // 유저 상태 (1: 정상, 2: 탈퇴)
     var userState: Int = 1
 
+    // 추가 : 앱 푸시 수신 동의
+    var userAppPushAgree: String = ""
+
     fun toUserModel(userDocumentId:String) : UserModel {
         val userModel = UserModel()
 
@@ -52,6 +55,7 @@ class UserVO {
         userModel.userReplyList = userReplyList.toMutableList()
         userModel.userAutoLoginToken = userAutoLoginToken
         userModel.userTimeStamp = userTimeStamp
+        userModel.userAppPushAgree = userAppPushAgree
 
         when(userState){
             UserState.USER_STATE_NORMAL.number -> userModel.userState = UserState.USER_STATE_NORMAL

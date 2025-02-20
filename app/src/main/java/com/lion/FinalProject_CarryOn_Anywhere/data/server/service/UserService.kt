@@ -124,5 +124,28 @@ class UserService() {
             }
         }
 
+        // 계정 설정 관련
+        // 서버에서 이미지 파일을 삭제
+        suspend fun removeImageFile(imageFileName:String){
+            UserRepository.removeImageFile(imageFileName)
+        }
+
+        // 이미지 데이터를 서버로 업로드 하는 메서드
+        suspend fun uploadImage(sourceFilePath:String, serverFilePath:String){
+            UserRepository.uploadImage(sourceFilePath, serverFilePath)
+        }
+
+        // 사용자 데이터를 수정한다.
+        suspend fun updateUserData(userModel: UserModel){
+            val userVO = userModel.toUserVO()
+            UserRepository.updateUserData(userVO, userModel.userDocumentId)
+        }
+
+        // 사용자 비밀번호 데이터를 수정한다.
+        suspend fun updateUserPwData(userModel: UserModel){
+            val userVO = userModel.toUserVO()
+            UserRepository.updateUserPwData(userVO, userModel.userDocumentId)
+        }
+
     }
 }

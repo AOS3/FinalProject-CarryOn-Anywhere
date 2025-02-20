@@ -1,12 +1,16 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.repository
 
+import android.net.Uri
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageException
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.UserVO
 import kotlinx.coroutines.tasks.await
+import java.io.File
 import java.util.UUID
 
 class UserRepository {
@@ -189,6 +193,80 @@ class UserRepository {
                 newUser
             }
         }
+
+        // 계정 설정 관련
+
+        // 서버에서 이미지 파일을 삭제한다.
+        suspend fun removeImageFile(imageFileName: String) {
+            if (imageFileName.isBlank() || imageFileName == "none") {
+                // 파일 이름이 비어있거나 기본값("none")인 경우 삭제하지 않음
+                Log.d(
+                    "RemoveImageFile",
+                    "File name is invalid or set to 'none'. No deletion performed."
+                )
+                return
+            }
+
+            try {
+                // Firebase Storage의 경로 참조
+                val imageReference =
+                    FirebaseStorage.getInstance().reference.child("image/$imageFileName")
+
+                // 삭제 요청
+                imageReference.delete().await()
+                Log.d("RemoveImageFile", "Successfully deleted file: $imageFileName")
+
+            } catch (e: Exception) {
+                // 오류 처리: 파일이 존재하지 않는 경우 또는 기타 예외
+                if (e is StorageException && e.errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) {
+                    Log.w("RemoveImageFile", "File not found in Firebase Storage: $imageFileName")
+                } else {
+                    Log.e("RemoveImageFile", "Error deleting file: $imageFileName", e)
+                }
+            }
+        }
+
+        // 이미지 데이터를 서버로 업로드 하는 메서드
+        suspend fun uploadImage(sourceFilePath: String, serverFilePath: String) {
+            // 저장되어 있는 이미지의 경로
+            val file = File(sourceFilePath)
+            val fileUri = Uri.fromFile(file)
+            // 업로드 한다.
+            val firebaseStorage = FirebaseStorage.getInstance()
+            val childReference = firebaseStorage.reference.child("image/$serverFilePath")
+            childReference.putFile(fileUri).await()
+        }
+
+        // 사용자 데이터를 수정한다.
+        suspend fun updateUserData(userVO: UserVO, userDocumentId: String) {
+            // 수정할 데이터를 담을 맵
+            val userMap = mapOf(
+
+                "userImage" to userVO.userImage,
+                "userName" to userVO.userName,
+                "userAppPushAgree" to userVO.userAppPushAgree,
+            )
+            // 수정할 문서에 접근할 수 있는 객체를 가져온다.
+            val firestore = FirebaseFirestore.getInstance()
+            val collectionReference = firestore.collection("UserData")
+            val documentReference = collectionReference.document(userDocumentId)
+            documentReference.update(userMap).await()
+        }
+
+        // 사용자 비밀번호를 수정한다.
+        suspend fun updateUserPwData(userVO: UserVO, userDocumentId: String) {
+            // 수정할 데이터를 담을 맵
+            val userMap = mapOf(
+                "userPw" to userVO.userPw,
+            )
+            // 수정할 문서에 접근할 수 있는 객체를 가져온다.
+            val firestore = FirebaseFirestore.getInstance()
+            val collectionReference = firestore.collection("UserData")
+            val documentReference = collectionReference.document(userDocumentId)
+            documentReference.update(userMap).await()
+        }
+
+
 
     }
 }

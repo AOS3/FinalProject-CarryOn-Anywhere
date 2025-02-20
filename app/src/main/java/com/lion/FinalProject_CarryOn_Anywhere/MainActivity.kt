@@ -33,6 +33,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mylike.MyLikeScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.DocumentScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.DocumentScreen2
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditMyInfoScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPageScreen
@@ -424,6 +426,18 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                 route = ScreenName.MY_LIKE.name
             ) {
                 MyLikeScreen(navHostController)
+            }
+
+            // 이용약관 화면
+            composable(
+                route = ScreenName.DOCUMENT_SCREEN.name
+            ) { DocumentScreen(navHostController)
+            }
+
+            // 개인정보 처리 방침 화면
+            composable(
+                route = ScreenName.DOCUMENT_SCREEN2.name
+            ) { DocumentScreen2(navHostController)
             }
 
         }
