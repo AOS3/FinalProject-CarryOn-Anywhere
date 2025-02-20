@@ -15,7 +15,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FinalProject_CarryOn_Anywhere"
         tools:targetApi="31"
-        android:name=".CarryOnApplication">
+        android:name=".CarryOnApplication"
+        android:usesCleartextTraffic="true">
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

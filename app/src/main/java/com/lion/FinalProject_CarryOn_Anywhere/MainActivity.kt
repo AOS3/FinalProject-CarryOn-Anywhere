@@ -209,14 +209,14 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             // 검색 상세 화면
             composable(
-                route = "${ScreenName.PLACE_INFO_SCREEN.name}/{title}",
+                route = "${ScreenName.PLACE_INFO_SCREEN.name}/{contentid}",
             ) { backStackEntry ->
-                val title = backStackEntry.arguments?.getString("title") ?: ""
+                val contentId = backStackEntry.arguments?.getString("contentid") ?: ""
                 val placeSearchViewModel: PlaceSearchViewModel = hiltViewModel()
 
                 PlaceInfoScreen(
                     navController = navHostController,
-                    title = title,
+                    contentId = contentId,
                     placeSearchViewModel = placeSearchViewModel
                 )
             }

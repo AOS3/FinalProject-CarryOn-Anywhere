@@ -2,7 +2,6 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +12,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -42,7 +42,7 @@ fun PlaceSearchScreen(
     }
 
     // 검색어 입력 전
-    val isSearchEmpty = placeSearchViewModel.searchValue.value.isEmpty()
+    //val isSearchEmpty = placeSearchViewModel.searchValue.value.isEmpty()
 
     Scaffold(
         topBar = {
@@ -51,7 +51,6 @@ fun PlaceSearchScreen(
                 textFieldValue = placeSearchViewModel.searchValue,
                 onSearchTextChange = {
                     placeSearchViewModel.searchValue.value = it
-                    placeSearchViewModel.performSearch()
                 },
                 onSearchClick = {
                     placeSearchViewModel.searchAndHideKeyboard(keyboardController)
@@ -82,19 +81,12 @@ fun PlaceSearchScreen(
                     .fillMaxWidth()
             )
 
-            Row(
-
-            ) {
-
-            }
-
             // 검색 리스트
             LikeLionPlaceSearchList(
-                dataList = placeSearchViewModel.placeSearchList,
+                dataList = placeSearchViewModel.placeSearchList.collectAsState().value.toMutableList(),
                 rowComposable = { place ->
-                    // 검색 아이템
                     PlaceSearchListItem(
-                        place = place as Map<String, Any>,
+                        place = place,
                         icon = if (placeSearchViewModel.isFavoriteEnable.value)
                             Icons.Filled.Favorite
                         else
@@ -107,8 +99,8 @@ fun PlaceSearchScreen(
                     )
                 },
                 onRowClick = { place ->
-                    val title = (place as Map<String, Any>)["title"] as String
-                    navController.navigate("${ScreenName.PLACE_INFO_SCREEN.name}/$title")
+                    val contentId = (place as Map<String, Any>)["contentid"] as String
+                    navController.navigate("${ScreenName.PLACE_INFO_SCREEN.name}/$contentId")
                 }
             )
         }

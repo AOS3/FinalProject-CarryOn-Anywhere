@@ -1,7 +1,5 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage
 
-import android.annotation.SuppressLint
-import android.graphics.drawable.GradientDrawable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,8 +23,6 @@ import androidx.navigation.compose.rememberNavController
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.*
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
-import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.UserSettingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

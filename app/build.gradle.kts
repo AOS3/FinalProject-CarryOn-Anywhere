@@ -110,6 +110,12 @@ dependencies {
 
     // 카카오 SDK
     implementation("com.kakao.sdk:v2-user:2.20.6")
+
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+
+    implementation ("com.github.skydoves:landscapist-coil:1.4.7")
+
 }
 kapt {
     correctErrorTypes = true

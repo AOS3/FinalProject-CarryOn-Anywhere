@@ -6,12 +6,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 
 @Composable
 fun LikeLionPlaceSearchList(
-    dataList: SnapshotStateList<Map<String, Any>>,
+    dataList: MutableList<Map<String, Any>>,
     rowComposable: @Composable (Map<String, *>) -> Unit,
     onRowClick: (Any?) -> Unit,
 ) {
