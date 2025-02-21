@@ -1,4 +1,4 @@
-package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home
+package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage
 
 class MyPostsViewModel {
 

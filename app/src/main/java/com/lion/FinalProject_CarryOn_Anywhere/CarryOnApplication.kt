@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.navigation.NavHostController
 import com.kakao.sdk.common.KakaoSdk
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import dagger.hilt.android.HiltAndroidApp
 
@@ -53,7 +54,7 @@ class CarryOnApplication :Application(){
         userAutoLoginToken = "dummyAutoLoginToken"
         userTimeStamp = System.currentTimeMillis()
         userState = UserState.USER_STATE_NORMAL // 정상 계정
-        userAppPushAgree = "미동의" // 푸시 알림 동의
+        userAppPushAgree = AppPushState.APP_PUSH_ENABLE // 푸시 알림 동의
     }
 
 

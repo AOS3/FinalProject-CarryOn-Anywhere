@@ -11,6 +11,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.Tools
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -39,8 +40,7 @@ class UserSettingViewModel @Inject constructor(
     val textFieldModifyNameValue = mutableStateOf(carryOnApplication.loginUserModel.userName)
     val textFieldModifyPhoneValue = mutableStateOf(carryOnApplication.loginUserModel.userPhoneNumber)
 
-    val selectedPushAgree: MutableState<String> =
-        mutableStateOf(carryOnApplication.loginUserModel.userAppPushAgree)
+    val selectedPushAgree = mutableStateOf(carryOnApplication.loginUserModel.userAppPushAgree)
 
 
     // 보여줄 이미지 요소
@@ -69,11 +69,6 @@ class UserSettingViewModel @Inject constructor(
 
     // 이미지 URI 리스트
     private val _imageUris = MutableStateFlow<List<Uri>>(emptyList())
-    val imageUris: StateFlow<List<Uri>> get() = _imageUris
-
-
-
-
 
     fun loadProfileImage() {
         val profileImage = carryOnApplication.loginUserModel.userImage
@@ -117,7 +112,7 @@ class UserSettingViewModel @Inject constructor(
         }
     }
 
-    // 다이얼로그 바로가기 버튼을 눌렀을때
+    // 다이얼로그 바로가기 버튼을 눌렀을때(로그인 화면으로 이동)
     fun dialogConfirmOnClick() {
         carryOnApplication.navHostController.popBackStack(ScreenName.EDIT_MY_INFO.name, inclusive = true)
         carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name,)
@@ -134,16 +129,21 @@ class UserSettingViewModel @Inject constructor(
     }
 
     // 회원 탈퇴를 눌렀을때
-    fun withdrawalOnClick() {
+    fun withdrawalOnClick(context: Context) {
         CoroutineScope(Dispatchers.Main).launch {
             val work1 = async(Dispatchers.IO){
-                //customerService.updateUserState(shoppingApplication.loginCustomerModel.customerDocumentId, UserState.USER_STATE_SIGNOUT)
+
+                val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+
+                // 회원 상태 변경
+                UserService.updateUserState(carryOnApplication.loginUserModel.userDocumentId, UserState.USER_STATE_SIGNOUT)
+                // 자동 로그인 토큰 삭제
+                UserService.clearAutoLoginToken(userDocumentId, context)
             }
             work1.join()
 
             // carryOnApplication.isLoggedIn.value = false
-            carryOnApplication.navHostController.popBackStack(ScreenName.EDIT_MY_INFO.name, inclusive = true)
-            carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name)
+            dialogConfirmOnClick()
         }
     }
 
@@ -208,11 +208,9 @@ class UserSettingViewModel @Inject constructor(
     }
 
     fun navigationIconOnClick() {
-
         // 뒤로가기
         carryOnApplication.navHostController.popBackStack(ScreenName.EDIT_MY_INFO.name, inclusive = true)
         carryOnApplication.navHostController.navigate(ScreenName.MY_PAGE.name)
-
     }
 
     // 이미지 삭제 버튼을 눌렀을 때
@@ -228,7 +226,6 @@ class UserSettingViewModel @Inject constructor(
         showImage1State.value = true
     }
 
-
     // 단일 이미지 추가
     fun addSingleImage(uri: Uri) {
         if (_imageUris.value.size < 10) {
@@ -241,16 +238,11 @@ class UserSettingViewModel @Inject constructor(
         _imageUris.value = _imageUris.value.toMutableList().apply { removeAt(index) }
     }
 
-
     // 이름 입력 여부에 대한 유효성 검사
     val isNameValid = mutableStateOf(true)
     val showNameErrorDialog = mutableStateOf(false)
 
-
     fun validateName() {
         isNameValid.value = textFieldModifyNameValue.value.isNotBlank()
     }
-
-
-
 }

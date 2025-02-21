@@ -172,6 +172,15 @@ fun EditPwScreen(
         )
     }
 
+    if (editPwViewModel.showDialogPw1Mismatch.value) {
+        LikeLionAlertDialog(
+            showDialogState = editPwViewModel.showDialogPw1Mismatch,
+            title = "입력 오류",
+            text = "현재 비밀번호가 일치하지 않습니다.",
+            confirmButtonTitle = "확인"
+        )
+    }
+
     if (editPwViewModel.showDialogPwShort.value) {
         LikeLionAlertDialog(
             showDialogState = editPwViewModel.showDialogPwShort,
@@ -181,16 +190,14 @@ fun EditPwScreen(
         )
     }
 
-    if (editPwViewModel.showDialogPwMismatch.value) {
+    if (editPwViewModel.showDialogPw2Mismatch.value) {
         LikeLionAlertDialog(
-            showDialogState = editPwViewModel.showDialogPwMismatch,
+            showDialogState = editPwViewModel.showDialogPw2Mismatch,
             title = "입력 오류",
             text = "새 비밀번호가 일치하지 않습니다.",
             confirmButtonTitle = "확인"
         )
     }
-
-
 }
 
 //// ✅ 프리뷰 추가

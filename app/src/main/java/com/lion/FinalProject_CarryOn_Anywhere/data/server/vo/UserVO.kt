@@ -2,6 +2,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.vo
 
 import com.google.firebase.Timestamp
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 
 class UserVO {
@@ -34,9 +35,8 @@ class UserVO {
     var userTimeStamp:Long = 0L
     // 유저 상태 (1: 정상, 2: 탈퇴)
     var userState: Int = 1
-
-    // 추가 : 앱 푸시 수신 동의
-    var userAppPushAgree: String = ""
+    // 추가 : 앱 푸시 수신 동의 (1: 동의 2: 미동의)
+    var userAppPushAgree: Int = 1
 
     fun toUserModel(userDocumentId:String) : UserModel {
         val userModel = UserModel()
@@ -55,11 +55,16 @@ class UserVO {
         userModel.userReplyList = userReplyList.toMutableList()
         userModel.userAutoLoginToken = userAutoLoginToken
         userModel.userTimeStamp = userTimeStamp
-        userModel.userAppPushAgree = userAppPushAgree
+
 
         when(userState){
             UserState.USER_STATE_NORMAL.number -> userModel.userState = UserState.USER_STATE_NORMAL
             UserState.USER_STATE_SIGNOUT.number -> userModel.userState = UserState.USER_STATE_SIGNOUT
+        }
+
+        when(userAppPushAgree){
+            AppPushState.APP_PUSH_ENABLE.number -> userModel.userAppPushAgree = AppPushState.APP_PUSH_ENABLE
+            AppPushState.APP_PUSH_DISABLE.number -> userModel.userAppPushAgree = AppPushState.APP_PUSH_DISABLE
         }
 
         return userModel
