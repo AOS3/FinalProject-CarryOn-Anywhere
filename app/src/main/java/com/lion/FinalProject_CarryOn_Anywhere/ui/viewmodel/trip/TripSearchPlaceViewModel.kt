@@ -15,8 +15,10 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.ChipState
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.PlanModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.RequestModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.PlanService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.RequestService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +26,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,20 +35,24 @@ import javax.inject.Inject
 class TripSearchPlaceViewModel @Inject constructor(
     @ApplicationContext context: Context,
     val planService: PlanService,
-    val tripService: TripService
+    val tripService: TripService,
+    val requestService: RequestService
 ):ViewModel() {
 
     val carryOnApplication = context as CarryOnApplication
 
+    private val _allPlaces = MutableStateFlow<List<TourApiModel.TouristSpotItem>>(emptyList())
+
     // 필터링된 장소 리스트
-    var filteredPlaces = SnapshotStateList<TourApiModel.TouristSpotItem>()
+    private val _filteredPlaces = MutableStateFlow<List<TourApiModel.TouristSpotItem>>(emptyList())
+    val filteredPlaces: StateFlow<List<TourApiModel.TouristSpotItem>> = _filteredPlaces
 
     val tripModel = TripModel()
 
     // 검색 키워드
     val searchTextFieldValue = mutableStateOf("")
 
-    val textFieldPlaceName = mutableStateOf("")
+    var textFieldPlaceName = mutableStateOf("")
 
     val textFieldAddress = mutableStateOf("")
 
@@ -58,10 +65,12 @@ class TripSearchPlaceViewModel @Inject constructor(
     val subRegionCodesParam = mutableStateOf("")
     val tripDocumentIdVal = mutableStateOf("")
 
-    // 지역별 관광지 데이터를 저장할 MutableState
-    val placesByRegion = mutableStateOf(
-        mutableMapOf<String, MutableList<Map<String, TourApiModel.TouristSpotItem>>>()
-    )
+    var currentPage = 1
+    var hasMorePages = true
+    var isFetching = false
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     init {
         filteredPlaces
@@ -85,78 +94,81 @@ class TripSearchPlaceViewModel @Inject constructor(
         )
     }
 
-    fun fetchPlaces(regionCodes: List<String>, subRegionCodes: List<String>) {
-        viewModelScope.launch {
+    private suspend fun fetchPlacesFromAPI(regionCodes: List<String>, subRegionCodes: List<String>, page: Int) {
+        val apiKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ=="
+        val uniqueRegionPairs = regionCodes.zip(subRegionCodes).distinct()
+        val newPlaces = mutableListOf<TourApiModel.TouristSpotItem>()
+
+        uniqueRegionPairs.forEach { (regionCode, subRegionCode) ->
             try {
-                val apiKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ=="
-
-                // 중복 제거한 지역-시군구 쌍 리스트 생성
-                val uniqueRegionPairs = regionCodes.zip(subRegionCodes).distinct()
-
-                // 기존 데이터 초기화
-                placesByRegion.value.clear()
-
-                // 중복 요청 방지를 위해 `forEach` 사용
-                val allPlaces = mutableListOf<TourApiModel.TouristSpotItem>()
-
-                uniqueRegionPairs.forEach { (regionCode, subRegionCode) ->
-                    try {
-                        val response = TourAPIRetrofitClient.instance.getPlaces(
-                            serviceKey = apiKey,
-                            areaCode = regionCode,
-                            sigunguCode = subRegionCode,
-                        )
-                        val placeList = response.body()?.response?.body?.items?.item ?: emptyList()
-
-                        allPlaces.addAll(placeList)
-
-                    } catch (e: Exception) {
-                        Log.e("TripInfoViewModel", "API 요청 실패: areaCode=$regionCode, sigunguCode=$subRegionCode", e)
-                    }
-                }
-
-                if (allPlaces.isEmpty()) {
-                    return@launch
-                }
-
-                // 기존 데이터 초기화 후 새로운 데이터 저장
-                placesByRegion.value = mutableMapOf()
-                uniqueRegionPairs.forEach { (regionCode, _) ->
-                    placesByRegion.value[regionCode] = allPlaces.map { mapOf(it.contentid!! to it) }.toMutableList()
-                }
-
-                // 초기 검색 필터링 수행하여 모든 장소 표시
-                filterPlaces()
+                val response = TourAPIRetrofitClient.instance.getPlaces(
+                    serviceKey = apiKey,
+                    pageNo = page,
+                    areaCode = regionCode,
+                    sigunguCode = subRegionCode,
+                )
+                val placeList = response.body()?.response?.body?.items?.item ?: emptyList()
+                newPlaces.addAll(placeList)
 
             } catch (e: Exception) {
-                Log.e("TripInfoViewModel", "장소 데이터를 가져오는 중 오류 발생", e)
+                Log.e("TripSearchPlaceViewModel", "API 요청 실패: areaCode=$regionCode, sigunguCode=$subRegionCode", e)
             }
+        }
+
+        // 전체 장소 리스트에 추가
+        _allPlaces.value = _allPlaces.value + newPlaces
+        // 검색 결과도 갱신
+        filterPlaces()
+    }
+
+    fun fetchPlaces(regionCodes: List<String>, subRegionCodes: List<String>) {
+        if (isFetching) return
+        isFetching = true
+        _isLoading.value = true
+        currentPage = 1
+        hasMorePages = true
+        _allPlaces.value = emptyList() // 기존 데이터 초기화
+
+        viewModelScope.launch(Dispatchers.IO) {
+            fetchPlacesFromAPI(regionCodes, subRegionCodes, currentPage)
+            _isLoading.value = false
+            isFetching = false
+        }
+    }
+
+    fun fetchNextPlaces(regionCodes: List<String>, subRegionCodes: List<String>) {
+        if (!hasMorePages || isFetching) return
+        isFetching = true
+        _isLoading.value = true
+        currentPage++
+
+        viewModelScope.launch(Dispatchers.IO) {
+            fetchPlacesFromAPI(regionCodes, subRegionCodes, currentPage)
+            _isLoading.value = false
+            isFetching = false
         }
     }
 
     fun filterPlaces() {
         val query = searchTextFieldValue.value.lowercase().trim()
 
-        // 저장된 `placesByRegion`에서 모든 관광지 데이터를 가져옴
-        val allPlaces = placesByRegion.value.values
-            // `TouristSpotItem` 리스트로 변환
-            .flatMap { list -> list.flatMap { map -> map.values } }
-
-        filteredPlaces.clear()
-
-        // 검색 키워드가 비어있으면 전체 데이터를 보여줌
-        if (query.isEmpty()) {
-            filteredPlaces.addAll(allPlaces)
+        val filteredList = if (query.isEmpty()) {
+            _allPlaces.value
         } else {
-            filteredPlaces.addAll(
-                allPlaces.filter { place ->
-                    listOfNotNull(
-                        place.title?.lowercase(),
-                        place.addr1?.lowercase(),
-                        place.addr2?.lowercase()
-                    ).any { it.contains(query) }
-                }
-            )
+            _allPlaces.value.filter { place ->
+                listOfNotNull(
+                    place.title?.lowercase(),
+                    place.addr1?.lowercase(),
+                    place.addr2?.lowercase()
+                ).any { it.contains(query) }
+            }
+        }
+
+        _filteredPlaces.value = filteredList
+
+        // 🔹 검색 결과가 부족하면 추가 데이터 요청
+        if (filteredList.isNotEmpty() && filteredList.size <= currentPage * 10 && hasMorePages) {
+            fetchNextPlaces(regionCodesParam.value.split(","), subRegionCodesParam.value.split(","))
         }
     }
 
@@ -233,19 +245,41 @@ class TripSearchPlaceViewModel @Inject constructor(
 
     // 장소추가 요청 버튼 눌렀을 때
     fun requestPlaceOnClick() {
+        textFieldPlaceName.value = searchTextFieldValue.value
+
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate(ScreenName.WRITE_REQUEST_PLACE.name)
     }
 
+    fun addPlaceRequst(){
+        val requestModel = RequestModel()
+
+        requestModel.userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+        requestModel.requestPlaceName = textFieldPlaceName.value
+        requestModel.requestPlaceAddress = textFieldAddress.value
+        requestModel.requestTimeStamp = System.currentTimeMillis()
+
+        CoroutineScope(Dispatchers.Main).launch {
+            val work1 = async(Dispatchers.IO) {
+                requestService.addRequestData(requestModel)
+            }
+            work1.await()
+
+            carryOnApplication.navHostController.popBackStack()
+            carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/${dayVal.value}/${tripDocumentIdVal.value}/${regionCodesParam.value}/${subRegionCodesParam.value}")
+        }
+    }
+
     // 장소 검색에서 뒤로가기 눌렀을 때
     fun tripSearchNavigationOnClick(tripDocumentId:String){
+        searchTextFieldValue.value = ""
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
     }
 
     // 장소 등록 요청 에서 뒤로가기 눌렀을 때
     fun requestPlaceNavigationOnClick(){
-        carryOnApplication.navHostController.popBackStack(ScreenName.WRITE_REQUEST_PLACE.name, true)
+        carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/${dayVal.value}/${tripDocumentIdVal.value}/${regionCodesParam.value}/${subRegionCodesParam.value}")
     }
 }

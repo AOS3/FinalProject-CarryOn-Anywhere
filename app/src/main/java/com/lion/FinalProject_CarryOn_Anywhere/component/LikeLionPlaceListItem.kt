@@ -20,8 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 
 @Composable
@@ -48,7 +50,8 @@ fun LikeLionPlaceListItem(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(70.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp)),
+            placeholder = painterResource(R.drawable.carryon_logo_final)
         )
 
         Spacer(modifier = Modifier.width(12.dp))

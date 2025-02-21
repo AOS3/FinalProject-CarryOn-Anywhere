@@ -351,6 +351,8 @@ class AddTripInfoViewModel @Inject constructor(
 
     // 지역 선택에서 뒤로가기 눌렀을 때
     fun selectRegionNavigationOnClick(){
+        selectedRegions.clear()
+        updateRegionButtonState()
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
     }
