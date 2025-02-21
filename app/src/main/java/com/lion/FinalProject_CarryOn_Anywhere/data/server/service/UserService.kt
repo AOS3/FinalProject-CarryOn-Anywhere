@@ -3,6 +3,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.service
 import android.content.Context
 import android.util.Log
 import androidx.core.content.edit
+import com.google.firebase.firestore.FirebaseFirestore
 import com.kakao.sdk.user.model.User
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.UserRepository
@@ -10,6 +11,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.LoginResult
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.UserVO
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class UserService() {
@@ -141,11 +143,35 @@ class UserService() {
             UserRepository.updateUserData(userVO, userModel.userDocumentId)
         }
 
-        // 사용자 비밀번호 데이터를 수정한다.
-        suspend fun updateUserPwData(userModel: UserModel){
-            val userVO = userModel.toUserVO()
-            UserRepository.updateUserPwData(userVO, userModel.userDocumentId)
+        // 자동 로그인 토큰 삭제 (회원 탈퇴에서 가능)
+        suspend fun clearAutoLoginToken(userDocumentId: String, context: Context) {
+            // SharedPreferences에서 토큰 삭제
+            val sharedPreferences = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+            sharedPreferences.edit().clear().apply()
+
+            // Firebase에서 토큰 삭제
+            try {
+                UserRepository.clearAutoLoginToken(userDocumentId)
+                println("Firebase에서 토큰 삭제 성공")
+            } catch (e: Exception) {
+                println("Firebase에서 토큰 삭제 실패: ${e.localizedMessage}")
+                throw e
+            }
         }
+
+        // 사용자 비밀번호 데이터를 수정한다.
+        suspend fun updateUserPwData(userModel: UserModel,newPassword : String){
+            // val userVO = userModel.toUserVO()
+            UserRepository.updateUserPwData(userModel.userDocumentId,newPassword)
+        }
+
+        // 사용자의 현재 비밀번호 가져오기 :  마이페이지 -> 계정 설정 -> 비밀번호 수정
+        suspend fun selectUserPasswordByUserId(userId: String): String? {
+
+            return UserRepository.selectUserPasswordByUserId(userId)
+        }
+
+
 
     }
 }

@@ -195,7 +195,6 @@ class UserRepository {
         }
 
         // 계정 설정 관련
-
         // 서버에서 이미지 파일을 삭제한다.
         suspend fun removeImageFile(imageFileName: String) {
             if (imageFileName.isBlank() || imageFileName == "none") {
@@ -237,7 +236,7 @@ class UserRepository {
             childReference.putFile(fileUri).await()
         }
 
-        // 사용자 데이터를 수정한다.
+        // 사용자 데이터를 수정
         suspend fun updateUserData(userVO: UserVO, userDocumentId: String) {
             // 수정할 데이터를 담을 맵
             val userMap = mapOf(
@@ -253,20 +252,57 @@ class UserRepository {
             documentReference.update(userMap).await()
         }
 
-        // 사용자 비밀번호를 수정한다.
-        suspend fun updateUserPwData(userVO: UserVO, userDocumentId: String) {
-            // 수정할 데이터를 담을 맵
-            val userMap = mapOf(
-                "userPw" to userVO.userPw,
-            )
-            // 수정할 문서에 접근할 수 있는 객체를 가져온다.
+        // Firebase에서 토큰 삭제 (탈퇴, 로그아웃시 사용)
+        suspend fun clearAutoLoginToken(userDocumentId: String) {
             val firestore = FirebaseFirestore.getInstance()
             val collectionReference = firestore.collection("UserData")
             val documentReference = collectionReference.document(userDocumentId)
-            documentReference.update(userMap).await()
+
+            val updateMap = mapOf(
+                "userAutoLoginToken" to ""
+            )
+
+            try {
+                documentReference.update(updateMap).await()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+
+        // 사용자 비밀번호를 수정 :  내정보 -> 내정보 관리 -> 비밀번호 수정
+        suspend fun updateUserPwData(userDocumentId: String, newPassword : String){
+            val firestore = FirebaseFirestore.getInstance()
+            val collectionReference = firestore.collection("UserData")
+            val documentReference = collectionReference.document(userDocumentId)
+
+            Log.d("test111","newPassword : ${newPassword}")
+            val updateMap = mapOf(
+                "userPw" to newPassword // 비밀번호 업데이트
+            )
+            documentReference.update(updateMap).await()
         }
 
 
+        // 사용자의 현재 비밀번호 가져오기 :  마이페이지 -> 계정 설정 -> 비밀번호 수정
+        suspend fun selectUserPasswordByUserId(userId: String): String? {
+            val firestore = FirebaseFirestore.getInstance()
+            val collectionReference = firestore.collection("UserData")
 
+
+            // 특정 사용자 데이터 가져오기
+            val result = collectionReference
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+
+            // 결과에서 비밀번호 필드만 추출
+            if (result.documents.isNotEmpty()) {
+                val document = result.documents[0] // 첫 번째 문서 가져오기 (단일 사용자라 가정)
+                return document.getString("userPw") // Firestore에서 "password" 필드 추출
+            }
+
+            // 사용자가 없을 경우 null 반환
+            return null
+        }
     }
 }

@@ -5,11 +5,14 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.storage.FirebaseStorage
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -76,6 +79,26 @@ class MyPageViewModel @Inject constructor(
         }
 
     }
+
+    fun logoutOnClick(context: Context) {
+        viewModelScope.launch {
+            try {
+                val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+                UserService.clearAutoLoginToken(userDocumentId, context)
+
+                // carryOnApplication.isLoggedIn.value = false
+
+                // 네비게이션 처리
+                carryOnApplication.navHostController.popBackStack(ScreenName.MY_PAGE.name, inclusive = true)
+                carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name)
+
+            } catch (e: Exception) {
+                println("로그아웃 처리 실패: ${e.localizedMessage}")
+            }
+        }
+    }
+
+
 
 
     // 페이지 이동 관련

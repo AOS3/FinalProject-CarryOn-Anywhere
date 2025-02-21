@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.model
 
 import com.google.firebase.Timestamp
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.UserVO
@@ -51,8 +52,8 @@ class UserModel {
     // 유저 상태 (1: 정상, 2: 탈퇴)
     var userState = UserState.USER_STATE_NORMAL
 
-    // 추가 : 앱 푸시 수신 동의 (false: 미동의, true: 동의)
-    var userAppPushAgree: String = "미동의"
+    // 추가 : 앱 푸시 수신 동의
+    var userAppPushAgree = AppPushState.APP_PUSH_ENABLE
 
     fun toUserVO(): UserVO {
         val userVO = UserVO()
@@ -70,7 +71,7 @@ class UserModel {
         userVO.userAutoLoginToken = userAutoLoginToken
         userVO.userTimeStamp = userTimeStamp
         userVO.userState = userState.number
-        userVO.userAppPushAgree = userAppPushAgree
+        userVO.userAppPushAgree = userAppPushAgree.number
 
         return userVO
     }

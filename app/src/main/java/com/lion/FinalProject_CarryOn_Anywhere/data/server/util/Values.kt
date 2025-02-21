@@ -143,3 +143,11 @@ enum class LoginResult(val number: Int, val str: String) {
     LOGIN_RESULT_PASSWORD_INCORRECT(3, "잘못된 비밀번호"),
     LOGIN_RESULT_SIGN_OUT_MEMBER(4, "탈퇴한 회원"),
 }
+
+// 앱 푸쉬 알람 동의 여부
+enum class AppPushState(val number:Int, val str:String){
+    // 활성화
+    APP_PUSH_ENABLE(1, "동의"),
+    // 비활성화
+    APP_PUSH_DISABLE(2, "미동의"),
+}

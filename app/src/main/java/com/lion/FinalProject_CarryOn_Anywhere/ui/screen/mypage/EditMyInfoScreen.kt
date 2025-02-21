@@ -36,6 +36,7 @@ import androidx.navigation.NavController
 import com.bumptech.glide.Glide
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.*
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.Tools
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.UserSettingViewModel
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +54,10 @@ fun EditMyInfoScreen(
     lateinit var contentUri: Uri
 
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        userSettingViewModel.loadProfileImage() // Glide로 프로필 이미지 로드
+    }
 
     // ✅ 바텀시트 상태 추가
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -163,30 +168,30 @@ fun EditMyInfoScreen(
                     }
 
 
-                    // 버튼 (이미지 아래로 위치)
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.align(Alignment.BottomCenter) // 버튼을 아래로 정렬
-                    ) {
-                        LikeLionFilledButton(
-                            text = "등록",
-                            horizontalPadding  = 1.dp,
-
-                            modifier = Modifier
-                                .width(80.dp)
-                                .height(35.dp)
-                                .scale(0.8f), // ✅ 버튼 크기 축소 (0.8배),
-                            onClick = {
-                                coroutineScope.launch {
-                                    // scaffoldState.bottomSheetState.expand() // 바텀시트를 표시
-                                    showBottomSheet = true
-                                }
-                            },
-                            cornerRadius = 5
-                        )
-                    }
                 }
             }
+
+            // ✅ 버튼을 프로필 이미지 **아래 중앙에 배치**
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                LikeLionFilledButton(
+                    text = "등록",
+                    horizontalPadding = 10.dp,
+                    modifier = Modifier
+                        .width(120.dp) // 버튼 크기 적절히 조정
+                        .height(35.dp), // 높이 조정
+                    onClick = {
+                        coroutineScope.launch {
+                            showBottomSheet = true
+                        }
+                    },
+                    cornerRadius = 5
+                )
+            }
+
 
             Text(
                 text = "5MB 이내의 이미지 파일을 업로드 해주세요.\n" +
@@ -197,6 +202,7 @@ fun EditMyInfoScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 10.dp)
+                    .padding(top = 10.dp)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -297,9 +303,9 @@ fun EditMyInfoScreen(
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 10.dp),
                 textModifier = Modifier.padding(5.dp),
-                selectedOption = (userSettingViewModel.selectedPushAgree.value), // ✅ Boolean → String 변환
-                onOptionSelected = { answer ->
-                    userSettingViewModel.selectedPushAgree.value = answer
+                selectedOption = userSettingViewModel.selectedPushAgree.value.str,
+                onOptionSelected = { selectedOption ->
+                    userSettingViewModel.selectedPushAgree.value = AppPushState.values().find { it.str == selectedOption }!!
                 },
                 orientation = Orientation.Horizontal, // 가로 방향
                 itemSpacing = 10,
@@ -368,8 +374,8 @@ fun EditMyInfoScreen(
                     confirmButtonTitle = "확인",
                     confirmButtonOnClick = {
                         userSettingViewModel.showDialogWithdrawalState.value = false
-                        // 회원 탈퇴 로직 추가
-                        userSettingViewModel.withdrawalOnClick()
+                        // 회원 탈퇴 로직(토큰삭제 + 화면 이동)
+                        userSettingViewModel.withdrawalOnClick(context)
                     },
                     confirmButtonModifier = Modifier.padding(horizontal = 5.dp),
                     dismissButtonTitle = "취소",
