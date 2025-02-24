@@ -48,8 +48,10 @@ fun StoryScreen(
     navController: NavController
 ) {
     val posts by storyViewModel.posts.collectAsState()
+    // 로딩 상태 감지
     val isLoading by storyViewModel.isLoading.collectAsState()
 
+    // 태그 목록
     val chipItems = listOf("전체", "맛집", "숙소", "여행 일정", "모임")
     val scrollState = rememberScrollState()
     val selectedChip = remember { mutableStateOf(chipItems[0]) }
@@ -135,15 +137,6 @@ fun StoryScreen(
             ) {
                 items(filteredPosts.size) { index ->
                     PostItem(filteredPosts[index], navController, index)
-
-//                    // 마지막 아이템이 아닐 경우 구분선 추가
-//                    if (index < filteredPosts.size - 1) {
-//                        LikeLionDivider(
-//                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
-//                            color = Color.LightGray,
-//                            thickness = 1.dp
-//                        )
-//                    }
                 }
             }
         }
@@ -167,14 +160,14 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth()
-                .fillMaxHeight(), // Row의 높이를 자동으로 맞추도록 설정
-            verticalAlignment = Alignment.CenterVertically // 세로 중앙 정렬 추가
+                .fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // 왼쪽 Column (태그, 제목, 내용, 작성자 정보)
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight(), // Row의 높이를 상속
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 // 태그
@@ -213,7 +206,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
 
                 // 작성자 · 작성 날짜
                 Text(
-                    text = "${post.author} · ${formattedDate(post.postDate)}",
+                    text = "${post.nickName} · ${formattedDate(post.postDate)}",
                     fontSize = 12.sp,
                     color = Color.LightGray
                 )
@@ -224,7 +217,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
             // 오른쪽 Column (이미지 + 좋아요 & 댓글)
             Column(
                 modifier = Modifier
-                    .fillMaxHeight(), // Row의 높이를 상속
+                    .fillMaxHeight(),
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
@@ -234,7 +227,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
                         .size(70.dp)
                         .padding(bottom = 8.dp)
                 ) {
-                    // 🔍 Firebase Storage URL을 위한 Coil 이미지 로더 사용
+                    // Firebase Storage URL을 위한 Coil 이미지 로더 사용
                     post.imageUrls.firstOrNull()?.let { imageUrl ->
                         Image(
                             painter = rememberAsyncImagePainter(imageUrl),
@@ -283,6 +276,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
     }
 }
 
+// 날짜 변환
 private fun formattedDate(timestamp: Long): String {
     val date = Date(timestamp)
     val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())

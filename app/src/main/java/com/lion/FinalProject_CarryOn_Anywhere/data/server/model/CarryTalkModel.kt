@@ -9,6 +9,8 @@ class CarryTalkModel {
     var talkDocumentId:String = ""
     // 작성자
     var userDocumentId: String = ""
+    // 작성자 닉네임
+    var userName:String = ""
     // 여행 이야기 태그
     var talkTag = TalkTag.TALK_TAG_RESTAURANT
     // 여행 이야기 제목
