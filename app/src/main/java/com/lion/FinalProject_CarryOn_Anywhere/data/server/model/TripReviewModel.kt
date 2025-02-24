@@ -10,6 +10,8 @@ class TripReviewModel {
     var tripReviewDocumentId:String = ""
     // 작성자
     var userDocumentId: String = ""
+    // 작성자 닉네임
+    var userName:String = ""
     // 여행 후기 제목
     var tripReviewTitle:String = ""
     // 일정 문서 아이디

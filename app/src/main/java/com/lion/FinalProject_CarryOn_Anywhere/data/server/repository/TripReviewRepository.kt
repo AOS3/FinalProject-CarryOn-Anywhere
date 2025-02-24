@@ -40,5 +40,19 @@ class TripReviewRepository {
                 throw e
             }
         }
+
+        // 여행 후기 데이터 수정
+        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
+            try {
+                val updateData = mapOf(
+                    "tripReviewTitle" to newTitle,
+                    "tripReviewContent" to newContent,
+                    "tripReviewImage" to newImageUrls
+                )
+                collection.document(documentId).update(updateData).await()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
     }
 }
