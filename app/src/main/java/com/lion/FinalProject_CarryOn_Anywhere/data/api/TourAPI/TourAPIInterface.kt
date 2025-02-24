@@ -29,7 +29,7 @@ interface TourAPIInterface {
     @GET("areaBasedList1")
     suspend fun getPlaces(
         @Query("serviceKey") serviceKey: String,
-        @Query("numOfRows") numOfRows: Int = 10,
+        @Query("numOfRows") numOfRows: Int = 20,
         @Query("pageNo") pageNo: Int = 1,
         @Query("MobileOS") mobileOS: String = "AND",
         @Query("MobileApp") mobileApp: String = "AppTest",

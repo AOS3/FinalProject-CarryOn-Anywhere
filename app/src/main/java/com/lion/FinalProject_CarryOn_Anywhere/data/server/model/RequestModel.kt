@@ -20,6 +20,7 @@ class RequestModel {
     fun toRequestVO() : RequestVO {
         val requestVO = RequestVO()
 
+        requestVO.userDocumentId = userDocumentId
         requestVO.requestPlaceName = requestPlaceName
         requestVO.requestPlaceAddress = requestPlaceAddress
         requestVO.requestTimeStamp = requestTimeStamp

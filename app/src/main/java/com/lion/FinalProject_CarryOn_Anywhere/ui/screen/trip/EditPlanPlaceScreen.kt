@@ -29,6 +29,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionIconButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.EditPlanPlaceViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -36,19 +37,19 @@ import org.burnoutcrew.reorderable.reorderable
 
 @Composable
 fun EditPlanPlaceScreen(
-    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
+    editPlanPlaceViewModel: EditPlanPlaceViewModel = hiltViewModel(),
     selectedDay: String,
     selectedIndex: Int,
     tripDocumentId: String
 ) {
     val reorderState = rememberReorderableLazyListState(
         onMove = { from, to ->
-            tripInfoViewModel.reorderPlaces(selectedDay, from.index, to.index) // ViewModel에서 순서 변경
+            editPlanPlaceViewModel.reorderPlaces(selectedDay, from.index, to.index) // ViewModel에서 순서 변경
         }
     )
 
-    LaunchedEffect(selectedIndex) {
-        Log.d("EditPlanPlaceScreen", "selectedIndex: $selectedIndex")
+    LaunchedEffect(tripDocumentId, selectedDay) {
+        editPlanPlaceViewModel.getPlanDataByTripAndDay(tripDocumentId = tripDocumentId, day = selectedDay)
     }
 
     Scaffold(
@@ -57,13 +58,13 @@ fun EditPlanPlaceScreen(
                 title = "장소 편집",
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
                 navigationIconOnClick = {
-                    tripInfoViewModel.editPlaceNavigationOnClick(tripDocumentId)
+                    editPlanPlaceViewModel.editPlaceNavigationOnClick(tripDocumentId)
                 },
                 menuItems = {
                     LikeLionIconButton(
                         icon = ImageVector.vectorResource(R.drawable.done_24px),
                         iconButtonOnClick = {
-                            tripInfoViewModel.editPlaceDoneOnClick(tripDocumentId)
+                            editPlanPlaceViewModel.editPlaceDoneOnClick(tripDocumentId, selectedDay)
                         }
                     )
                 }
@@ -97,7 +98,7 @@ fun EditPlanPlaceScreen(
                 )
             }
 
-            tripInfoViewModel.placesByDay[selectedDay]?.let { places ->
+            editPlanPlaceViewModel.placesByDay[selectedDay]?.let { places ->
                 LazyColumn(
                     state = reorderState.listState,
                     modifier = Modifier
@@ -112,8 +113,8 @@ fun EditPlanPlaceScreen(
                             place = place,
                             isEdit = true,
                             deleteOnClick = {
-                                tripInfoViewModel.deleteTargetPlace.value = place
-                                tripInfoViewModel.deletePlaceDialogState.value = true
+                                editPlanPlaceViewModel.deleteTargetPlace.value = place
+                                editPlanPlaceViewModel.deletePlaceDialogState.value = true
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -125,17 +126,17 @@ fun EditPlanPlaceScreen(
 
             // 일정 삭제 시 띄우는 다이얼로그
             LikeLionAlertDialog(
-                showDialogState = tripInfoViewModel.deletePlaceDialogState,
+                showDialogState = editPlanPlaceViewModel.deletePlaceDialogState,
                 confirmButtonTitle = "삭제",
                 confirmButtonModifier = Modifier
                     .weight(1f)
                     .padding(start = 10.dp),
                 confirmButtonOnClick = {
-                    tripInfoViewModel.deleteTargetPlace.value?.let { place ->
-                        tripInfoViewModel.removePlaceFromDay(selectedDay, place)
+                    editPlanPlaceViewModel.deleteTargetPlace.value?.let { place ->
+                        editPlanPlaceViewModel.removePlaceFromDay(selectedDay, place)
                     }
-                    tripInfoViewModel.deleteTargetPlace.value = null
-                    tripInfoViewModel.deletePlaceDialogState.value = false
+                    editPlanPlaceViewModel.deleteTargetPlace.value = null
+                    editPlanPlaceViewModel.deletePlaceDialogState.value = false
                 },
                 dismissButtonTitle = "취소",
                 dismissContainerColor = Color.Transparent,
@@ -144,7 +145,7 @@ fun EditPlanPlaceScreen(
                     .padding(end = 10.dp),
                 dismissBorder = BorderStroke(1.dp, MainColor),
                 dismissButtonOnClick = {
-                    tripInfoViewModel.deletePlaceDialogState.value = false
+                    editPlanPlaceViewModel.deletePlaceDialogState.value = false
                 },
                 title = "일정 삭제",
                 titleModifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),

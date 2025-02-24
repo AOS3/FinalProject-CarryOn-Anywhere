@@ -17,7 +17,6 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionGoogleMap
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.ShowTripMapViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 
 @Composable
@@ -26,7 +25,7 @@ fun ShowTripMapScreen(
     tripDocumentId: String
 ) {
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
+        position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 8f)
     }
 
     Scaffold(

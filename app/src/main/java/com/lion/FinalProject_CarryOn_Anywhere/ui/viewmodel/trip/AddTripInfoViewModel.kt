@@ -351,8 +351,22 @@ class AddTripInfoViewModel @Inject constructor(
 
     // 지역 선택에서 뒤로가기 눌렀을 때
     fun selectRegionNavigationOnClick(){
-        carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+        selectedRegions.clear()
+        updateRegionButtonState()
+
+        when (carryOnApplication.previousScreen.value) {
+            ScreenName.MAIN_SCREEN.name -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+            }
+            ScreenName.MY_TRIP_PLAN.name -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate(ScreenName.MY_TRIP_PLAN.name)
+            }
+            else -> {
+                carryOnApplication.navHostController.popBackStack()
+            }
+        }
     }
 
     fun tripDateNavigationOnClick(tripDocumentId: String) {

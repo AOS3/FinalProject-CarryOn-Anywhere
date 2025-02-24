@@ -62,6 +62,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.StoryScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.FinalProject_CarryOn_AnywhereTheme
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.AddTripInfoViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.EditPlanPlaceViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -283,10 +284,11 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             composable(
                 route = "${ScreenName.EDIT_PLAN_PLACE.name}/{selectedDay}/{selectedIndex}/{tripDocumentId}"
             ) {
+                val editPlanPlaceViewModel: EditPlanPlaceViewModel = hiltViewModel()
                 val selectedDay = it.arguments?.getString("selectedDay")!!
                 val selectedIndex = it.arguments?.getString("selectedIndex")?.toIntOrNull() ?: 0
                 val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
-                EditPlanPlaceScreen(tripInfoViewModel, selectedDay, selectedIndex, tripDocumentId)
+                EditPlanPlaceScreen(editPlanPlaceViewModel, selectedDay, selectedIndex, tripDocumentId)
             }
 
             // 일정 생성 화면

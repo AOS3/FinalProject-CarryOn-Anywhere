@@ -21,9 +21,10 @@ data class Review(
     val documentId: String = "",
     val imageUrls: List<String>,
     val title: String,
-    val author: String = "알 수 없음",
-    val content: String = "",
-    val postDate: Long = 0L,
+    val author: String,
+    val nickName : String,
+    val content: String,
+    val postDate: Long,
     val likes: Int,
     val comments: Int
 )
@@ -62,7 +63,8 @@ class ReviewViewModel @Inject constructor(
                             comments = tripReview.tripReviewReplyList.size,
                             postDate = tripReview.tripReviewTimestamp,
                             content = tripReview.tripReviewContent,
-                            author = tripReview.userDocumentId
+                            author = tripReview.userDocumentId,
+                            nickName = tripReview.userName
                         )
                     }.sortedByDescending { it.postDate }
 
@@ -84,6 +86,18 @@ class ReviewViewModel @Inject constructor(
                 onSuccess()
             } catch (e: Exception) {
                 onError("삭제 실패: ${e.message}")
+            }
+        }
+    }
+
+    // 여행 후기 수정 후 UI 업데이트
+    fun editTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
+        viewModelScope.launch {
+            try {
+                TripReviewService.updateTripReview(documentId, newTitle, newContent, newImageUrls)
+                fetchTripReviews()
+            } catch (e: Exception) {
+                Log.e("ReviewViewModel", "여행 후기 수정 실패: ${e.message}")
             }
         }
     }

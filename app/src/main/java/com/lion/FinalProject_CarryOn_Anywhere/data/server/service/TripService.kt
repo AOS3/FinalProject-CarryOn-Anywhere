@@ -2,6 +2,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.service
 
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.TripRepository
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
 
 class TripService(val tripRepository: TripRepository) {
     // 여행 정보를 추가하고 `documentId`를 반환하는 메서드
@@ -18,8 +19,19 @@ class TripService(val tripRepository: TripRepository) {
         tripRepository.updateTripDate(tripVO, tripModel.tripDocumentId)
     }
 
-    suspend fun gettingTripList(userDocumentId: String): MutableList<Map<String, *>> {
-        return tripRepository.gettingTripList(userDocumentId)
+    suspend fun gettingTripList(userDocumentId: String) : MutableList<TripModel>{
+        // 글정보를 가져온다.
+        val tripList = mutableListOf<TripModel>()
+        val resultList = tripRepository.gettingTripList(userDocumentId)
+
+        resultList.forEach {
+            val tripVO = it["tripVO"] as TripVO
+            val documentId = it["documentId"] as String
+            val tripModel = tripVO.toTripModel(documentId)
+            tripList.add(tripModel)
+        }
+
+        return tripList
     }
 
     // 서버에서 글을 삭제한다.

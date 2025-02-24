@@ -18,18 +18,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripPlanModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // ✅ 개별 댓글 아이템
 @Composable
 fun LikeLionMyTripPlanItem(
-    plan: TripPlanModel,
-    onDeleteClick: () -> Unit
+    plan: TripModel,
+    onDeleteClick: () -> Unit,
+    onclick: () -> Unit = { }
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable {
+                onclick()
+            },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
@@ -41,15 +49,22 @@ fun LikeLionMyTripPlanItem(
         ) {
             // ✅ 제목
             Text(
-                text = plan.PlanTitle,
+                text = plan.tripTitle,
                 fontSize = 20.sp,
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
+            val startDate = plan.tripStartDate.toFormattedDateString() // Long → String 변환
+            val endDate = plan.tripEndDate.toFormattedDateString()
+
             // ✅ 날짜
             Text(
-                text = plan.PlanDate,
+                text = if (endDate == "" || startDate == endDate) {
+                    "$startDate ~ $startDate"
+                }else {
+                    "$startDate ~ $endDate"
+                 },
                 fontSize = 15.sp,
                 color = Color.Gray
             )
@@ -70,12 +85,12 @@ fun LikeLionMyTripPlanItem(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun LikeLionMyTripPlanList(
-    planList: List<TripPlanModel>,
-    onDeleteConfirmed: (TripPlanModel) -> Unit
+    planList: List<TripModel>,
+    onDeleteConfirmed: (TripModel) -> Unit
 ) {
     // ✅ 다이얼로그 상태 및 삭제할 댓글 상태
     val showDialog = remember { mutableStateOf(false) }
-    val selectedPlan = remember { mutableStateOf<TripPlanModel?>(null) }
+    val selectedPlan = remember { mutableStateOf<TripModel?>(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize()
@@ -115,14 +130,19 @@ fun LikeLionMyTripPlanList(
 @Composable
 fun PreviewLikeLionMyTripPlanList() {
     val testPlans = listOf(
-        TripPlanModel("부산 여행 1","2025-01-13 ~ 2025-01-16")
+        TripModel()
     )
 
     LikeLionMyTripPlanList(
         planList = testPlans,
         onDeleteConfirmed = { deletedPlan ->
             // ✅ 삭제 처리 로직 (현재는 테스트용 출력)
-           println("Deleted: ${deletedPlan.PlanTitle}")
+           println("Deleted: ${deletedPlan.tripTitle}")
         }
     )
+}
+
+fun Long.toFormattedDateString(): String {
+    val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA) // 원하는 날짜 형식
+    return dateFormat.format(Date(this)) // Long 값을 Date로 변환 후 포맷 적용
 }

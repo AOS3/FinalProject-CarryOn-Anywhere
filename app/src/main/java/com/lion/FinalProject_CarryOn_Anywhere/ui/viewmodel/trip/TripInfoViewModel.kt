@@ -50,9 +50,6 @@ class TripInfoViewModel @Inject constructor(
     // 다이얼로그 상태
     val deletePlanDialogState = mutableStateOf(false)
     val editTripNameDialogState = mutableStateOf(false)
-    val deletePlaceDialogState = mutableStateOf(false)
-
-    var deleteTargetPlace = mutableStateOf<Map<String, Any?>?>(null)
 
     var currentTripName = mutableStateOf("여행1")
     val editTripNameTextFieldValue = mutableStateOf("")
@@ -74,6 +71,15 @@ class TripInfoViewModel @Inject constructor(
 
     var formattedStartDate = mutableStateOf("")
     var formattedEndDate = mutableStateOf("")
+
+    // 일별 장소선택
+    var placesByDay = mutableStateMapOf<String, MutableList<Map<String, Any?>>>()
+    var selectedDay = mutableStateOf("")
+
+    // 서버에서 받아온 데이터를 담을 변수
+    lateinit var tripModel: TripModel
+
+    val selectedIndex = mutableStateOf<Int?>(null)
 
     // 날짜가 변경될 때 자동 업데이트
     fun updateFormattedDates() {
@@ -152,72 +158,11 @@ class TripInfoViewModel @Inject constructor(
                 }
             }
 
-            // 마지막 좌표로 `selectedPlaceLocation` 업데이트 (중복 방지)
-            val lastLocation = selectedPlaces.lastOrNull()
-            if (lastLocation != null && selectedPlaceLocation.value != lastLocation) {
-                selectedPlaceLocation.value = lastLocation
-            }
-        }
-    }
-
-    fun updateTripDays() {
-        tripDays.clear()
-        val start = startDate.value ?: return
-        val end = endDate.value ?: return
-
-        val calendar = Calendar.getInstance().apply { timeInMillis = start }
-        while (calendar.timeInMillis <= end) {
-            tripDays.add(planDateFormatter.format(calendar.time)) // "3.8 (토)" 형식
-            calendar.add(Calendar.DAY_OF_MONTH, 1) // 하루 증가
-        }
-    }
-
-    // 일별 장소선택
-    var placesByDay = mutableStateMapOf<String, MutableList<Map<String, Any?>>>()
-    var selectedDay = mutableStateOf("")
-
-    fun removePlaceFromDay(day: String, place: Map<String, Any?>) {
-        placesByDay[day]?.let { places ->
-            // Firestore에서 받아온 데이터가 `Map<String, Any?>` 형태이므로 `contentid`를 추출
-            val placeIdToRemove = place["contentid"] as? String
-
-            if (placeIdToRemove == null) {
-                Log.e("TripInfoViewModel", "삭제할 contentid가 없음: ${place["title"]}")
-                return
-            }
-
-            // 기존 리스트를 복사하여 변경 (Compose가 감지할 수 있도록)
-            val updatedList = places.toMutableList()
-            val removed = updatedList.removeIf { it["contentid"] == placeIdToRemove }
-
-            if (removed) {
-                // 변경된 리스트를 placesByDay에 다시 할당하여 Compose가 감지할 수 있도록 함
-                placesByDay[day] = updatedList.toMutableList()
-            }
-
-            // 삭제 후 지도 중심 좌표 업데이트
+            // 🔹 장소 리스트가 비어 있을 경우 기본값으로 설정
             selectedPlaceLocation.value = if (selectedPlaces.isNotEmpty()) {
                 selectedPlaces.last()
             } else {
-                LatLng(35.8714, 128.6014) // 기본값 (대구)
-            }
-        }
-    }
-
-    val selectedIndex = mutableStateOf<Int?>(null)
-
-    fun reorderPlaces(day: String, fromIndex: Int, toIndex: Int) {
-        placesByDay[day]?.let { list ->
-            if (fromIndex in list.indices && toIndex in list.indices) {
-                // 기존 리스트를 복사해서 새로운 리스트 생성
-                val newList = list.toMutableList()
-                // 기존 위치에서 제거
-                val movedItem = newList.removeAt(fromIndex)
-                // 새로운 위치에 추가
-                newList.add(toIndex, movedItem)
-
-                // 변경된 리스트를 새로 할당하여 Compose가 감지하도록 함
-                placesByDay[day] = newList
+                LatLng(37.5665, 126.9780) // 기본값 (서울)
             }
         }
     }
@@ -233,6 +178,36 @@ class TripInfoViewModel @Inject constructor(
         return results[0]
     }
 
+    fun updateTripDays() {
+        tripDays.clear()
+        val start = startDate.value ?: return
+        val end = endDate.value ?: return
+
+        val calendar = Calendar.getInstance().apply { timeInMillis = start }
+        while (calendar.timeInMillis <= end) {
+            tripDays.add(planDateFormatter.format(calendar.time)) // "3.8 (토)" 형식
+            calendar.add(Calendar.DAY_OF_MONTH, 1) // 하루 증가
+        }
+    }
+
+    // 일정 만들기에서 뒤로가기 눌렀을 때
+    fun addPlanNavigationOnClick() {
+        when (carryOnApplication.previousScreen.value) {
+            ScreenName.MY_TRIP_PLAN.name -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate(ScreenName.MY_TRIP_PLAN.name)
+            }
+            else -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+            }
+        }
+        placesByDay.clear()
+        selectedPlaceLocation.value = LatLng(37.5665, 126.9780)
+        regionCodes.clear()
+        subRegionCodes.clear()
+    }
+
     fun deletePlanOnClick(tripDocumentId: String) {
         CoroutineScope(Dispatchers.Main).launch {
             // 여행 정보를 삭제한다.
@@ -245,23 +220,9 @@ class TripInfoViewModel @Inject constructor(
             carryOnApplication.navHostController.popBackStack()
             carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
         }
-    }
 
-    // 서버에서 받아온 데이터를 담을 변수
-    lateinit var tripModel: TripModel
-
-    // 지도를 눌렀을 때
-    fun mapOnClick(tripDocumentId: String) {
-        carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate("${ScreenName.SHOW_TRIP_MAP.name}/$tripDocumentId")
-    }
-
-    // 일정 만들기에서 뒤로가기 눌렀을 때
-    fun addPlanNavigationOnClick() {
         placesByDay.clear()
         selectedPlaceLocation.value = LatLng(37.5665, 126.9780)
-        carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
     }
 
     fun dialogEditDateOnClick(tripDocumentId: String?) {
@@ -292,34 +253,6 @@ class TripInfoViewModel @Inject constructor(
         carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/$day/$tripDocumentId/${regionCodesParam}/${subRegionCodesParam}")
     }
 
-    // 장소 편집에서 뒤로가기 눌렀을 때
-    fun editPlaceNavigationOnClick(tripDocumentId: String) {
-        carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
-    }
-
-    // 장소 편집 완료 눌렀을 때
-    fun editPlaceDoneOnClick(tripDocumentId: String) {
-        // 현재 선택된 날짜의 장소 리스트 가져오기
-        val day = selectedDay.value
-        CoroutineScope(Dispatchers.Main).launch {
-            val work1 = async(Dispatchers.IO){
-                placesByDay[day]?.let { updatedPlaceList ->
-                    planService.updatePlanByDocumentIdAndDay(
-                        tripDocumentId = tripDocumentId,
-                        day = day,
-                        newPlaceList = updatedPlaceList
-                    )
-                }
-            }
-            work1.await()
-        }
-
-        // 화면 이동
-        carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
-    }
-
     // 날짜별 장소 편집을 눌렀을 때
     fun editPlaceOnClick(day: String, index: Int, tripDocumentId: String) {
         selectedDay.value = day
@@ -333,5 +266,11 @@ class TripInfoViewModel @Inject constructor(
     fun showMapNavigationOnClick(tripDocumentId: String) {
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$tripDocumentId")
+    }
+
+    // 지도를 눌렀을 때
+    fun mapOnClick(tripDocumentId: String) {
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate("${ScreenName.SHOW_TRIP_MAP.name}/$tripDocumentId")
     }
 }

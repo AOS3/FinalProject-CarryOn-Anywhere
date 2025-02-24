@@ -3,9 +3,11 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel
 import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.storage.FirebaseStorage
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Post
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +15,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,9 +39,15 @@ class ModifyViewModel @Inject constructor(
     private val _selectedPostChip = MutableStateFlow("여행 후기")
     val selectedPostChip: StateFlow<String> = _selectedPostChip
 
-    private val _selectedChip = MutableStateFlow("전체")
+    val _selectedChip = MutableStateFlow("전체")
     val selectedChip: StateFlow<String> = _selectedChip
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
+    fun setLoading(isLoading: Boolean) {
+        _isLoading.value = isLoading
+    }
 
     fun addImages(clipData: android.content.ClipData, context: Context) {
         viewModelScope.launch {
@@ -57,25 +67,6 @@ class ModifyViewModel @Inject constructor(
         }
     }
 
-    // 데이터 초기화
-    fun loadData(review: Review? = null, post: Post? = null) {
-        review?.let {
-            _title.value = it.title
-            _content.value = it.content
-            _selectedPostChip.value = "여행 후기"
-            _imageUris.value = it.imageUrls as List<Uri>
-        }
-
-        post?.let {
-            _title.value = it.title
-            _content.value = it.content
-            _selectedPostChip.value = "여행 이야기"
-            _selectedChip.value = it.tag
-            _imageUris.value = (it.imageUrls ?: emptyList()) as List<Uri>
-        }
-    }
-
-
     fun clearData() {
         _title.value = ""
         _content.value = ""
@@ -86,16 +77,6 @@ class ModifyViewModel @Inject constructor(
         viewModelScope.launch {
             if (_imageUris.value.size < 10) {
                 _imageUris.value = _imageUris.value + uri
-            }
-        }
-    }
-
-    fun removeImage(index: Int) {
-        viewModelScope.launch {
-            val currentList = _imageUris.value.toMutableList()
-            if (index in currentList.indices) {
-                currentList.removeAt(index)
-                _imageUris.value = currentList
             }
         }
     }
@@ -114,5 +95,38 @@ class ModifyViewModel @Inject constructor(
 
     fun updateContent(newContent: String) {
         _content.value = newContent
+    }
+
+    object ImageUploader {
+
+        private val storage = FirebaseStorage.getInstance()
+        private val storageRef = storage.reference.child("images")
+
+        // 이미지 업로드 메서드
+        suspend fun uploadImages(uriList: List<Uri>): List<String> {
+            val downloadUrls = mutableListOf<String>()
+            for (uri in uriList) {
+                try {
+                    // 고유 파일명 생성
+                    val fileName = "IMG_${UUID.randomUUID()}.jpg"
+                    val imageRef = storageRef.child(fileName)
+
+                    // 파일 업로드
+                    val uploadTask = imageRef.putFile(uri).await()
+
+                    // 업로드 상태 확인
+                    if (uploadTask.task.isSuccessful) {
+                        val downloadUrl = imageRef.downloadUrl.await().toString()
+                        downloadUrls.add(downloadUrl)
+                        Log.d("ImageUploader", "이미지 업로드 성공: $downloadUrl")
+                    } else {
+                        Log.e("ImageUploader", "이미지 업로드 실패: ${uploadTask.error?.message}")
+                    }
+                } catch (e: Exception) {
+                    Log.e("ImageUploader", "이미지 업로드 예외 발생: ${e.message}", e)
+                }
+            }
+            return downloadUrls
+        }
     }
 }
