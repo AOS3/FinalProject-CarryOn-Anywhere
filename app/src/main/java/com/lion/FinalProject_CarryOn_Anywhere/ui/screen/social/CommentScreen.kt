@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -60,20 +61,23 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFieldEndIconMode
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Comment
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommnetViewModel
+import org.w3c.dom.Comment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentScreen(
     navController: NavController,
-    commentViewModel: CommnetViewModel = hiltViewModel()
+    commentViewModel: CommnetViewModel = hiltViewModel(),
+    boardDocumentId:String // 게시글 DocumentId khs
 ) {
     val inputBarHeight = 60.dp
 
-    val commnets by commentViewModel.comments.collectAsState()
+    // 테스트용 코드
+    // val commnets by commentViewModel.comments.collectAsState()
+    //val textState = remember { mutableStateOf("") }
 
-    val textState = remember { mutableStateOf("") }
+
 
     Column(
         modifier = Modifier
@@ -125,7 +129,7 @@ fun CommentScreen(
         ) {
             // 입력 필드
             LikeLionOutlinedTextField(
-                textFieldValue = textState,
+                textFieldValue = commentViewModel.textFieldReplyContent,
                 label = "댓글을 입력해 주세요.",
                 singleLine = true,
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
@@ -137,16 +141,22 @@ fun CommentScreen(
             // 전송 버튼
             IconButton(
                 onClick = {
-                    val text = textState.value.trim()
+                    val text = commentViewModel.textFieldReplyContent.value.trim()
                     if (text.isNotEmpty()) {
-                        textState.value = ""
+                        commentViewModel.textFieldReplyContent.value = ""
+                        // 댓글 저장 로직
+                        Log.d("comment","전송 버튼 클릭")
+
+
+
+
                     }
                 }
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,
                     contentDescription = "댓글 전송",
-                    tint = MainColor
+                    tint = MainColor,
                 )
             }
         }

@@ -34,11 +34,6 @@ fun EditPwScreen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // ⚡ MutableState<String>으로 선언하여 상태를 유지
-    val currentPassword = remember { mutableStateOf("") }
-    val newPassword = remember { mutableStateOf("") }
-    val confirmPassword = remember { mutableStateOf("") }
-
     Scaffold(
         topBar = {
             LikeLionTopAppBar(

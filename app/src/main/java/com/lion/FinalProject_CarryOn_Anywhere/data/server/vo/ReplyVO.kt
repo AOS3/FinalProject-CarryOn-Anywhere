@@ -9,7 +9,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
 class ReplyVO {
 
     // 작성자 (사용자 문서 ID)
-    var userDocumentId:String = ""
+    var userId:String = ""
     // 게시글 문서 아이디
     var boardDocumentId:String = ""
     // 댓글 내용

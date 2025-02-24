@@ -7,7 +7,9 @@ class MyPostsViewModel {
 
     // 여행 이야기 가져오기
 
-    // 댓글 가져오기
+
+
+    //나의 댓글 가져오기
 
 
 }

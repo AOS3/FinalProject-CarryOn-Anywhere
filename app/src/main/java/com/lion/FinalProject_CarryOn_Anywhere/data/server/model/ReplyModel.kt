@@ -8,7 +8,7 @@ class ReplyModel {
     // 댓글 문서 아이디
     var replyDocumentId:String = ""
     // 작성자 (사용자 문서 ID)
-    var userDocumentId:String = ""
+    var userId:String = ""
     // 게시글 문서 아이디
     var boardDocumentId:String = ""
     // 댓글 내용

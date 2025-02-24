@@ -4,7 +4,9 @@ import android.util.Log
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.CarryTalkModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.CarryTalkRepository
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
 import kotlinx.coroutines.tasks.await
 
