@@ -24,6 +24,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -43,7 +45,9 @@ fun LikeLionSearchTopAppBar(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
     // 우측 끝 아이콘 (텍스트 삭제, 비밀번호 보기)
     trailingIconMode: LikeLionSearchTopAppBarTextFieldEndIconMode = LikeLionSearchTopAppBarTextFieldEndIconMode.NONE,
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    focusRequester: FocusRequester,
 ) {
     // 비밀번호 보기 여부
     var isShowingPasswordFlag by rememberSaveable { mutableStateOf(false) }
@@ -104,7 +108,9 @@ fun LikeLionSearchTopAppBar(
                         }
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester)
             )
         },
         navigationIcon = {

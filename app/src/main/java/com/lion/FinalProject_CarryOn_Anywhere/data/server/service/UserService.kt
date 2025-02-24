@@ -171,7 +171,20 @@ class UserService() {
             return UserRepository.selectUserPasswordByUserId(userId)
         }
 
+        // 사용자 찜 목록에 장소 추가
+        suspend fun addUserLikeList(userDocumentId: String, contentId: String, contentTypeId: String) {
+            UserRepository.addUserLikeList(userDocumentId, contentId, contentTypeId)
+        }
 
+        // 사용자 찜 목록에서 장소 삭제
+        suspend fun deleteUserLikeList(userDocumentId: String, contentId: String) {
+            UserRepository.deleteUserLikeList(userDocumentId, contentId)
+        }
+
+        // 사용자의 찜 목록 불러오기
+        suspend fun getUserLikeList(userDocumentId: String): List<Map<String, String>> {
+            return UserRepository.getUserLikeList(userDocumentId)
+        }
 
     }
 }

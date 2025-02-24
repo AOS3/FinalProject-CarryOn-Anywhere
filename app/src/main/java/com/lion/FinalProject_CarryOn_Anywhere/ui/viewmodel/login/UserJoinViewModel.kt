@@ -17,6 +17,7 @@ import com.google.firebase.auth.auth
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -337,7 +338,7 @@ class UserJoinViewModel
         userModel.userTimeStamp = System.nanoTime()
         userModel.userImage = "none"
         userModel.userState = UserState.USER_STATE_NORMAL
-        // TODO : 앱푸시 추가 예정
+        userModel.userAppPushAgree = AppPushState.APP_PUSH_DISABLE
 
         // 저장
         // 저장한다.

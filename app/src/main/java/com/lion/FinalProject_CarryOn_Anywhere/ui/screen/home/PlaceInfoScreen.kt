@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionIconButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
@@ -55,6 +56,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewM
 fun PlaceInfoScreen(
     navController: NavController,
     contentId: String,
+    contentTypeId: String,
     placeSearchViewModel: PlaceSearchViewModel,
     placeInfoViewModel: PlaceInfoViewModel = hiltViewModel(),
 ) {
@@ -63,11 +65,12 @@ fun PlaceInfoScreen(
     var isFavorite by remember { mutableStateOf(false) }
 
     // 검색된 장소 정보를 ViewModel에 설정
-    LaunchedEffect(contentId) {
-        placeInfoViewModel.fetchPlaceInfo(contentId)
+    LaunchedEffect(contentId, contentTypeId) {
+        placeInfoViewModel.fetchPlaceInfo(contentId, contentTypeId)
     }
 
-    val placeDetail by placeInfoViewModel.placeDetail.collectAsState()
+    val placeDetailList by placeInfoViewModel.placeDetail.collectAsState()
+    val placeDetail = placeDetailList.firstOrNull()
 
     Scaffold(
         topBar = {
@@ -88,7 +91,7 @@ fun PlaceInfoScreen(
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(it)
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 30.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 60.dp)
         ) {
@@ -99,9 +102,6 @@ fun PlaceInfoScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(
-                                    horizontal = 10.dp
-                                )
                         ) {
                             Text(
                                 text = place["title"] as String,
@@ -112,7 +112,7 @@ fun PlaceInfoScreen(
                             Spacer(modifier = Modifier.height(20.dp))
 
                             Text(
-                                text = place["contentTypeId"] as String,
+                                text = place["contenttypeid"] as String,
                                 style = Typography.titleMedium,
                                 color = GrayColor,
                                 modifier = Modifier
@@ -129,14 +129,23 @@ fun PlaceInfoScreen(
                             contentAlignment = Alignment.BottomEnd
                         ) {
                             // 장소 이미지
+                            val imageUrl = placeDetail["firstimage"].toString()
+                            // 이미지 url http ↔ https 변환
+                            val fixedImageUrl = when {
+                                imageUrl.startsWith("http://") -> imageUrl.replace("http://", "https://")
+                                imageUrl.startsWith("https://") -> imageUrl.replace("https://", "http://")
+                                else -> null
+                            }
+
                             AsyncImage(
-                                model = place["imageRes"] as String,
-                                contentDescription = null,
+                                model = fixedImageUrl,
+                                contentDescription = "장소 이미지",
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(10.dp)
                                     .clip(RoundedCornerShape(10.dp)),
                                 contentScale = ContentScale.Crop,
+                                placeholder = painterResource(R.drawable.noplaceimg) // 로드 발생중 보여줄 사진
                             )
 
                             // 찜 버튼
@@ -169,7 +178,9 @@ fun PlaceInfoScreen(
                         )
                         Text(
                             text = place["address"] as String,
-                            color = Color.Black
+                            color = Color.Black,
+                            modifier = Modifier.padding(top = 5.dp)
+
                         )
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -181,12 +192,26 @@ fun PlaceInfoScreen(
                             color = SubTextColor
                         )
                         Text(
-                            text = place["call"] as String,
-                            color = Color.Black
+                            text = place["tel"] as String,
+                            color = Color.Black,
+                            modifier = Modifier.padding(top = 5.dp)
                         )
 
                         Spacer(modifier = Modifier.height(10.dp))
 
+                        // 홈페이지
+                        Text(
+                            text = "홈페이지",
+                            style = Typography.labelLarge,
+                            color = SubTextColor
+                        )
+                        Text(
+                            text = place["homepage"] as String,
+                            color = Color.Black,
+                            modifier = Modifier.padding(top = 5.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
 
                         // TODO : 내용 (어떤 값들 불러오는지 확인)
                         Text(
@@ -195,8 +220,9 @@ fun PlaceInfoScreen(
                             color = SubTextColor
                         )
                         Text(
-                            text = place["content"] as String,
-                            color = Color.Black
+                            text = place["overview"] as String,
+                            color = Color.Black,
+                            modifier = Modifier.padding(top = 5.dp)
                         )
                     }
 

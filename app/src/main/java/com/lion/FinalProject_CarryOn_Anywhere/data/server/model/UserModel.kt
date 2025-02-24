@@ -29,7 +29,7 @@ class UserModel {
     var userPhoneNumber: String = ""
 
     // 사용자 찜 목록
-    var userLikeList = mutableListOf<String>()
+    var userLikeList = mutableListOf<Map<String, String>>()
 
     // 사용자 여행 목록
     var userTripList = mutableListOf<String>()
