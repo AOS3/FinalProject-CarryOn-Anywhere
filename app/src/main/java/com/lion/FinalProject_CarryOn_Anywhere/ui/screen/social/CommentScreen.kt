@@ -1,8 +1,8 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -63,14 +61,19 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommnetViewModel
-import androidx.compose.runtime.livedata.observeAsState
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionCommentModifyDialog
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentScreen(
     navController: NavController,
-    commentViewModel: CommnetViewModel = hiltViewModel(),
+    commentViewModel: CommentViewModel = hiltViewModel(),
     boardDocumentId:String // 게시글 DocumentId khs
 ) {
     val inputBarHeight = 60.dp
@@ -79,14 +82,32 @@ fun CommentScreen(
 //     val commnets by commentViewModel.comments.collectAsState()
 //    val textState = remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
+    // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
+    val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val loginUserId = try {
+        carryOnApplication?.loginUserModel?.userId ?: "guest"
+    } catch (e: UninitializedPropertyAccessException) {
+        "guest"
+    }
+    val loginUserName = try {
+        carryOnApplication?.loginUserModel?.userName ?: "익명"
+    } catch (e: UninitializedPropertyAccessException) {
+        "익명"
+    }
+
     // ViewModel의 LiveData를 observe하여 실제 댓글 목록 사용
-    val replyListState by commentViewModel.replyList.observeAsState(initial = emptyList())
+    val replyList by commentViewModel.replyList.collectAsState()
+    Log.d("test100","replyList선언 후 ${replyList}")
 
 
     // 화면이 구성될 때 해당 게시글의 댓글을 불러옴
     LaunchedEffect(boardDocumentId) {
         commentViewModel.loadReplies(boardDocumentId)
+        //Log.d("test100","LaunchedEffect 후 ${replyList}")
     }
+
     // 댓글 입력값을 ViewModel의 상태로 사용
     val textState = commentViewModel.textFieldReplyContent
 
@@ -108,7 +129,7 @@ fun CommentScreen(
                 .weight(1f) // LazyColumn이 키보드 영향을 받지 않도록
                 .fillMaxWidth()
         ) {
-            if (replyListState.isEmpty()) {
+            if (replyList.isEmpty()) {
                 LikeLionEmptyView(message = "댓글이 없습니다.")
             } else {
                 LazyColumn(
@@ -116,8 +137,8 @@ fun CommentScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(bottom = 20.dp),
                 ) {
-                    items(replyListState.size) { index ->
-                        CommentItem(replyListState[index], navController, index)
+                    items(replyList.size) { index ->
+                        CommentItem(commentViewModel,replyList[index], navController, index,boardDocumentId)
 
                         LikeLionDivider(
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 5.dp),
@@ -157,13 +178,18 @@ fun CommentScreen(
                     if (text.isNotEmpty()) {
                         commentViewModel.textFieldReplyContent.value = ""
                         // 댓글 저장 로직
+                        // 새 댓글 객체 생성
+                        val newReply = ReplyModel().apply {
+                            this.boardDocumentId = boardDocumentId
+                            replyContent = text
+                            replyTimeStamp = System.currentTimeMillis()
+                            replyState = ReplyState.REPLY_STATE_NORMAL
+                            userId = loginUserId
+                        }
 
-                        //commentViewModel.addReply(boardDocumentId,replyModel)
-                        Log.d("comment","전송 버튼 클릭")
-
-
-
-
+                        // 댓글 추가 함수 호출
+                        commentViewModel.addReply(boardDocumentId, newReply)
+                        Log.d("comment", "전송 버튼 클릭: $text")
                     }
                 }
             ) {
@@ -178,14 +204,22 @@ fun CommentScreen(
 
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
-private fun CommentItem(reply: ReplyModel, navController: NavController, index: Int) {
+private fun CommentItem(
+    commentViewModel: CommentViewModel = hiltViewModel(),
+    reply: ReplyModel, navController: NavController, index: Int,
+    boardDocumentId:String // 게시글 DocumentId khs
+    ) {
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
     val showDialogDeleteState = remember { mutableStateOf(false) }
     val showDialogNotifyState = remember { mutableStateOf(false) }
 
+    // 수정 관련 추가 부분
+    var showEditDialogState = remember { mutableStateOf(false) }
+    
     Card(
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -228,13 +262,12 @@ private fun CommentItem(reply: ReplyModel, navController: NavController, index: 
 
                 // 작성 날짜
                 Text(
-                    text = reply.replyTimeStamp.toString(),
+                    text = formattedDate(reply.replyTimeStamp),
                     fontSize = 12.sp,
                     color = Color.LightGray
                 )
             }
 
-            // 오른쪽 Column (선택 버튼)
             // 오른쪽 Column (선택 버튼 + More 아이콘)
             Column(
                 modifier = Modifier
@@ -263,7 +296,7 @@ private fun CommentItem(reply: ReplyModel, navController: NavController, index: 
                         text1Color = Color.Black,
                         text1OnClick = {
                             isBottomSheetVisible = false
-                            // 수정 로직 구현
+                            showEditDialogState.value = true
                         },
                         text2 = "삭제",
                         text2Color = Color.Red,
@@ -280,6 +313,9 @@ private fun CommentItem(reply: ReplyModel, navController: NavController, index: 
                     confirmButtonTitle = "삭제",
                     confirmButtonOnClick = {
                         showDialogDeleteState.value = false
+                        // 삭제 처리
+                        // 상태 변경 및 해당 Data에서 List 수정
+                        commentViewModel.removeReply(reply.replyDocumentId, boardDocumentId)
                     },
                     dismissButtonTitle = "취소",
                     dismissButtonOnClick = {
@@ -292,12 +328,29 @@ private fun CommentItem(reply: ReplyModel, navController: NavController, index: 
                     confirmButtonModifier = Modifier.width(120.dp),
                     dismissButtonModifier = Modifier.width(120.dp)
                 )
-            }
-        }
-    }
-}
 
-//                // 타인 댓글일 때
+                // 수정 다이얼로그: LikeLionCommentModifyDialog 사용
+                LikeLionCommentModifyDialog(
+                    showDialog = showEditDialogState,
+                    onConfirm = { updatedText ->
+                        // 수정된 댓글 정보를 담은 새 ReplyModel 객체 생성
+                        val updatedReply = ReplyModel().apply {
+                            replyDocumentId = reply.replyDocumentId
+                            this.boardDocumentId = reply.boardDocumentId
+                            userId = reply.userId
+                            replyContent = updatedText
+                            replyTimeStamp = System.currentTimeMillis()
+                            replyState = ReplyState.REPLY_STATE_MODIFY
+                        }
+                        // ViewModel의 updateReply 호출 (업데이트 후 loadReplies 실행)
+                        commentViewModel.updateReply(reply.replyDocumentId, updatedReply, boardDocumentId)
+                        showEditDialogState.value = false
+                    },
+                    onDismiss = { showEditDialogState.value = false}
+                )
+
+
+                //                // 타인 댓글일 때
 //                if (isBottomSheetVisible) {
 //                    LikeLionBottomSheetDivider(
 //                        onDismissRequest = { isBottomSheetVisible = false },
@@ -316,6 +369,9 @@ private fun CommentItem(reply: ReplyModel, navController: NavController, index: 
 //                    confirmButtonTitle = "신고",
 //                    confirmButtonOnClick = {
 //                        showDialogNotifyState.value = false
+//                        // 신고 처리
+//                        // 상태 변경 -> 신고
+//                        commentViewModel.reportReply(reply.replyDocumentId, boardDocumentId)
 //                    },
 //                    dismissButtonTitle = "취소",
 //                    dismissButtonOnClick = {
@@ -328,6 +384,24 @@ private fun CommentItem(reply: ReplyModel, navController: NavController, index: 
 //                    confirmButtonModifier = Modifier.width(120.dp),
 //                    dismissButtonModifier = Modifier.width(120.dp)
 //                )
+
+            }
+        }
+    }
+}
+
+
+
+
+
+// 날짜 변환
+private fun formattedDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return format.format(date)
+}
+
+
 
 
 //@Preview(showBackground = true)

@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -29,55 +30,25 @@ import javax.inject.Inject
 //)
 
 @HiltViewModel
-class CommnetViewModel @Inject constructor(
+class CommentViewModel @Inject constructor(
     @ApplicationContext context: Context
 ) : ViewModel() {
 
     val carryOnApplication = context as CarryOnApplication
 
-//    private val _comments = MutableStateFlow(
-//        listOf(
-//            Comment("김철수", "경복궁 근처 맛집 추천", "2025-02-12"),
-//            Comment("이영희", "뷰가 정말 예뻐요!", "2025-02-10"),
-//            Comment("박민수", "이런 일정 어때요?", "2025-01-25"),
-//            Comment("김철수", "경복궁 근처 맛집 추천", "2025-02-12"),
-//            Comment("이영희", "뷰가 정말 예뻐요!", "2025-02-10"),
-//            Comment("박민수", "이런 일정 어때요?", "2025-01-25"),
-//            Comment("김철수", "경복궁 근처 맛집 추천", "2025-02-12"),
-//            Comment("이영희", "뷰가 정말 예뻐요!", "2025-02-10"),
-//            Comment("박민수", "이런 일정 어때요?", "2025-01-25")
-//        )
-//    )
-//
-//    val comments: StateFlow<List<Comment>> = _comments
-//
-//    fun updateCommentContent(index: Int, newContent: String) {
-//        _comments.update { currentList ->
-//            currentList.mapIndexed { i, comment ->
-//                if (i == index) comment.copy(content = newContent) else comment
-//            }
-//        }
-//    }
-//
-//    fun addComment(newComment: Comment) {
-//        _comments.update { currentList ->
-//            currentList + newComment
-//        }
-//    }
-
-
     /// 추가 내용 khs
 
     // 댓글 삭제 및 신고 성공 여부
-    private val _isRemove = MutableLiveData<Boolean?>()
-    val isRemove: LiveData<Boolean?> = _isRemove
+    private val _isRemove1 = MutableLiveData<Boolean?>()
+    private val _isRemove2 = MutableLiveData<Boolean?>()
 
     // 특정 게시글에 해당하는 댓글 목록 LiveData
-    private val _replyList = MutableLiveData<List<ReplyModel>>()
-    val replyList: MutableLiveData<List<ReplyModel>> = _replyList
+    private val _replyList = MutableStateFlow<List<ReplyModel>>(emptyList())
+    val replyList: StateFlow<List<ReplyModel>> get() = _replyList
 
     // 댓글 내용 입력값
     val textFieldReplyContent =  mutableStateOf("")
+
 
 
     // 특정 게시글에 대한 댓글 불러오기 (댓글 상태에 따라 가져오기)
@@ -85,10 +56,12 @@ class CommnetViewModel @Inject constructor(
         viewModelScope.launch {
             // ReplyService 내부의 getAllReplysByTalkDocId를 호출하여 댓글 목록을 받아옴
             val replies = ReplyService.getAllReplysByTalkDocId(talkDocumentId)
-            _replyList.postValue(replies)
+            _replyList.value = replies
+
+            //Log.d("test100","commentViewModel : 댓글 불러오기 완료")
+            Log.d("test100","commentViewModel : ${ReplyService.getAllReplysByTalkDocId(talkDocumentId)}")
         }
     }
-
 
 
     // 댓글 추가 -> ReplyData에 저장 후 CarryTalkData의 특정 게시글(talkDocumentId)의 talkReplyList에 추가
@@ -110,28 +83,36 @@ class CommnetViewModel @Inject constructor(
         }
     }
 
-
-
     // 댓글 삭제 -> 업데이트(불러오기)
     fun removeReply(replyDocumentId: String,talkDocumentId: String) {
         viewModelScope.launch {
-            val isRemove = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_DELETE)
-            _isRemove.postValue(isRemove)
+            // ReplyData에서 댓글 삭제
+            val isRemove1 = ReplyService.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_DELETE)
+            _isRemove1.postValue(isRemove1)
 
-            if (isRemove) {
+            // talkDocumentId의 댓글 리스트에서 replyDocumentId 삭제
+            val isRemove2 = ReplyService.deleteReplyFromList(replyDocumentId,talkDocumentId)
+            _isRemove2.postValue(isRemove2)
+
+
+            if (isRemove1 && isRemove2) {
                 // 댓글 불러오기
                 loadReplies(talkDocumentId)
             }
         }
     }
 
+
+    // 추가 구현 필요
+
     // 댓글 신고 -> 업데이트(불러오기)
     fun reportReply(replyDocumentId: String,talkDocumentId: String) {
         viewModelScope.launch {
-            val isRemove = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_COMPLAINT)
-            _isRemove.postValue(isRemove)
+            val isRemove1 = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_COMPLAINT)
+            _isRemove1.postValue(isRemove1)
 
-            if (isRemove) {
+
+            if (isRemove1) {
                 // 댓글 불러오기
                 loadReplies(talkDocumentId)
             }

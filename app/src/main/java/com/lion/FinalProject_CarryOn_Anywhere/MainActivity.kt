@@ -402,13 +402,15 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
 
 
             // 댓글 화면
-            composable(
-                route = ScreenName.COMMENT_SCREEN.name
-            ){
+            composable("commentScreen/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
                 CommentScreen(
                     navController = navHostController,
+                    boardDocumentId = documentId,
+                    // 기타 필요한 인자들
                 )
             }
+
             // 마이페이지 화면
             composable(
                 route = ScreenName.MY_PAGE.name
