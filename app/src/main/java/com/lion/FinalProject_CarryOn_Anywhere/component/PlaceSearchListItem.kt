@@ -2,6 +2,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.component
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,6 +34,7 @@ import coil3.compose.AsyncImage
 import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
 
@@ -36,17 +43,30 @@ fun PlaceSearchListItem(
     // 장소
     place: Map<String, *>,
     // 아이콘
-    icon:ImageVector,
+    //icon:ImageVector,
     // 아이콘 색상
     iconColor: Color = Color.Red,
     // 아이콘 사이즈
     size: Dp = 42.dp,
     // 아이콘 배경 색상
     iconBackColor: Color = Color.Transparent,
-    // 버튼 클릭했을 때
-    iconButtonOnClick: () -> Unit = {},
     modifier: Modifier = Modifier,
+    // 찜 여부
+    isLiked: Boolean,
+    // 찜 버튼 클릭했을 때
+    onLikeClick: (String, String) -> Unit,
 ) {
+
+    // 로딩 여부
+    val isLoading = place["isLoading"] as? Boolean ?: true
+
+    val imageUrl = place["firstimage"].toString()
+    // 이미지 url http ↔ https 변환
+    val fixedImageUrl = when {
+        imageUrl.startsWith("http://") -> imageUrl.replace("http://", "https://")
+        imageUrl.startsWith("https://") -> imageUrl.replace("https://", "http://")
+        else -> null
+    }
 
     Row(
         modifier = Modifier
@@ -55,25 +75,32 @@ fun PlaceSearchListItem(
             .background(Color.Transparent),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val imageUrl = place["firstimage"]?.toString()
-            ?.takeIf { !it.isNullOrEmpty() }
-            ?: "https://example.com/default_image.jpg"
-        //Log.d("IMAGE_DEBUG", "로드할 이미지 : $imageUrl")
-
-        val painter = rememberAsyncImagePainter(model = imageUrl)
-        val state = painter.state.collectAsState()
-
-        //Log.d("IMAGE_DEBUG", "Coil 상태: ${state.value}")
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = "장소 이미지",
-            modifier = Modifier
-                .size(80.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            placeholder = painterResource(R.drawable.carryon_logo_final) // 로드 발생중 보여줄 사진
-        )
+        if (isLoading) {
+            // 로딩 중일 때 가운데 프로그래스바 표시
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.Gray)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MainColor
+                )
+            }
+        } else {
+            // ✅ 로드 완료 시 기존 UI 표시
+            AsyncImage(
+                model = fixedImageUrl,
+                contentDescription = "장소 이미지",
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.noplaceimg),
+                error = painterResource(R.drawable.noplaceimg)
+            )
+        }
 
         Spacer(modifier = Modifier.width(20.dp))
 
@@ -108,11 +135,16 @@ fun PlaceSearchListItem(
             )
         }
 
+        // 찜 버튼
         LikeLionIconButton(
-            icon = icon,
+            icon =  if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
             iconColor = iconColor,
             size = size,
-            iconButtonOnClick = iconButtonOnClick,
+            iconButtonOnClick = {
+                val contentId = place["contentid"].toString()
+                val contentTypeId = place["contenttypeid"].toString()
+                onLikeClick(contentId, contentTypeId)
+            },
             iconBackColor = iconBackColor,
         )
     }

@@ -2,17 +2,21 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kakao.sdk.user.model.User
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiHelper
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,15 +35,30 @@ class PlaceSearchViewModel @Inject constructor(
 
     // 검색어
     var searchValue = mutableStateOf("")
-    // 찜 상태 관리
-    var isFavoriteEnable = mutableStateOf(false)
+
+    // 검색어를 리스트로 저장
+    val searchKeywords = mutableStateOf<List<String>>(emptyList())
+
+    // 사용자 찜 목록 저장 변수
+    private val _userLikeList = MutableStateFlow<List<Map<String, String>>>(emptyList())
+    val userLikeList: StateFlow<List<Map<String, String>>> = _userLikeList
+
+    // 로그인한 유저 문서 아이디
+    private val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+
     // 검색 버튼 누름 여부
     var isSearchTriggered = mutableStateOf(false)
+
     // 현재 페이지 번호
     var currentPage = 1
+
     // 로딩 상태 관리
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    init {
+        gettingUserLikeList()
+    }
 
     // Back 버튼 동작 메서드
     fun navigationBackIconOnClick() {
@@ -56,13 +75,22 @@ class PlaceSearchViewModel @Inject constructor(
     private fun convertToMap(place: TourApiModel.TouristSpotItem): Map<String, Any> {
         return mapOf(
             "contentid" to (place.contentid ?: ""),
+            "contenttypeid" to (place.contenttypeid ?: ""),
             "firstimage" to (place.firstimage ?: ""),
             "title" to (place.title ?: "장소 정보 없음"),
             "region" to TourApiHelper.getAreaName(place.areacode),
             "category" to TourApiHelper.getContentType(place.contenttypeid),
             "address" to (place.addr1 ?: "주소 정보 없음"),
-            "call" to (place.tel ?: "전화번호 정보 없음")
+            "call" to (place.tel ?: "전화번호 정보 없음"),
+            "isLoading" to true // 로딩 값
         )
+    }
+
+    // 로딩 상태 업데이트
+    private fun updateLoadingState() {
+        _placeSearchList.value = _placeSearchList.value.map { place ->
+            place + ("isLoading" to false)
+        }
     }
 
     // 검색 실행 (첫 페이지)
@@ -73,21 +101,29 @@ class PlaceSearchViewModel @Inject constructor(
         _isLoading.value = true
         currentPage = 1
 
+        // 검색어 공백 기준으로 분리
+        searchKeywords.value = keyword.split(" ").filter { it.isNotEmpty() }
+
         viewModelScope.launch {
             try {
                 val response = TourAPIRetrofitClient.instance.getSearchPlaces(
                     serviceKey = "Dv9oAbX/dy1WYtUtdQlhwy6o0rZyscllzmIsF9l4iLwlLtX2YeGQo9vzZl7ZUz4ez4BzWLCoBIvih9MgPFpiYQ==",
-                    keyword = keyword,
+                    keyword = searchKeywords.value.joinToString(" "), // ✅ 여러 키워드를 하나로 합쳐 API 요청
                     pageNo = currentPage
                 )
 
                 if (response.isSuccessful) {
                     val places = response.body()?.response?.body?.items?.item ?: emptyList()
 
-                    Log.d("API_CALL", "첫 페이지 로드 완료. 개수: ${places.size}")
+                    //Log.d("API_CALL", "첫 페이지 로드 완료. 개수: ${places.size}")
 
-                    _placeSearchList.value = places.map { convertToMap(it) }
-                } else {
+                    // 데이터 변환 시, `isLoading = true`로 초기화
+                    _placeSearchList.value = places.map { convertToMap(it).toMutableMap().apply { put("isLoading", true) } }
+
+                    // 일정 시간 후 로딩 상태를 false로 변경
+                    delay(500) // 데이터 로드 후 약간의 딜레이 (UI 업데이트 보장)
+                    updateLoadingState()
+                    } else {
                     Log.e("API_ERROR", "API 응답 실패: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
@@ -117,7 +153,15 @@ class PlaceSearchViewModel @Inject constructor(
                     val newPlaces = response.body()?.response?.body?.items?.item ?: emptyList()
 
                     if (newPlaces.isNotEmpty()) {
-                        _placeSearchList.value = _placeSearchList.value + newPlaces.map { convertToMap(it) }
+                        val newPlaceList = newPlaces.map { convertToMap(it).toMutableMap().apply { put("isLoading", true) } }
+
+                        // 기존 리스트에 새 리스트 추가
+                        _placeSearchList.value = _placeSearchList.value + newPlaceList
+
+                        // 로딩 상태 업데이트
+                        delay(500)
+                        updateLoadingState()
+
                         Log.d("API_CALL", "다음 페이지 로드 완료. 현재 페이지: $currentPage")
                     }
                 }
@@ -142,11 +186,52 @@ class PlaceSearchViewModel @Inject constructor(
         isSearchTriggered.value = false
     }
 
+    // 사용자의 찜 목록 가져오기 (Firestore에서 불러오기)
+    fun gettingUserLikeList() {
+        viewModelScope.launch {
+            try {
+                val userLikes = UserService.getUserLikeList(userDocumentId)
+                _userLikeList.value = userLikes
+            } catch (e: Exception) {
+                Log.e("PlaceSearchViewModel", "찜 목록 가져오기 실패: ${e.message}")
+            }
+        }
+    }
 
+    // 찜 목록 추가/삭제
+    fun toggleFavorite(
+        contentId: String,
+        contentTypeId: String,
+        onComplete: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val userLikes = _userLikeList.value.toMutableList()
+                val isLiked = userLikes.any { it["contentid"] == contentId }
 
-    // 찜 아이콘 상태 변경
-    fun toggleFavorite() {
-        isFavoriteEnable.value = !isFavoriteEnable.value
+                if (isLiked) {
+                    // 찜 삭제
+                    UserService.deleteUserLikeList(userDocumentId, contentId)
+                    userLikes.removeAll { it["contentid"] == contentId }
+                } else {
+                    // 찜 추가
+                    UserService.addUserLikeList(userDocumentId, contentId, contentTypeId)
+                    userLikes.add(mapOf("contentid" to contentId, "contenttypeid" to contentTypeId))
+                }
+
+                _userLikeList.value = userLikes
+                onComplete(!isLiked)
+            } catch (e: Exception) {
+                Log.e("PlaceSearchViewModel", "찜 목록 업데이트 실패: ${e.message}")
+            }
+        }
+
+    }
+
+    // 장소 추가 요청 버튼 눌렀을 때
+    fun requestPlaceOnClick() {
+        carryOnApplication.navHostController.popBackStack()
+        carryOnApplication.navHostController.navigate(ScreenName.WRITE_REQUEST_PLACE.name)
     }
 
 

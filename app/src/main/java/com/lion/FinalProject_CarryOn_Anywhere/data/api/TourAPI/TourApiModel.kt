@@ -48,6 +48,24 @@ class TourApiModel {
         val item: List<TouristSpotItem>?
     )
 
+    data class TouristSpotDetailResponse(
+        val response: TouristSpotDetailBody?
+    )
+
+    data class TouristSpotDetailBody(
+        val body: TouristSpotDetailItems?
+    )
+
+    data class TouristSpotDetailItems(
+        val items: TouristSpotDetailList?
+    )
+
+    data class TouristSpotDetailList(
+        val item: List<TouristSpotDetailItem>?
+    )
+
+
+
     data class TouristSpotItem(
         val title: String?,       // 관광지명
         val addr1: String?,       // 기본 주소
@@ -62,5 +80,21 @@ class TourApiModel {
         val mapy: String?,        // 위도
         val tel: String?,         // 전화번호
         val zipcode: String?      // 우편번호
+    )
+
+    // 공통 정보
+    data class TouristSpotDetailItem(
+        val contentid: String?,   // 관광지 콘텐츠 ID
+        val contenttypeid: String?, // 콘텐츠 유형 ID
+        val title: String?,       // 장소 이름
+        val tel: String?,         // 전화번호
+        val homepage : String?,   // 홈페이지
+        val firstimage: String?,  // 대표 이미지
+        val firstimage2: String?, // 보조 이미지
+        val areacode: String?,    // 지역 코드
+        val sigungucode: String?, // 시군구 코드
+        val addr1: String?,       // 기본 주소
+        val addr2: String?,       // 상세 주소
+        val overview: String?,       // 장소 개요 (설명)
     )
 }

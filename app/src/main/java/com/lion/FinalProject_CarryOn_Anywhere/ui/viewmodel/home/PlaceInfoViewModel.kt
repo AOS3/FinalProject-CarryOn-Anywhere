@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiHelper
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -23,8 +25,13 @@ class PlaceInfoViewModel @Inject constructor(
 
     val carryOnApplication = context as CarryOnApplication
 
-    private val _placeDetail = MutableStateFlow<Map<String, Any>?>(null)
-    val placeDetail: StateFlow<Map<String, Any>?> = _placeDetail
+    // 상세 정보
+    private val _placeDetail = MutableStateFlow<List<Map<String, Any>>>(emptyList())
+    val placeDetail: StateFlow<List<Map<String, Any>>> = _placeDetail
+
+    // 로딩 상태 관리
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     // Back 버튼 동작 메서드
     fun navigationBackIconOnClick() {
@@ -37,28 +44,36 @@ class PlaceInfoViewModel @Inject constructor(
 //        }
     }
 
-    fun fetchPlaceInfo(contentId: String) {
+    // `TouristSpotItem`을 `Map<String, Any>`로 변환하는 메서드
+    private fun convertToMap(place: TourApiModel.TouristSpotDetailItem): Map<String, Any> {
+        return mapOf(
+            "contentid" to (place.contentid ?: ""),
+            "contenttypeid" to (place.contenttypeid ?: ""),
+            "firstimage" to (place.firstimage ?: ""),
+            "title" to (place.title ?: "장소 정보 없음"),
+            "region" to TourApiHelper.getAreaName(place.areacode),
+            "category" to TourApiHelper.getContentType(place.contenttypeid),
+            "address" to (place.addr1 ?: "주소 정보 없음"),
+            "homepage" to (place.homepage ?: "홈페이지 정보 없음"),
+            "tel" to (place.tel ?: "전화번호 정보 없음"),
+            "overview" to (place.overview ?: "상세 설명 없음"),
+            )
+    }
+
+    fun fetchPlaceInfo(contentId: String, contentTypeId: String) {
         viewModelScope.launch {
             try {
-                val response = TourAPIRetrofitClient.instance.getSearchPlaces(
+                val response = TourAPIRetrofitClient.instance.getDetailCommon1(
                     serviceKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ==",
-                    keyword = "",
+                    contentId = contentId,
+                    contentTypeId = contentTypeId,
                 )
 
                 if (response.isSuccessful) {
-                    val place = response.body()?.response?.body?.items?.item?.firstOrNull()
+                    val placeInfo = response.body()?.response?.body?.items?.item ?: emptyList()
 
-                    place?.let {
-                        _placeDetail.value = mapOf(
-                            "imageRes" to (it.firstimage ?: ""),
-                            "title" to (it.title ?: "장소 정보 없음"),
-                            "region" to (it.areacode ?: "지역 정보 없음"),
-                            "category" to (it.contenttypeid ?: ""),
-                            "address" to (it.addr1 ?: "주소 정보 없음"),
-                            "call" to (it.tel ?: "전화번호 정보 없음"),
-                            "contentid" to (it.contentid ?: "ID 없음")
-                        )
-                    }
+                    _placeDetail.value = placeInfo.map{ convertToMap(it) } // 첫 번째 아이템을 변환
+
                 } else {
                     Log.e("API_ERROR", "API 응답 실패: ${response.errorBody()?.string()}")
                 }
