@@ -304,5 +304,47 @@ class UserRepository {
             // 사용자가 없을 경우 null 반환
             return null
         }
+
+        // 찜 목록 가져오기
+        suspend fun getUserLikeList(userDocumentId: String): List<Map<String, String>> {
+            val firestore = FirebaseFirestore.getInstance()
+            val documentRef = firestore.collection("UserData").document(userDocumentId)
+
+            val snapshot = documentRef.get().await()
+            return snapshot.get("userLikeList") as? List<Map<String, String>> ?: emptyList()
+        }
+
+        // 유저 찜목록에 장소 추가
+        suspend fun addUserLikeList(userDocumentId: String, contentId: String, contentTypeId: String) {
+            val firestore = FirebaseFirestore.getInstance()
+            val documentRef = firestore.collection("UserData").document(userDocumentId)
+
+            // Firestore에서 기존 데이터 가져오기
+            val snapshot = documentRef.get().await()
+            val currentLikeList =
+                snapshot.get("userLikeList") as? MutableList<Map<String, String>> ?: mutableListOf()
+
+            // 중복 체크
+            val newPlace = mapOf("contentid" to contentId, "contenttypeid" to contentTypeId)
+            if (!currentLikeList.contains(newPlace)) {
+                currentLikeList.add(newPlace)
+                documentRef.update("userLikeList", currentLikeList).await()
+            }
+        }
+
+        // 유저 찜목록에 장소 삭제
+        suspend fun deleteUserLikeList(userDocumentId: String, contentId: String) {
+            val firestore = FirebaseFirestore.getInstance()
+            val documentRef = firestore.collection("UserData").document(userDocumentId)
+
+            val snapshot = documentRef.get().await()
+            val currentLikeList =
+                snapshot.get("userLikeList") as? MutableList<Map<String, String>> ?: mutableListOf()
+
+            // 해당 contentId를 가진 항목 제거
+            currentLikeList.removeAll { it["contentid"] == contentId }
+
+            documentRef.update("userLikeList", currentLikeList).await()
+        }
     }
 }

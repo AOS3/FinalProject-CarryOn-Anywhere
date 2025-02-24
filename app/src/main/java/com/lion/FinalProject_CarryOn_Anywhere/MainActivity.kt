@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -217,14 +218,16 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             // 검색 상세 화면
             composable(
-                route = "${ScreenName.PLACE_INFO_SCREEN.name}/{contentid}",
+                route = "${ScreenName.PLACE_INFO_SCREEN.name}/{contentid}/{contenttypeid}",
             ) { backStackEntry ->
                 val contentId = backStackEntry.arguments?.getString("contentid") ?: ""
+                val contentTypeId = backStackEntry.arguments?.getString("contenttypeid") ?: ""
                 val placeSearchViewModel: PlaceSearchViewModel = hiltViewModel()
-
+                Log.d("NAV_DEBUG", "contentId: $contentId, contentTypeId: $contentTypeId")
                 PlaceInfoScreen(
                     navController = navHostController,
                     contentId = contentId,
+                    contentTypeId = contentTypeId,
                     placeSearchViewModel = placeSearchViewModel
                 )
             }

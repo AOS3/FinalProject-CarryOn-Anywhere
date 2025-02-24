@@ -20,7 +20,7 @@ class UserVO {
     // 사용자 휴대폰 번호
     var userPhoneNumber: String = ""
     // 사용자 찜 목록
-    var userLikeList = mutableListOf<String>()
+    var userLikeList = mutableListOf<Map<String, String>>()
     // 사용자 여행 목록
     var userTripList = mutableListOf<String>()
     // 작성한 여행 후기 글 목록
@@ -55,7 +55,6 @@ class UserVO {
         userModel.userReplyList = userReplyList.toMutableList()
         userModel.userAutoLoginToken = userAutoLoginToken
         userModel.userTimeStamp = userTimeStamp
-
 
         when(userState){
             UserState.USER_STATE_NORMAL.number -> userModel.userState = UserState.USER_STATE_NORMAL

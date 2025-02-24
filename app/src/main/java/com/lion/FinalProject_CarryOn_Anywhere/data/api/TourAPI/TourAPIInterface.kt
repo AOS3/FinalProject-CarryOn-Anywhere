@@ -53,15 +53,20 @@ interface TourAPIInterface {
         @Query("arrange") arrange:String = "C",
     ): Response<TourApiModel.TouristSpotResponse>
 
-    // 소개 정보
-    @GET("detailIntro1")
-    suspend fun getDetailIntro1(
+    // 공통 정보 조회
+    @GET("detailCommon1")
+    suspend fun getDetailCommon1(
         @Query("serviceKey") serviceKey: String,
-        @Query("numOfRows") numOfRows: Int = 10,
         @Query("contentId") contentId: String,
         @Query("contentTypeId") contentTypeId: String,
         @Query("MobileOS") mobileOS: String = "AND",
         @Query("MobileApp") mobileApp: String = "AppTest",
         @Query("_type") type: String = "json",
-    ): Response<TourApiModel.TouristSpotResponse>
+        @Query("defaultYN") defaultYN:String = "Y",
+        @Query("firstImageYN") firstImageYN:String = "Y",
+        @Query("areacodeYN") areacodeYN:String = "Y",
+        @Query("catcodeYN") catcodeYN:String = "Y",
+        @Query("addrinfoYN") addrinfoYN:String = "Y",
+        @Query("overviewYN") overviewYN:String = "Y",
+        ): Response<TourApiModel.TouristSpotDetailResponse>
 }

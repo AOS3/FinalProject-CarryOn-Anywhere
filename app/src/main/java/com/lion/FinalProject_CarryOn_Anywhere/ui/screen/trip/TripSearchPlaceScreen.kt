@@ -15,9 +15,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -26,6 +29,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionPlaceListItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionSearchTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun TripSearchPlaceScreen(
@@ -35,6 +39,17 @@ fun TripSearchPlaceScreen(
     regionCodes: List<String>,
     subRegionCodes: List<String>
 ) {
+
+    // 키보드 관리
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        delay(300)
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
     LaunchedEffect(Unit) {
         tripSearchPlaceViewModel.dayVal.value = selectedDay
         tripSearchPlaceViewModel.tripDocumentIdVal.value = tripDocumentId
@@ -60,7 +75,8 @@ fun TripSearchPlaceScreen(
                 },
                 onBackClick = {
                     tripSearchPlaceViewModel.tripSearchNavigationOnClick(tripDocumentId)
-                }
+                },
+                focusRequester = focusRequester
             )
         }
     ) {

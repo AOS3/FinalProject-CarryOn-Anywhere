@@ -258,6 +258,8 @@ class TripInfoViewModel @Inject constructor(
 
     // 일정 만들기에서 뒤로가기 눌렀을 때
     fun addPlanNavigationOnClick() {
+        placesByDay.clear()
+        selectedPlaceLocation.value = LatLng(37.5665, 126.9780)
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
     }

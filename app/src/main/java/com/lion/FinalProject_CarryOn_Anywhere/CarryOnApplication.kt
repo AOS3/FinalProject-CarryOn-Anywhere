@@ -46,7 +46,7 @@ class CarryOnApplication :Application(){
         userPw = "testPassword"
         userName = "테스트 유저"
         userPhoneNumber = "010-1234-5678"
-        userLikeList = mutableListOf("여행지1", "여행지2")
+        //userLikeList = Map("여행지1", "여행지2")
         userTripList = mutableListOf("여행 계획1")
         userTripReviewList = mutableListOf("후기1")
         userTalkList = mutableListOf("게시글1")
