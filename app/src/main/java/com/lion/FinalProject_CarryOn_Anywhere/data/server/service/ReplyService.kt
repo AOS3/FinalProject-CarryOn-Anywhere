@@ -11,7 +11,7 @@ class ReplyService {
         // 0221 khs 댓글 관련 추가 부분
 
         // 특정 게시글에 대한 댓글 불러오기
-        suspend fun getAllReplysByTalkDocId(boardDocumentId: String): List<ReplyModel>? {
+        suspend fun getAllReplysByTalkDocId(boardDocumentId: String): List<ReplyModel> {
             return ReplyRepository.getAllReplysByTalkDocId(boardDocumentId)
         }
 

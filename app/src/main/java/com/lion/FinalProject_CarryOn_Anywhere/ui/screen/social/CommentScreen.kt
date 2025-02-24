@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,9 +61,10 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextField
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFieldEndIconMode
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommnetViewModel
-import org.w3c.dom.Comment
+import androidx.compose.runtime.livedata.observeAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,9 +76,19 @@ fun CommentScreen(
     val inputBarHeight = 60.dp
 
     // 테스트용 코드
-    // val commnets by commentViewModel.comments.collectAsState()
-    //val textState = remember { mutableStateOf("") }
+//     val commnets by commentViewModel.comments.collectAsState()
+//    val textState = remember { mutableStateOf("") }
 
+    // ViewModel의 LiveData를 observe하여 실제 댓글 목록 사용
+    val replyListState by commentViewModel.replyList.observeAsState(initial = emptyList())
+
+
+    // 화면이 구성될 때 해당 게시글의 댓글을 불러옴
+    LaunchedEffect(boardDocumentId) {
+        commentViewModel.loadReplies(boardDocumentId)
+    }
+    // 댓글 입력값을 ViewModel의 상태로 사용
+    val textState = commentViewModel.textFieldReplyContent
 
 
     Column(
@@ -96,7 +108,7 @@ fun CommentScreen(
                 .weight(1f) // LazyColumn이 키보드 영향을 받지 않도록
                 .fillMaxWidth()
         ) {
-            if (commnets.isEmpty()) {
+            if (replyListState.isEmpty()) {
                 LikeLionEmptyView(message = "댓글이 없습니다.")
             } else {
                 LazyColumn(
@@ -104,8 +116,8 @@ fun CommentScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(bottom = 20.dp),
                 ) {
-                    items(commnets.size) { index ->
-                        CommentItem(commnets[index], navController, index)
+                    items(replyListState.size) { index ->
+                        CommentItem(replyListState[index], navController, index)
 
                         LikeLionDivider(
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 5.dp),
@@ -145,6 +157,8 @@ fun CommentScreen(
                     if (text.isNotEmpty()) {
                         commentViewModel.textFieldReplyContent.value = ""
                         // 댓글 저장 로직
+
+                        //commentViewModel.addReply(boardDocumentId,replyModel)
                         Log.d("comment","전송 버튼 클릭")
 
 
@@ -165,7 +179,7 @@ fun CommentScreen(
 }
 
 @Composable
-private fun CommentItem(comment: Comment, navController: NavController, index: Int) {
+private fun CommentItem(reply: ReplyModel, navController: NavController, index: Int) {
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
 
@@ -193,9 +207,9 @@ private fun CommentItem(comment: Comment, navController: NavController, index: I
                     .fillMaxHeight(), // Row의 높이를 상속
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // 제목
+                // 작성자정보.
                 Text(
-                    text = comment.author,
+                    text = reply.userId,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
@@ -204,7 +218,7 @@ private fun CommentItem(comment: Comment, navController: NavController, index: I
 
                 // 내용
                 Text(
-                    text = comment.content,
+                    text = reply.replyContent,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -214,7 +228,7 @@ private fun CommentItem(comment: Comment, navController: NavController, index: I
 
                 // 작성 날짜
                 Text(
-                    text = comment.commentDate,
+                    text = reply.replyTimeStamp.toString(),
                     fontSize = 12.sp,
                     color = Color.LightGray
                 )
@@ -278,6 +292,10 @@ private fun CommentItem(comment: Comment, navController: NavController, index: I
                     confirmButtonModifier = Modifier.width(120.dp),
                     dismissButtonModifier = Modifier.width(120.dp)
                 )
+            }
+        }
+    }
+}
 
 //                // 타인 댓글일 때
 //                if (isBottomSheetVisible) {
@@ -310,15 +328,12 @@ private fun CommentItem(comment: Comment, navController: NavController, index: I
 //                    confirmButtonModifier = Modifier.width(120.dp),
 //                    dismissButtonModifier = Modifier.width(120.dp)
 //                )
-            }
-        }
-    }
-}
 
-@Preview(showBackground = true)
-@Composable
-private fun ReviewScreenPreview() {
-    CommentScreen(
-        navController = NavController(LocalContext.current)
-    )
-}
+
+//@Preview(showBackground = true)
+//@Composable
+//private fun ReviewScreenPreview() {
+//    CommentScreen(
+//        navController = NavController(LocalContext.current)
+//    )
+//}

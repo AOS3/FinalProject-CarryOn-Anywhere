@@ -92,15 +92,20 @@ class ReplyRepository {
 
 
         // 댓글 수정, 삭제 및 신고 -> 댓글 상태 변환
-        suspend fun updateReplyState(replyDocumentId: String, newState: ReplyState) {
-            val firestore = FirebaseFirestore.getInstance()
-            val collectionReference = firestore.collection("ReplyData")
-            val documentReference = collectionReference.document(replyDocumentId)
+        suspend fun updateReplyState(replyDocumentId: String, newState: ReplyState): Boolean {
 
-            val updateMap = mapOf(
-                "replyState" to newState.number
-            )
-            documentReference.update(updateMap).await()
+            return try {
+                val firestore = FirebaseFirestore.getInstance()
+                val collectionReference = firestore.collection("ReplyData")
+                val documentReference = collectionReference.document(replyDocumentId)
+                val updateMap = mapOf("replyState" to newState.number)
+                documentReference.update(updateMap).await()
+                true
+
+            } catch (e: Exception) {
+                // 에러 처리
+                false
+            }
         }
     }
 }

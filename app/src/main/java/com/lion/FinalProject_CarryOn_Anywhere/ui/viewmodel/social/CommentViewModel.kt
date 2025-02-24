@@ -11,6 +11,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.ReplyRepository
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.ReplyService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -67,59 +68,74 @@ class CommnetViewModel @Inject constructor(
 
     /// 추가 내용 khs
 
+    // 댓글 삭제 및 신고 성공 여부
     private val _isRemove = MutableLiveData<Boolean?>()
     val isRemove: LiveData<Boolean?> = _isRemove
 
-    // 입력값
-    // 댓글 내용
+    // 특정 게시글에 해당하는 댓글 목록 LiveData
+    private val _replyList = MutableLiveData<List<ReplyModel>>()
+    val replyList: MutableLiveData<List<ReplyModel>> = _replyList
+
+    // 댓글 내용 입력값
     val textFieldReplyContent =  mutableStateOf("")
 
 
-    // 특정 게시글에 대한 댓글 불러오기 -> 댓글 상태에 따라 가져와야함..
+    // 특정 게시글에 대한 댓글 불러오기 (댓글 상태에 따라 가져오기)
+    fun loadReplies(talkDocumentId: String) {
+        viewModelScope.launch {
+            // ReplyService 내부의 getAllReplysByTalkDocId를 호출하여 댓글 목록을 받아옴
+            val replies = ReplyService.getAllReplysByTalkDocId(talkDocumentId)
+            _replyList.postValue(replies)
+        }
+    }
 
 
 
-    // 댓글 추가 -> 업데이트(불러오기)
-    // ReplyData에 저장 후 CarryTalkData의 특정 게시글(talkDocumentId)의 talkReplyList에 추가
+    // 댓글 추가 -> ReplyData에 저장 후 CarryTalkData의 특정 게시글(talkDocumentId)의 talkReplyList에 추가
+    // 댓글 추가 후 업데이트
+    fun addReply(talkDocumentId: String, replyModel: ReplyModel) {
+        viewModelScope.launch {
+            ReplyService.addReply(talkDocumentId, replyModel)
+            // 추가 후 최신 댓글 목록 불러오기
+            loadReplies(talkDocumentId)
+        }
+    }
 
 
-    // 댓글 수정 -> 업데이트(불러오기)
-
+    // 댓글 수정 -> 업데이트 후 다시 댓글 목록 불러오기
+    fun updateReply(replyDocumentId: String, replyModel: ReplyModel, talkDocumentId: String) {
+        viewModelScope.launch {
+            ReplyService.updateReplyData(replyDocumentId, replyModel)
+            loadReplies(talkDocumentId)
+        }
+    }
 
 
 
     // 댓글 삭제 -> 업데이트(불러오기)
-    fun removeReply(replyDocumentId: String) {
+    fun removeReply(replyDocumentId: String,talkDocumentId: String) {
         viewModelScope.launch {
             val isRemove = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_DELETE)
             _isRemove.postValue(isRemove)
 
             if (isRemove) {
                 // 댓글 불러오기
-                println("댓글 불러와..")
-
+                loadReplies(talkDocumentId)
             }
         }
     }
 
     // 댓글 신고 -> 업데이트(불러오기)
-    fun reportReply(replyDocumentId: String) {
+    fun reportReply(replyDocumentId: String,talkDocumentId: String) {
         viewModelScope.launch {
             val isRemove = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_COMPLAINT)
             _isRemove.postValue(isRemove)
 
             if (isRemove) {
                 // 댓글 불러오기
-                println("댓글 불러와..")
-
+                loadReplies(talkDocumentId)
             }
         }
     }
-
-
-
-
-
-
 }
 
