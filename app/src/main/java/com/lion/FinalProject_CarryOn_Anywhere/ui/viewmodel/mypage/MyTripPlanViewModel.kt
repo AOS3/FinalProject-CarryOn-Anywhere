@@ -1,7 +1,9 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage
 
 import android.content.Context
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
@@ -26,6 +28,9 @@ class MyTripPlanViewModel @Inject constructor(
 
     val contentListState = mutableStateListOf<TripModel>()
 
+    private val _isLoading = mutableStateOf(false)  // 로딩 상태 관리
+    val isLoading: State<Boolean> = _isLoading
+
     fun listItemOnClick(documentId:String){
         carryOnApplication.previousScreen.value = ScreenName.MY_TRIP_PLAN.name
 
@@ -41,6 +46,7 @@ class MyTripPlanViewModel @Inject constructor(
 
     fun gettingTripData(){
         CoroutineScope(Dispatchers.Main).launch {
+            _isLoading.value = true
             val work1 = async(Dispatchers.IO){
                 tripService.gettingTripList(carryOnApplication.loginUserModel.userDocumentId)
             }
@@ -49,11 +55,13 @@ class MyTripPlanViewModel @Inject constructor(
             // 상태 관리 변수에 담아준다.
             contentListState.clear()
             contentListState.addAll(recyclerViewList)
+            _isLoading.value = false
         }
     }
 
     fun deletePlanOnClick(tripDocumentId: String) {
         CoroutineScope(Dispatchers.Main).launch {
+            _isLoading.value = true
             // 여행 정보를 삭제한다.
             val work1 = async(Dispatchers.IO){
                 tripService.deleteTripData(tripDocumentId = tripDocumentId)
@@ -62,6 +70,8 @@ class MyTripPlanViewModel @Inject constructor(
             work1.join()
 
             gettingTripData()
+
+            _isLoading.value = false
         }
     }
 }
