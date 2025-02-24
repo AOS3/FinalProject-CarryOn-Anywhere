@@ -13,7 +13,11 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
 
@@ -21,8 +25,10 @@ import androidx.webkit.WebViewAssetLoader
 fun LikeLionAddressSearchWebView(
     context: Context,
     onAddressSelected: (String) -> Unit,
+    onClosed: () -> Unit,
 ) {
     AndroidView(
+        modifier = Modifier.height(1700.dp),
         factory = { context ->
             // WebViewAssetLoader 설정
             val assetLoader = WebViewAssetLoader.Builder()
@@ -31,6 +37,10 @@ fun LikeLionAddressSearchWebView(
                 .build()
 
             WebView(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, // 🔹 가로는 부모 기준
+                    1700
+                )
                 // WebView 설정
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
@@ -77,10 +87,12 @@ fun LikeLionAddressSearchWebView(
                         popupDialog = Dialog(context).apply { setContentView(newWebView)
                             window?.setLayout(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
+                                1700
                             )
                             setOnDismissListener {
                                 popupDialog = null
+                                popupDialog?.dismiss()
+                                onClosed()
                             }
                             show()
                         }
@@ -90,6 +102,7 @@ fun LikeLionAddressSearchWebView(
                             override fun onCloseWindow(window: WebView?) {
                                 popupDialog?.dismiss()
                                 popupDialog = null
+                                onClosed()
                             }
                         }
 
@@ -115,6 +128,7 @@ fun LikeLionAddressSearchWebView(
                         fun onClosePopup() {
                             Log.d("test100", "주소 팝업 닫힘 요청")
                             // JavaScript에서 닫기 요청 시 팝업 닫기
+                            onClosed()
                             popupDialog?.dismiss()
                         }
                     },

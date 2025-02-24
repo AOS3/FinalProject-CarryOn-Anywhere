@@ -1,8 +1,10 @@
 package com.lion.FinalProject_CarryOn_Anywhere
 
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.PlanRepository
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.RequestRepository
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.TripRepository
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.PlanService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.RequestService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripService
 import dagger.Module
 import dagger.Provides
@@ -36,5 +38,17 @@ object CarryOnAppModule {
     @Singleton
     fun planServiceProvider(planRepository: PlanRepository) : PlanService {
         return PlanService(planRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun requestRepositoryProvider() : RequestRepository {
+        return RequestRepository()
+    }
+
+    @Provides
+    @Singleton
+    fun requestServiceProvider(requestRepository: RequestRepository) : RequestService {
+        return RequestService(requestRepository)
     }
 }

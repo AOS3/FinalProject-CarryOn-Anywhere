@@ -49,7 +49,7 @@ fun AddTripPlanScreen(
     tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
     tripDocumentId: String
 ) {
-    // 🔹 최초 한 번만 실행하도록 `LaunchedEffect`로 감싸기
+    // 최초 한 번만 실행하도록 `LaunchedEffect`로 감싸기
     LaunchedEffect(tripDocumentId) {
         if (tripDocumentId.isNotEmpty()) {
             tripInfoViewModel.gettingTripData(tripDocumentId)
@@ -57,12 +57,12 @@ fun AddTripPlanScreen(
     }
 
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
+        position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 8f)
     }
 
-// selectedPlaceLocation 값이 변경되면 지도 위치 업데이트
+    // selectedPlaceLocation 값이 변경되면 지도 위치 업데이트
     LaunchedEffect(tripInfoViewModel.selectedPlaceLocation.value) {
-        cameraPositionState.position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 10f)
+        cameraPositionState.position = CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 8f)
     }
 
     val selectedDayPlaces = tripInfoViewModel.placesByDay[tripInfoViewModel.selectedDay.value]

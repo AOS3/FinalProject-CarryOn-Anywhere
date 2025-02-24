@@ -10,12 +10,17 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -30,6 +35,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionSearchTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 @Composable
 fun TripSearchPlaceScreen(
@@ -39,22 +46,23 @@ fun TripSearchPlaceScreen(
     regionCodes: List<String>,
     subRegionCodes: List<String>
 ) {
+    val listState = rememberLazyListState()
+    val isLoading by tripSearchPlaceViewModel.isLoading.collectAsState()
+    val filteredPlaces by tripSearchPlaceViewModel.filteredPlaces.collectAsState()
 
     // 키보드 관리
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(Unit) {
-        delay(300)
-        focusRequester.requestFocus()
-        keyboardController?.show()
-    }
-
-    LaunchedEffect(Unit) {
         tripSearchPlaceViewModel.dayVal.value = selectedDay
         tripSearchPlaceViewModel.tripDocumentIdVal.value = tripDocumentId
         tripSearchPlaceViewModel.regionCodesParam.value = regionCodes.joinToString(",")
         tripSearchPlaceViewModel.subRegionCodesParam.value = subRegionCodes.joinToString(",")
+
+        delay(300)
+        focusRequester.requestFocus()
+        keyboardController?.show()
     }
 
     LaunchedEffect(regionCodes, subRegionCodes) {
@@ -65,32 +73,45 @@ fun TripSearchPlaceScreen(
         tripSearchPlaceViewModel.filterPlaces()
     }
 
+    LaunchedEffect(listState, filteredPlaces) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+            .map { it.lastOrNull()?.index ?: 0 }
+            .distinctUntilChanged()
+            .collect { lastIndex ->
+                if (lastIndex >= filteredPlaces.size - 1 && tripSearchPlaceViewModel.hasMorePages) {
+                    tripSearchPlaceViewModel.fetchNextPlaces(
+                        tripSearchPlaceViewModel.regionCodesParam.value.split(","),
+                        tripSearchPlaceViewModel.subRegionCodesParam.value.split(",")
+                    )
+                }
+            }
+    }
+
     Scaffold(
         topBar = {
             LikeLionSearchTopAppBar(
                 textFieldValue = tripSearchPlaceViewModel.searchTextFieldValue,
                 onSearchTextChange = { tripSearchPlaceViewModel.searchTextFieldValue.value = it },
-                onSearchClick = {
-                    tripSearchPlaceViewModel.filterPlaces()
-                },
+                onSearchClick = { tripSearchPlaceViewModel.filterPlaces() },
                 onBackClick = {
                     tripSearchPlaceViewModel.tripSearchNavigationOnClick(tripDocumentId)
                 },
                 focusRequester = focusRequester
             )
         }
-    ) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(it)
-            .imePadding()
-            .padding(horizontal = 20.dp)
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(paddingValues)
+                .imePadding()
+                .padding(horizontal = 20.dp)
         ) {
-            if (tripSearchPlaceViewModel.filteredPlaces.isEmpty()) {
+            if (filteredPlaces.isEmpty() && !isLoading) {
+                // 🔹 장소가 없을 때 메시지 표시
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -112,26 +133,49 @@ fun TripSearchPlaceScreen(
 
                     LikeLionFilledButton(
                         text = "장소 등록 요청하기",
-                        onClick = {
-                            tripSearchPlaceViewModel.requestPlaceOnClick()
-                        },
+                        onClick = { tripSearchPlaceViewModel.requestPlaceOnClick() },
                         modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
                         cornerRadius = 5,
                     )
                 }
             } else {
-                LazyColumn {
-                    items(tripSearchPlaceViewModel.filteredPlaces) { place ->
+                val listState = rememberLazyListState()
+
+                LaunchedEffect(listState) {
+                    snapshotFlow { listState.layoutInfo.visibleItemsInfo }
+                        .map { it.lastOrNull()?.index ?: 0 }
+                        .distinctUntilChanged()
+                        .collect { lastIndex ->
+                            if (lastIndex >= filteredPlaces.size - 1) {
+                                tripSearchPlaceViewModel.fetchNextPlaces(regionCodes, subRegionCodes)
+                            }
+                        }
+                }
+
+                LazyColumn(state = listState) {
+                    items(filteredPlaces) { place ->
                         LikeLionPlaceListItem(
                             imageUrl = place.firstimage ?: "",
                             title = place.title ?: "알 수 없는 장소",
                             subtitle = place.addr1 ?: "주소 없음",
                             location = place.addr2 ?: "",
                             onSelectClick = {
-                                val placeMap = tripSearchPlaceViewModel.toPlaceMap(place) // 변환 후 전달
+                                val placeMap = tripSearchPlaceViewModel.toPlaceMap(place)
                                 tripSearchPlaceViewModel.addPlaceToDay(selectedDay, placeMap, tripDocumentId)
                             }
                         )
+                    }
+
+                    item {
+                        if (isLoading) {
+                            // 추가 로딩 표시
+                            Column(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                 }
             }
