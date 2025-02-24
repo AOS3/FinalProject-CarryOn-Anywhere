@@ -23,5 +23,10 @@ class TripReviewService {
         suspend fun deleteTripReview(documentId: String) {
             TripReviewRepository.updateTripReviewState(documentId, "TRIP_REVIEW_STATE_DELETE") // ✅ 올바른 호출 방식
         }
+
+        // 여행 후기 데이터 수정
+        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
+            TripReviewRepository.updateTripReview(documentId, newTitle, newContent, newImageUrls)
+        }
     }
 }

@@ -80,15 +80,6 @@ fun SharingScreen(
             ) {
                 items(shares.size) { index ->
                     ShareItem(shares[index], navController, index)
-
-//                    // 마지막 아이템이 아닐 경우 구분선 추가
-//                    if (index < shares.size - 1) {
-//                        LikeLionDivider(
-//                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
-//                            color = Color.LightGray,
-//                            thickness = 1.dp
-//                        )
-//                    }
                 }
             }
         }
@@ -112,8 +103,8 @@ private fun ShareItem(share: Share, navController: NavController, index: Int) {
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth()
-                .fillMaxHeight(), // Row의 높이를 자동으로 맞추도록 설정
-            verticalAlignment = Alignment.CenterVertically // 세로 중앙 정렬 추가
+                .fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // 왼쪽 Column (태그, 제목, 내용, 작성자 정보)
             Column(

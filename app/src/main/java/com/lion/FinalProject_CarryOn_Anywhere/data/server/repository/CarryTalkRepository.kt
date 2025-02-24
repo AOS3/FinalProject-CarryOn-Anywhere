@@ -42,5 +42,20 @@ class CarryTalkRepository {
                 throw e
             }
         }
+
+        // 여행 후기 데이터 수정
+        suspend fun updateCarryTalk(documentId: String, newTag: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
+            try {
+                val updateData = mapOf(
+                    "talkTag" to newTag,
+                    "talkTitle" to newTitle,
+                    "talkContent" to newContent,
+                    "talkImage" to newImageUrls
+                )
+                collection.document(documentId).update(updateData).await()
+            } catch (e: Exception) {
+                throw e
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.CarryTalkState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +22,7 @@ data class Post(
     val title: String,
     val content: String,
     val author: String,
+    val nickName : String,
     val postDate: Long,
     val likes: Int,
     val comments: Int,
@@ -58,6 +60,7 @@ class StoryViewModel @Inject constructor(
                         title = talk.talkTitle,
                         content = talk.talkContent,
                         author = talk.userDocumentId,
+                        nickName = talk.userName,
                         postDate = talk.talkTimeStamp,
                         likes = talk.talkLikeCount,
                         comments = talk.talkReplyList.size,
@@ -85,6 +88,18 @@ class StoryViewModel @Inject constructor(
                 onSuccess()
             } catch (e: Exception) {
                 onError("삭제 실패: ${e.message}")
+            }
+        }
+    }
+
+    // 여행 후기 수정 후 UI 업데이트
+    fun editCarryTalk(documentId: String, newTag: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
+        viewModelScope.launch {
+            try {
+                CarryTalkService.updateCarryTalk(documentId, newTag, newTitle, newContent, newImageUrls)
+                fetchCarryTalkPosts()
+            } catch (e: Exception) {
+                Log.e("StoryViewModel", "여행 후기 수정 실패: ${e.message}")
             }
         }
     }

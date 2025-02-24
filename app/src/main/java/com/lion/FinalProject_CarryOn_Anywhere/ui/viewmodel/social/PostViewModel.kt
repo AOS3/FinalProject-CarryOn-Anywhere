@@ -29,7 +29,6 @@ import javax.inject.Inject
 class PostViewModel @Inject constructor(
     @ApplicationContext context: Context
 ) : ViewModel() {
-
     // UI에서 사용할 데이터 리스트
     val postItems = listOf("여행 후기", "여행 이야기")
     val chipItems = listOf("맛집", "숙소", "여행 일정", "모임")
@@ -47,6 +46,10 @@ class PostViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
+
+    fun setLoading(isLoading: Boolean) {
+        _isLoading.value = isLoading
+    }
 
 
     // 선택된 Post Chip 업데이트
@@ -95,6 +98,7 @@ class PostViewModel @Inject constructor(
         title: String,
         content: String,
         userDocumentId: String,
+        userName: String,
         imageUrls: List<String>
     ) {
         val job = Job()
@@ -107,6 +111,7 @@ class PostViewModel @Inject constructor(
                 "여행 후기" -> {
                     val tripReview = TripReviewModel().apply {
                         this.userDocumentId = userDocumentId
+                        this.userName = userName
                         this.tripReviewTitle = title
                         this.tripReviewContent = content
                         this.tripReviewImage = imageUrls.toMutableList()
@@ -129,6 +134,7 @@ class PostViewModel @Inject constructor(
                 "여행 이야기" -> {
                     val carryTalk = CarryTalkModel().apply {
                         this.userDocumentId = userDocumentId
+                        this.userName = userName
                         this.talkTitle = title
                         this.talkContent = content
                         this.talkImage = imageUrls.toMutableList()
@@ -146,8 +152,8 @@ class PostViewModel @Inject constructor(
 
                     try {
                         val documentRef = CarryTalkService.addCarryTalkReview(carryTalk)
-                        carryTalk.talkDocumentId = documentRef.id  // 🔹 생성된 다큐먼트 ID 저장
-                        documentRef.set(carryTalk).await() // 🔹 Firestore 업데이트
+                        carryTalk.talkDocumentId = documentRef.id
+                        documentRef.set(carryTalk).await()
 
                         Log.d("PostViewModel", "여행 이야기 업로드 성공: ${carryTalk.talkDocumentId}")
                     } catch (e: Exception) {
@@ -189,44 +195,6 @@ class PostViewModel @Inject constructor(
                 }
             }
             return downloadUrls
-        }
-    }
-
-    fun startPostUpload(
-        title: String,
-        content: String,
-        userDocumentId: String,
-        imageUrisList: List<Uri>,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        if (title.isEmpty() || content.isEmpty()) {
-            onError("제목과 내용을 모두 입력해주세요!")
-            return
-        }
-
-        viewModelScope.launch {
-            _isLoading.value = true
-
-            try {
-                val uploadedImageUrls = ImageUploader.uploadImages(imageUrisList)
-                if (uploadedImageUrls.isNotEmpty()) {
-                    savePost(
-                        title = title,
-                        content = content,
-                        userDocumentId = userDocumentId,
-                        imageUrls = uploadedImageUrls
-                    )
-                    _isLoading.value = false
-                    onSuccess()
-                } else {
-                    _isLoading.value = false
-                    onError("이미지 업로드 실패! 다시 시도해 주세요.")
-                }
-            } catch (e: Exception) {
-                _isLoading.value = false
-                onError("저장 중 오류 발생: ${e.message}")
-            }
         }
     }
 }

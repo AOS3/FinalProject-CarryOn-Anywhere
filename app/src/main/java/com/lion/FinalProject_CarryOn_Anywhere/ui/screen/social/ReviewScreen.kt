@@ -37,6 +37,7 @@ fun ReviewScreen(
     navController: NavController
 ) {
     val reviews by reviewViewModel.reviews.collectAsState()
+    // 로딩 상태 감지
     val isLoading by reviewViewModel.isLoading.collectAsState()
 
     // 최신 데이터 반영
@@ -117,6 +118,7 @@ private fun ReviewCard(review: Review, onClick: () -> Unit) {
                 )
             }
 
+            // 제목
             Text(
                 text = review.title,
                 style = MaterialTheme.typography.bodySmall,
@@ -125,6 +127,7 @@ private fun ReviewCard(review: Review, onClick: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
 
+            // 여행 기간
             Text(
                 text = "여행 기간",
                 style = MaterialTheme.typography.bodySmall,

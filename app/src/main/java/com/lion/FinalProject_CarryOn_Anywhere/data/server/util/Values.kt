@@ -97,7 +97,7 @@ enum class CarryTalkState(val number:Int, val str:String){
 enum class TalkTag(val number:Int, val str:String){
     // 전체 (목록 보여줄 때 사용)
     TALK_TAG_ALL(0, "전체"),
-    // 삭제
+    // 맛집
     TALK_TAG_RESTAURANT(1, "맛집"),
     // 숙소
     TALK_TAG_ACCOMMODATION(2, "숙소"),

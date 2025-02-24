@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
 import LikeLionFixedTabs
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.review.ReviewScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.SocialViewModel
@@ -30,13 +32,38 @@ fun SocialScreen(
     onAddClick: () -> Unit,
     socialViewModel: SocialViewModel = hiltViewModel()
 ) {
+    // StateFlow 값 감지
+    val selectedTabIndex by socialViewModel.selectedTabIndex.collectAsState()
+
+    val context = LocalContext.current
+
+    // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
+    val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val loginUserId = try {
+        carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
+    } catch (e: UninitializedPropertyAccessException) {
+        "guest"
+    }
+    // 로그인하지 않은 경우 버튼 숨김
+    val isAuthor = loginUserId != "guest"
+
     Column {
         LikeLionTopAppBar(
             title = "캐리 톡",
             backColor = Color.White,
-            navigationIconImage = null, // 왼쪽 네비게이션 아이콘 없음
+            navigationIconImage = null,
             menuItems = {
-                IconButton(onClick = { onAddClick() }) {
+                IconButton(onClick = {
+                    if (isAuthor) {
+                        onAddClick()
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "로그인을 먼저 진행해 주세요!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = "추가",
@@ -46,9 +73,7 @@ fun SocialScreen(
             }
         )
 
-        // StateFlow 값 감지
-        val selectedTabIndex by socialViewModel.selectedTabIndex.collectAsState()
-
+        // "여행 후기", "여행 이야기" 선택 탭
         LikeLionFixedTabs(
             tabTitleWithCounts = listOf("여행 후기", "여행 이야기"),
             selectedTabIndex = selectedTabIndex,
@@ -71,7 +96,6 @@ fun SocialScreen(
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
