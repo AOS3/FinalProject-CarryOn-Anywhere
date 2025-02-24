@@ -30,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
@@ -68,6 +70,7 @@ fun ReviewDetailScreen(
     navController: NavController,
     onAddClick: () -> Unit
 ) {
+    // "여행 후기" 목록을 가져오고 선택된 "여행 후기"를 찾음
     val reviews by reviewViewModel.reviews.collectAsState()
     val review = reviews.getOrNull(reviewIndex) ?: return
 
@@ -76,8 +79,23 @@ fun ReviewDetailScreen(
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogDeleteState = remember { mutableStateOf(false) }
 
+    // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
+    val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val loginUserId = try {
+        carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
+    } catch (e: UninitializedPropertyAccessException) {
+        "guest"
+    }
+    // 로그인하지 않은 경우 버튼 숨김
+    val isAuthor = loginUserId != "guest" && review.author == loginUserId
+
     // 시스템 바텀바 높이 가져오기
     val systemBarHeight = getNavigationBarHeight().dp
+
+    // 최신 데이터 반영
+    LaunchedEffect(Unit) {
+        reviewViewModel.fetchTripReviews()
+    }
 
     Box(
         modifier = Modifier
@@ -87,35 +105,37 @@ fun ReviewDetailScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // AppBar
+            // 상단 AppBar
             LikeLionTopAppBar(
                 title = "여행 후기",
                 backColor = Color.White,
                 navigationIconImage = Icons.Default.ArrowBack,
                 navigationIconOnClick = { navController.popBackStack() },
                 menuItems = {
-                    Row {
-                        IconButton(onClick = {
-                            navController.navigate("modifyScreen/review/$reviewIndex")
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.ModeEdit,
-                                contentDescription = "수정",
-                                tint = Color.Black
-                            )
-                        }
-                        IconButton(onClick = { showDialogDeleteState.value = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "삭제",
-                                tint = Color.Black
-                            )
+                    if (isAuthor) {
+                        Row {
+                            IconButton(onClick = {
+                                navController.navigate("modifyScreen/review/$reviewIndex")
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.ModeEdit,
+                                    contentDescription = "수정",
+                                    tint = Color.Black
+                                )
+                            }
+                            IconButton(onClick = { showDialogDeleteState.value = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "삭제",
+                                    tint = Color.Black
+                                )
+                            }
                         }
                     }
                 }
             )
 
-            // 다이얼로그 표시
+            // "삭제" 다이얼로그 표시
             LikeLionAlertDialog(
                 showDialogState = showDialogDeleteState,
                 title = "글을 삭제하시겠습니까?",
@@ -145,7 +165,6 @@ fun ReviewDetailScreen(
                 dismissButtonModifier = Modifier.width(120.dp)
             )
 
-            // 본문 내용 (LazyColumn)
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -177,7 +196,7 @@ fun ReviewDetailScreen(
                         horizontalArrangement = Arrangement.End
                     ) {
                         Text(
-                            text = "${review.author} • ${formattedDate(review.postDate)}",
+                            text = "${review.nickName} • ${formattedDate(review.postDate)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = GrayColor
                         )
@@ -245,7 +264,7 @@ fun ReviewDetailScreen(
                         Text(
                             text = review.likes.toString(),
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 3.dp)
+                            modifier = Modifier.padding(start = 5.dp)
                         )
                     }
 
@@ -281,6 +300,7 @@ fun ReviewDetailScreen(
     }
 }
 
+// 날짜 변환
 private fun formattedDate(timestamp: Long): String {
     val date = Date(timestamp)
     val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
