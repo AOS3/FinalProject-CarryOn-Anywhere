@@ -122,7 +122,8 @@ fun SelectTripRegionScreen(
                 cornerRadius = 5,
                 onClick = {
                     addTripInfoViewModel.completeRegionOnClick()
-                }
+                },
+                horizontalPadding = 0.dp
             )
         }
     }

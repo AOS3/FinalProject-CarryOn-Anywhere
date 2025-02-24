@@ -16,36 +16,34 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyTripPlanItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionCodeInputDialog
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripPlanModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.MyTripPlanViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 // 마이페이지 -> 내 일정
 // 툴바에 일정 추가하기 / 친구 일정 공유하기 기능
 // 일정 삭제 가능
 
 @Composable
-fun MyTripPlanScreen(navController: NavController) {
+fun MyTripPlanScreen(
+    navController: NavController,
+    myTripPlanViewModel: MyTripPlanViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
 
-    // 샘플 일정 데이터 (실제 데이터는 ViewModel 또는 Repository에서 가져오기)
-    var planList by remember {
-        mutableStateOf(
-            listOf(
-                TripPlanModel("여행 제목1", "2025.3.8 - 3.10"),
-                TripPlanModel("여행 제목2", "2025.3.8 - 3.10"),
-                TripPlanModel("여행 제목3", "2025.3.8 - 3.10")
-            )
-        )
-    }
+    myTripPlanViewModel.gettingTripData()
 
     val showDialog = remember { mutableStateOf(false) }
-    val selectedPlan = remember { mutableStateOf<TripPlanModel?>(null) }
+    val selectedPlan = remember { mutableStateOf<TripModel?>(null) }
     // 일정 코드 입력 다이얼로그 상태
     val showCodeDialog = remember { mutableStateOf(false) }
 
@@ -59,7 +57,7 @@ fun MyTripPlanScreen(navController: NavController) {
                 IconButton(onClick = { showCodeDialog.value = true }) {
                     Icon(imageVector = Icons.Default.Group, contentDescription = "친구 공유")
                 }
-                IconButton(onClick = { navController.navigate(ScreenName.ADD_TRIP_PLAN.name) }) {
+                IconButton(onClick = { myTripPlanViewModel.addPlanOnClick() }) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = "일정 추가")
                 }
             }
@@ -71,8 +69,11 @@ fun MyTripPlanScreen(navController: NavController) {
                 .fillMaxSize()
                 .background(Color.White)
         ) {
-            items(planList) { plan ->
+            items(myTripPlanViewModel.contentListState) { plan ->
                 LikeLionMyTripPlanItem(
+                    onclick = {
+                        myTripPlanViewModel.listItemOnClick(plan.tripDocumentId)
+                    },
                     plan = plan,
                     onDeleteClick = {
                         selectedPlan.value = plan
@@ -91,8 +92,12 @@ fun MyTripPlanScreen(navController: NavController) {
             text = "삭제 후 복구할 수 없습니다.",
             confirmButtonTitle = "삭제",
             confirmButtonOnClick = {
-                selectedPlan.value?.let {
-                    planList = planList.filter { it != selectedPlan.value }
+//                selectedPlan.value?.let {
+//                    planList = planList.filter { it != selectedPlan.value }
+//                }
+//                showDialog.value = false
+                selectedPlan.value?.let { plan ->
+                    myTripPlanViewModel.deletePlanOnClick(plan.tripDocumentId) // tripDocumentId 전달
                 }
                 showDialog.value = false
             },

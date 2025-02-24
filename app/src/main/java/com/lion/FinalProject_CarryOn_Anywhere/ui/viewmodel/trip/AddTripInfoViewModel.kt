@@ -353,8 +353,20 @@ class AddTripInfoViewModel @Inject constructor(
     fun selectRegionNavigationOnClick(){
         selectedRegions.clear()
         updateRegionButtonState()
-        carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+
+        when (carryOnApplication.previousScreen.value) {
+            ScreenName.MAIN_SCREEN.name -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+            }
+            ScreenName.MY_TRIP_PLAN.name -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate(ScreenName.MY_TRIP_PLAN.name)
+            }
+            else -> {
+                carryOnApplication.navHostController.popBackStack()
+            }
+        }
     }
 
     fun tripDateNavigationOnClick(tripDocumentId: String) {
