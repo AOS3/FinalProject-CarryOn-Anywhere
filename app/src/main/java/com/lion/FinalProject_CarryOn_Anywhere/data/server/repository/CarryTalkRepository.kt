@@ -4,13 +4,19 @@ import android.util.Log
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.CarryTalkModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.TripReviewRepository.Companion
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.ReplyVO
 import kotlinx.coroutines.tasks.await
 
 class CarryTalkRepository {
     companion object {
 
-        private val collection by lazy { FirebaseFirestore.getInstance().collection("CarryTalkData") }
+        private val collection by lazy {
+            FirebaseFirestore.getInstance().collection("CarryTalkData")
+        }
 
         // Firestoere에 데이터 추가
         suspend fun addCarryTalkData(carryTalkModel: CarryTalkModel): DocumentReference {

@@ -151,3 +151,4 @@ enum class AppPushState(val number:Int, val str:String){
     // 비활성화
     APP_PUSH_DISABLE(2, "미동의"),
 }
+

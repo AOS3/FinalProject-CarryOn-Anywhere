@@ -272,7 +272,7 @@ fun ReviewDetailScreen(
 
                     // 댓글 버튼
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { navController.navigate(ScreenName.COMMENT_SCREEN.name) }) {
+                        IconButton(onClick = { navController.navigate("commentScreen/${review.documentId}") }) {
                             Icon(
                                 painter = painterResource(R.drawable.chat_24px),
                                 contentDescription = "댓글",
