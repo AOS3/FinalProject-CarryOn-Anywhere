@@ -42,5 +42,17 @@ class ReplyService {
         suspend fun deleteReplyFromList(replyDocumentId: String, talkDocumentId: String):Boolean {
             return ReplyRepository.deleteReplyFromList(replyDocumentId, talkDocumentId)
         }
+
+
+        //0225 나의 글 관련 메서드
+        // 사용자 ID로 작성한 댓글 모두 불러오기
+        suspend fun getAllReplysByUserId(userId: String): List<ReplyModel> {
+            return ReplyRepository.getAllReplysByUserId(userId)
+        }
+
+        // replyId 만으로 댓글 데이터 삭제하기
+        suspend fun deleteReplyByReplyDocId(replyDocumentId: String): Boolean{
+            return ReplyRepository.deleteReplyByReplyDocId(replyDocumentId)
+        }
     }
 }

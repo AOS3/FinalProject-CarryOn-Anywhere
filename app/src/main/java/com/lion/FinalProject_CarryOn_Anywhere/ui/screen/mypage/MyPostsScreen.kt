@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.runtime.Composable
@@ -11,6 +12,9 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -25,18 +29,22 @@ import kotlinx.coroutines.launch
 import com.lion.FinalProject_CarryOn_Anywhere.R // ✅ drawable 리소스 추가
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyCommentList
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTripStoryList
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripStoryModel
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyLikeItem
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -254,37 +262,33 @@ fun TravelStoryScreen() {
 
 // ✅ 댓글 화면
 @Composable
-fun CommentsScreen() {
+fun CommentsScreen(
+    commentViewModel: CommentViewModel = hiltViewModel(),
+) {
+
+    val context = LocalContext.current
 
     // ✅ 삭제 다이얼로그를 위한 상태 관리
     val showDialog = remember { mutableStateOf(false) }
     val selectedComment = remember { mutableStateOf<ReplyModel?>(null) }
 
-    // ✅ 테스트용 여행 이야기 데이터 리스트
-    val tripComments = listOf(
-        ReplyModel(
-            userDocumentId = "토토로",
-            replyContent = "날씨가 좋아서 다행이에요. 너무 부럽습니다. 진짜 좋아보여요.",
-            replyTimeStamp = "2025-02-14 10:25:55"
-        ),
-        ReplyModel(
-            userDocumentId = "토토로",
-            replyContent = "터질 것만 같은 행복한 기분으로 틀에 박힌 관념 다 버리고 이제 또 맨 주먹 정신 다시 또 시작하면 나 이루리라 다 나 바라는대로",
-            replyTimeStamp = "2023-04-25 14:15:22"
-        ),
-        ReplyModel(
-            userDocumentId = "토토로",
-            replyContent = "파란 하늘위로 훨훨 날아가겠죠\n" +
-                    "어려서 꿈꾸었던 비행기 타고\n" +
-                    "기다리는 동안 아무말도 못해요 내 생각 말할 순 없어요",
-            replyTimeStamp = "2025-02-14 10:25:55"
-        ),
-        ReplyModel(
-            userDocumentId = "토토로",
-            replyContent = "저 오늘 떠나요 공항으로 핸드폰 꺼 놔요 제발 날 찾진 말아줘 시끄럽게 소리를 질러도 어쩔 수 없어 나가볍게 손을 흔들며 bye bye-",
-            replyTimeStamp = "2025-02-14 10:25:55"
-        ),
-    )
+    // ViewModel의 LiveData를 observe하여 실제 댓글 목록 사용
+    val tripComments by commentViewModel.myAllReplys.collectAsState()
+    Log.d("test100","replyList선언 후 ${tripComments}")
+
+    // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
+    val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val userId = try {
+        carryOnApplication?.loginUserModel?.userId ?: "guest"
+    } catch (e: UninitializedPropertyAccessException) {
+        "guest"
+    }
+
+    // 화면이 구성될 때 댓글을 불러옴
+    LaunchedEffect(userId) {
+        commentViewModel.getAllReplysByUserId(userId)
+    }
+
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -293,6 +297,8 @@ fun CommentsScreen() {
         LikeLionMyCommentList(
             commentList = tripComments,
             onDeleteConfirmed = { comment ->
+
+                commentViewModel.deleteReplyByReplyDocId(comment.replyDocumentId,comment.userId)
                 selectedComment.value = comment
                 showDialog.value = true
             }
