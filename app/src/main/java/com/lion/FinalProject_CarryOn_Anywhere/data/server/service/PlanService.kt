@@ -35,4 +35,9 @@ class PlanService(val planRepository: PlanRepository) {
     suspend fun deleteAllPlansByTripId(tripDocumentId:String){
         planRepository.deleteAllPlansByTripId(tripDocumentId)
     }
+
+    suspend fun getPlansByTripDocumentId(planDocumentId: String): PlanVO? {
+        return planRepository.getPlansByPlanDocumentId(planDocumentId)
+    }
+
 }

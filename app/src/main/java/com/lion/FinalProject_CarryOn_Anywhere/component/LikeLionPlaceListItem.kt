@@ -51,7 +51,8 @@ fun LikeLionPlaceListItem(
             modifier = Modifier
                 .size(70.dp)
                 .clip(RoundedCornerShape(10.dp)),
-            placeholder = painterResource(R.drawable.carryon_logo_final)
+            placeholder = painterResource(R.drawable.noplaceimg),
+            error = painterResource(R.drawable.noplaceimg)
         )
 
         Spacer(modifier = Modifier.width(12.dp))

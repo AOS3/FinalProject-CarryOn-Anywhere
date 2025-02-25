@@ -2,6 +2,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.repository
 
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.PlanModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.PlanVO
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
 import kotlinx.coroutines.tasks.await
@@ -118,7 +119,27 @@ class PlanRepository {
                 documentRef.update("placeList", newPlaceList).await()
             }
         } catch (e: Exception) {
-            Log.e("PlanService", " Firestore PlanData 업데이트 실패: ${e.message}")
+            Log.e("PlanService", "${e.message}")
+        }
+    }
+
+    suspend fun getPlansByPlanDocumentId(planDocumentId: String): PlanVO? {
+        return try {
+            val firestore = FirebaseFirestore.getInstance()
+            val documentSnapshot = firestore.collection("PlanData")
+                .document(planDocumentId)
+                .get()
+                .await()
+
+            val planVO = documentSnapshot.toObject(PlanVO::class.java)
+            planVO?.apply {
+                placeList = documentSnapshot.get("placeList") as? MutableList<Map<String, Any?>> ?: mutableListOf()
+            }
+
+            planVO
+        } catch (e: Exception) {
+            Log.e("PlanRepository","${e.message}")
+            null
         }
     }
 }

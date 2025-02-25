@@ -14,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,9 +47,7 @@ fun SelectTripRegionScreen(
             LikeLionTopAppBar(
                 title = "지역 선택",
                 navigationIconImage = ImageVector.vectorResource(R.drawable.arrow_back_24px),
-                navigationIconOnClick = {
-                    addTripInfoViewModel.selectRegionNavigationOnClick()
-                }
+                navigationIconOnClick = { addTripInfoViewModel.selectRegionNavigationOnClick() }
             )
         }
     ) {
@@ -65,10 +65,8 @@ fun SelectTripRegionScreen(
                 modifier = Modifier.padding(top = 25.dp, bottom = 20.dp)
             )
 
-            if (addTripInfoViewModel.selectedRegions.size == 0) {
-                Box(
-                    modifier = Modifier.padding(bottom = 37.dp)
-                )
+            if (addTripInfoViewModel.selectedRegions.isEmpty()) {
+                Box(modifier = Modifier.padding(bottom = 37.dp))
             }
 
             // 선택된 지역 Chip Group
@@ -86,22 +84,28 @@ fun SelectTripRegionScreen(
                 onChipClicked = { _, _, _ -> },
                 onDeleteButtonClicked = { content, _ ->
                     addTripInfoViewModel.selectedRegions.removeIf { it.text == content }
+                    // "전체" 칩이 삭제되면 ViewModel 상태를 false로 업데이트
+                    if (content.contains("전체")) {
+                        addTripInfoViewModel.isAllSelectedForRegion.value = false
+                    }
                     addTripInfoViewModel.updateRegionButtonState()
                 }
             )
 
             if (regions.isNotEmpty()) {
                 LikeLionRegionSelect(
-                    modifier = Modifier
-                        .weight(1f),
+                    modifier = Modifier.weight(1f),
                     regions = regions,
                     subRegionsMap = subRegionsMap,
                     regionOnClick = { selectedRegion ->
                         addTripInfoViewModel.fetchSubRegions(selectedRegion)
                     },
+                    isAllSelected = addTripInfoViewModel.isAllSelectedForRegion.value,
+                    onAllSelectedChange = { isAll ->
+                        addTripInfoViewModel.isAllSelectedForRegion.value = isAll
+                    },
                     onClick = { selectedRegion ->
-                        Log.d("SelectTripRegionScreen", "✅ 클릭한 시/도: $selectedRegion") // <== 로그 추가
-
+                        Log.d("SelectTripRegionScreen", "✅ 클릭한 시/도: $selectedRegion")
                         if (addTripInfoViewModel.selectedRegions.none { it.text == selectedRegion }) {
                             addTripInfoViewModel.selectedRegions.add(
                                 ChipState(text = selectedRegion, isSelected = mutableStateOf(false))
@@ -111,8 +115,7 @@ fun SelectTripRegionScreen(
                     }
                 )
             } else {
-                Text(text = "", color = Color.Gray, modifier = Modifier
-                    .weight(1f),)
+                Text(text = "", color = Color.Gray, modifier = Modifier.weight(1f))
             }
 
             LikeLionFilledButton(
@@ -120,9 +123,7 @@ fun SelectTripRegionScreen(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 25.dp),
                 isEnabled = addTripInfoViewModel.isButtonRegionEnabled.value,
                 cornerRadius = 5,
-                onClick = {
-                    addTripInfoViewModel.completeRegionOnClick()
-                },
+                onClick = { addTripInfoViewModel.completeRegionOnClick() },
                 horizontalPadding = 0.dp
             )
         }
