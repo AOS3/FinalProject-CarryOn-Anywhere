@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,8 +50,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
+import com.google.android.gms.maps.model.LatLng
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAddPlaceItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
@@ -58,6 +61,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import androidx.compose.foundation.layout.Spacer as Spacer1
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -66,6 +70,7 @@ import java.util.Locale
 @Composable
 fun ReviewDetailScreen(
     reviewViewModel: ReviewViewModel = hiltViewModel(),
+    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
     reviewIndex: Int,
     navController: NavController,
     onAddClick: () -> Unit
@@ -91,6 +96,12 @@ fun ReviewDetailScreen(
 
     // 시스템 바텀바 높이 가져오기
     val systemBarHeight = getNavigationBarHeight().dp
+
+    // 여행 날짜 목록 업데이트
+    LaunchedEffect(tripInfoViewModel.startDate.value, tripInfoViewModel.endDate.value) {
+        tripInfoViewModel.updateFormattedDates()
+        tripInfoViewModel.updateTripDays()
+    }
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
@@ -219,6 +230,103 @@ fun ReviewDetailScreen(
                     )
 
                     Spacer1(modifier = Modifier.height(10.dp))
+                }
+
+                // 일별 일정 목록 출력
+                item {
+                    if (review.sharePlan.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp, vertical = 10.dp)
+                        ) {
+                            // 제목
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 15.dp, bottom = 15.dp),
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                Text(
+                                    text = review.shareTitle.ifEmpty { "제목 없음" },
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(end = 10.dp)
+                                )
+                            }
+
+                            // 일정 날짜
+                            Text(
+                                text = review.tripDate.ifEmpty { "날짜 없음" },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = GrayColor,
+                                modifier = Modifier.padding(bottom = 15.dp)
+                            )
+
+                            // 지역 정보
+                            review.sharePlace.forEach { place ->
+                                Text(
+                                    text = "📍 여행 지역: $place",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = GrayColor,
+                                    modifier = Modifier.padding(bottom = 5.dp)
+                                )
+                            }
+                        }
+
+                        // "일별 일정 목록"
+                        review.sharePlan.groupBy { it["date"] ?: "날짜 없음" }.entries.forEachIndexed { index, (day, places) ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 10.dp)
+                            ) {
+                                // DayX 표시 + 날짜
+                                Row(
+                                    modifier = Modifier.padding(top = 10.dp, bottom = 20.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = "Day${index + 1}  $day",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = Color.Black
+                                    )
+                                }
+
+                                places.forEachIndexed { placeIndex, place ->
+                                    val placeName = place["place"] ?: "장소 없음"
+                                    val addr1 = place["addr"] ?: "주소 정보 없음"
+                                    val addr2 = place["addr2"] ?: ""
+
+                                    val mapX = place["mapx"]?.toString()?.toDoubleOrNull() ?: 0.0
+                                    val mapY = place["mapy"]?.toString()?.toDoubleOrNull() ?: 0.0
+
+                                    val distanceToNext = if (placeIndex < places.lastIndex) {
+                                        val nextPlace = places[placeIndex + 1]
+                                        val nextMapX = nextPlace["mapx"]?.toString()?.toDoubleOrNull() ?: 0.0
+                                        val nextMapY = nextPlace["mapy"]?.toString()?.toDoubleOrNull() ?: 0.0
+
+                                        tripInfoViewModel.calculateDistance(
+                                            LatLng(mapY, mapX),
+                                            LatLng(nextMapY, nextMapX)
+                                        )
+                                    } else {
+                                        null
+                                    }
+
+                                    LikeLionAddPlaceItem(
+                                        index = placeIndex,
+                                        lastIndex = places.lastIndex,
+                                        place = mapOf(
+                                            "title" to placeName,
+                                            "addr1" to addr1,
+                                            "addr2" to addr2
+                                        ),
+                                        distanceToNext = distanceToNext
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // 이미지 리스트
