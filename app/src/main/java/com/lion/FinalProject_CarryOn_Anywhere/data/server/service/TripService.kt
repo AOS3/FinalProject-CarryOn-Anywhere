@@ -13,10 +13,16 @@ class TripService(val tripRepository: TripRepository) {
         return tripRepository.addTripData(tripVO)
     }
 
-    // 사용자 데이터를 수정한다.
+    // 여행 날짜 데이터를 수정한다.
     suspend fun updateTripDate(tripModel: TripModel){
         val tripVO = tripModel.toTripVO()
         tripRepository.updateTripDate(tripVO, tripModel.tripDocumentId)
+    }
+
+    // 사용자 데이터를 수정한다.
+    suspend fun updateTripShare(tripModel: TripModel){
+        val tripVO = tripModel.toTripVO()
+        tripRepository.updateTripShare(tripVO, tripModel.tripDocumentId)
     }
 
     suspend fun gettingTripList(userDocumentId: String) : MutableList<TripModel>{
@@ -53,5 +59,20 @@ class TripService(val tripRepository: TripRepository) {
         val tripModel = tripVO.toTripModel(documentId)
 
         return tripModel
+    }
+
+    // 여행 문서 id를 통해 여행 데이터를 가져온다.
+    suspend fun selectTripDataOneBySharedCode(tripSharedCode: String) : TripModel{
+        val document = tripRepository.selectTripDataSnapshotBySharedCode(tripSharedCode)
+        val tripVO = document.toObject(TripVO::class.java)!!
+        val tripModel = tripVO.toTripModel(document.id)
+
+        return tripModel
+    }
+
+    // 여행 날짜 데이터를 수정한다.
+    suspend fun updateTripShareUser(tripModel: TripModel){
+        val tripVO = tripModel.toTripVO()
+        tripRepository.updateTripShareUser(tripVO, tripModel.tripDocumentId)
     }
 }

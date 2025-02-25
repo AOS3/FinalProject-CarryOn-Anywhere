@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.repository
 
 import android.util.Log
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
@@ -20,7 +21,7 @@ class TripRepository {
         }
     }
 
-    // 여행 데이터를 수정한다.
+    // 여행 날짜 데이터를 수정한다.
     suspend fun updateTripDate(tripVO: TripVO, tripDocumentId: String) {
         // 수정할 데이터를 담을 맵
         val customerMap = mapOf(
@@ -34,13 +35,28 @@ class TripRepository {
         documentReference.update(customerMap).await()
     }
 
+    // 여행 공유 부분 데이터를 수정한다.
+    suspend fun updateTripShare(tripVO: TripVO, tripDocumentId: String) {
+        // 수정할 데이터를 담을 맵
+        val customerMap = mapOf(
+            "tripShareCode" to tripVO.tripShareCode,
+            "shareUserDocumentId" to tripVO.shareUserDocumentId,
+        )
+        // 수정할 문서에 접근할 수 있는 객체를 가져온다.
+        val firestore = FirebaseFirestore.getInstance()
+        val collectionReference = firestore.collection("TripData")
+        val documentReference = collectionReference.document(tripDocumentId)
+        documentReference.update(customerMap).await()
+    }
+
+    // 여행 목록들을 가져온다.
     suspend fun gettingTripList(userDocumentId: String): MutableList<Map<String, *>> {
         val firestore = FirebaseFirestore.getInstance()
         val collectionReference = firestore.collection("TripData")
 
         // Firestore에서 userDocument 값이 특정 ID와 일치하는 문서만 가져오기
         val query = collectionReference
-            .whereEqualTo("userDocumentId", userDocumentId) // ✅ 특정 사용자의 문서만 필터링
+            .whereArrayContains("shareUserDocumentId", userDocumentId) // ✅ 특정 사용자의 문서만 필터링
             .orderBy("tripTimeStamp", Query.Direction.DESCENDING) // ✅ 최신 순 정렬
 
         // Firestore에서 데이터 가져오기
@@ -103,5 +119,30 @@ class TripRepository {
         val documentSnapShot = documentReference.get().await()
         val tripVO = documentSnapShot.toObject(TripVO::class.java)!!
         return tripVO
+    }
+
+    suspend fun selectTripDataSnapshotBySharedCode(tripSharedCode: String): DocumentSnapshot {
+        val firestore = FirebaseFirestore.getInstance()
+        val collectionReference = firestore.collection("TripData")
+        val querySnapshot = collectionReference.whereEqualTo("tripShareCode", tripSharedCode).get().await()
+
+        if (querySnapshot.documents.isNotEmpty()) {
+            return querySnapshot.documents[0]
+        } else {
+            throw Exception("공유코드 $tripSharedCode 에 해당하는 문서를 찾을 수 없습니다.")
+        }
+    }
+
+    // 여행 날짜 데이터를 수정한다.
+    suspend fun updateTripShareUser(tripVO: TripVO, tripDocumentId: String) {
+        // 수정할 데이터를 담을 맵
+        val customerMap = mapOf(
+            "shareUserDocumentId" to tripVO.shareUserDocumentId,
+        )
+        // 수정할 문서에 접근할 수 있는 객체를 가져온다.
+        val firestore = FirebaseFirestore.getInstance()
+        val collectionReference = firestore.collection("TripData")
+        val documentReference = collectionReference.document(tripDocumentId)
+        documentReference.update(customerMap).await()
     }
 }

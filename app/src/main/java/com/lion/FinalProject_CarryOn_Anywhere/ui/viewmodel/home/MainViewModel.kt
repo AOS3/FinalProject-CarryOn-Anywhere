@@ -22,6 +22,7 @@ class MainViewModel @Inject constructor(
 
     // 일정 등록 버튼 클릭
     fun buttonMainAddTrip() {
+        carryOnApplication.previousScreen.value = ScreenName.MAIN_SCREEN.name
         carryOnApplication.navHostController.navigate(ScreenName.SELECT_TRIP_REGION.name)
     }
 

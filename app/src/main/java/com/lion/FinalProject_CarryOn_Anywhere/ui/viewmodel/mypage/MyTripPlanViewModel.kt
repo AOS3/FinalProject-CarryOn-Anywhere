@@ -74,4 +74,35 @@ class MyTripPlanViewModel @Inject constructor(
             _isLoading.value = false
         }
     }
+
+    fun joinSharedTrip(sharedCode: String) {
+        // 공유 코드가 5자리가 아니면 함수 실행 중단
+        if (sharedCode.length != 5) {
+            // 유효하지 않은 코드에 대한 처리 (예: 사용자에게 에러 메시지 출력)
+            return
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            _isLoading.value = true
+            // IO 디스패처에서 공유 코드를 이용해 TripModel을 가져온다.
+            val trip = async(Dispatchers.IO) {
+                tripService.selectTripDataOneBySharedCode(sharedCode)
+            }.await()
+
+            trip.let { tripData ->
+                val currentUserId = carryOnApplication.loginUserModel.userDocumentId
+                // shareUserDocumentId 리스트에 현재 유저의 documentId가 없으면 추가
+                if (!tripData.shareUserDocumentId.contains(currentUserId)) {
+                    tripData.shareUserDocumentId.add(currentUserId)
+                    // 변경된 문서 정보를 서버에 업데이트
+                    async(Dispatchers.IO) {
+                        tripService.updateTripShareUser(tripData)
+                    }.await()
+                }
+            }
+
+            gettingTripData()
+
+            _isLoading.value = false
+        }
+    }
 }

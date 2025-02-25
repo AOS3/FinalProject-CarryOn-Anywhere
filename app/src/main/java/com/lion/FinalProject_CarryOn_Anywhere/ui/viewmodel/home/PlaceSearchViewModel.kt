@@ -230,9 +230,9 @@ class PlaceSearchViewModel @Inject constructor(
 
     // 장소 추가 요청 버튼 눌렀을 때
     fun requestPlaceOnClick() {
+        carryOnApplication.previousScreen.value = ScreenName.PLACE_SEARCH_SCREEN.name
+
         carryOnApplication.navHostController.popBackStack()
         carryOnApplication.navHostController.navigate(ScreenName.WRITE_REQUEST_PLACE.name)
     }
-
-
 }
