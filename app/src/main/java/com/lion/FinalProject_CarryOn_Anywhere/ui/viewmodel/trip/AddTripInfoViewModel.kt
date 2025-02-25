@@ -38,6 +38,8 @@ class AddTripInfoViewModel @Inject constructor(
     // 선택된 지역 리스트
     var selectedRegions = mutableStateListOf<ChipState>()
 
+    val isAllSelectedForRegion = mutableStateOf(false)
+
     // 시/도 목록
     private val _regions = mutableStateOf<List<String>>(emptyList())
     val regions: State<List<String>> = _regions
@@ -150,7 +152,6 @@ class AddTripInfoViewModel @Inject constructor(
                             areaCode = areaCode
                         )
                     }
-                    // 여러 지역 코드 동시 요청
                 }.awaitAll()
 
                 responses.forEachIndexed { index, response ->
@@ -160,8 +161,8 @@ class AddTripInfoViewModel @Inject constructor(
                         val subRegionList = response.body()?.response?.body?.items?.item?.map {
                             mapOf(
                                 "subRegionName" to (it.name ?: "알 수 없음"), // 구/군 이름
-                                "subRegionCode" to (it.code ?: "0"), // 구/군 코드
-                                "regionCode" to currentRegionCode // 현재 요청한 지역 코드 매핑
+                                "subRegionCode" to (it.code ?: "0"),            // 구/군 코드
+                                "regionCode" to currentRegionCode               // 현재 요청한 지역 코드 매핑
                             )
                         } ?: emptyList()
 
@@ -171,12 +172,35 @@ class AddTripInfoViewModel @Inject constructor(
                     }
                 }
 
-                // 조회된 모든 구/군 리스트를 저장 (이름-코드 매핑)
-                _subRegionsMap.value = _subRegionsMap.value.toMutableMap().apply {
-                    put(regionName, allSubRegions.map { it["subRegionName"] ?: "알 수 없음" })
-                }
-                _subRegionsCodeMap.value = _subRegionsCodeMap.value.toMutableMap().apply {
-                    put(regionName, allSubRegions)
+                // "전체" 옵션 추가 (예: 전체 선택 시 해당 지역의 모든 구/군을 포함)
+                if (allSubRegions.isNotEmpty()) {
+                    // regionCode는 첫번째 항목의 값을 사용하거나, 별도의 값을 지정할 수 있습니다.
+                    val regionCodeForAll = allSubRegions[0]["regionCode"] ?: ""
+                    val allOption = mapOf(
+                        "subRegionName" to "전체",
+                        "subRegionCode" to "",  // 필요에 따라 값 변경 가능
+                        "regionCode" to regionCodeForAll
+                    )
+                    // "전체" 옵션을 리스트 맨 앞에 삽입
+                    val modifiedSubRegions = mutableListOf<Map<String, String>>().apply {
+                        add(allOption)
+                        addAll(allSubRegions)
+                    }
+
+                    _subRegionsMap.value = _subRegionsMap.value.toMutableMap().apply {
+                        put(regionName, modifiedSubRegions.map { it["subRegionName"] ?: "알 수 없음" })
+                    }
+                    _subRegionsCodeMap.value = _subRegionsCodeMap.value.toMutableMap().apply {
+                        put(regionName, modifiedSubRegions)
+                    }
+                } else {
+                    // 구/군 목록이 없을 경우 빈 리스트 처리
+                    _subRegionsMap.value = _subRegionsMap.value.toMutableMap().apply {
+                        put(regionName, emptyList())
+                    }
+                    _subRegionsCodeMap.value = _subRegionsCodeMap.value.toMutableMap().apply {
+                        put(regionName, emptyList())
+                    }
                 }
 
             } catch (e: Exception) {

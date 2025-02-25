@@ -23,50 +23,43 @@ fun LikeLionRegionSelect(
     regions: List<String>,
     subRegionsMap: Map<String, List<String>>,
     regionOnClick: (String) -> Unit,
+    isAllSelected: Boolean,
+    onAllSelectedChange: (Boolean) -> Unit,
     onClick: (String) -> Unit = {}
 ) {
-    var selectedRegion by remember { mutableStateOf(regions[0]) } // 선택된 시/도
+    var selectedRegion by remember { mutableStateOf(regions[0]) }
     val selectedSubRegions by remember(selectedRegion, subRegionsMap) {
         derivedStateOf { subRegionsMap[selectedRegion] ?: emptyList() }
     }
-
-    // 이전 선택한 지역을 기억하고, 변경될 때만 fetchSubRegions 실행
     var previousRegion by remember { mutableStateOf(selectedRegion) }
-
-    // selectedRegion 변경 시 자동으로 fetchSubRegions 실행
     LaunchedEffect(selectedRegion) {
         if (previousRegion != selectedRegion) {
             regionOnClick(selectedRegion)
+            onAllSelectedChange(false) // 시/도 변경 시 "전체" 선택 상태 초기화
             previousRegion = selectedRegion
         }
     }
-
-    Row(
-        modifier = modifier.fillMaxHeight()
-    ) {
-        // 왼쪽: 시/도 목록
-        LazyColumn(
-            modifier = Modifier.weight(0.3f)
-        ) {
+    val displaySubRegions = if (isAllSelected) {
+        selectedSubRegions.filter { it == "전체" }
+    } else {
+        selectedSubRegions
+    }
+    Row(modifier = modifier.fillMaxHeight()) {
+        LazyColumn(modifier = Modifier.weight(0.3f)) {
             itemsIndexed(regions) { index, region ->
                 val isFirst = index == 0
                 val isLast = index == regions.lastIndex
                 val isSelected = region == selectedRegion
-
-                // 첫 번째와 마지막 항목에만 RoundedCorner 적용
                 val cornerRadius = RoundedCornerShape(
                     topStart = if (isFirst) 12.dp else 0.dp,
                     topEnd = if (isFirst) 12.dp else 0.dp,
                     bottomStart = if (isLast) 12.dp else 0.dp,
                     bottomEnd = if (isLast) 12.dp else 0.dp
                 )
-
                 Box(
                     modifier = Modifier
                         .width(100.dp)
-                        .clickable {
-                            selectedRegion = region
-                        }
+                        .clickable { selectedRegion = region }
                         .background(
                             if (isSelected) SubColor else Color(0xFFEFEFEF),
                             shape = cornerRadius
@@ -82,33 +75,33 @@ fun LikeLionRegionSelect(
                 }
             }
         }
-
         Spacer(modifier = Modifier.width(16.dp))
-
-        // 오른쪽: 선택된 시/도의 구/군 목록
         LazyColumn(
-            modifier = Modifier.weight(1f).height(600.dp)
+            modifier = Modifier
+                .weight(1f)
+                .height(600.dp)
         ) {
-            itemsIndexed(selectedSubRegions) { index, subRegion ->
+            itemsIndexed(displaySubRegions) { index, subRegion ->
                 val isFirst = index == 0
-                val isLast = index == selectedSubRegions.lastIndex
-
-                // 첫 번째와 마지막 항목에만 RoundedCorner 적용
+                val isLast = index == displaySubRegions.lastIndex
                 val cornerRadius = RoundedCornerShape(
                     topStart = if (isFirst) 12.dp else 0.dp,
                     topEnd = if (isFirst) 12.dp else 0.dp,
                     bottomStart = if (isLast) 12.dp else 0.dp,
                     bottomEnd = if (isLast) 12.dp else 0.dp
                 )
-
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
+                            onAllSelectedChange(subRegion == "전체")
                             val fullRegion = when (selectedRegion) {
-                                "서울", "부산", "인천", "대구", "대전", "울산", "광주", "세종" -> "${selectedRegion}시 $subRegion"
-                                "경기", "강원", "충청", "경상", "전라" -> "${selectedRegion}도 $subRegion"
-                                else -> "${selectedRegion}특별자치도 $subRegion"
+                                "서울", "부산", "인천", "대구", "대전", "울산", "광주", "세종" ->
+                                    "${selectedRegion}시 $subRegion"
+                                "경기", "강원", "충청", "경상", "전라" ->
+                                    "${selectedRegion}도 $subRegion"
+                                else ->
+                                    "${selectedRegion}특별자치도 $subRegion"
                             }
                             onClick(fullRegion)
                         }
