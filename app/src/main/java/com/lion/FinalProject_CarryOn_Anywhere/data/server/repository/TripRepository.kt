@@ -40,7 +40,6 @@ class TripRepository {
         // 수정할 데이터를 담을 맵
         val customerMap = mapOf(
             "tripShareCode" to tripVO.tripShareCode,
-            "shareUserDocumentId" to tripVO.shareUserDocumentId,
         )
         // 수정할 문서에 접근할 수 있는 객체를 가져온다.
         val firestore = FirebaseFirestore.getInstance()

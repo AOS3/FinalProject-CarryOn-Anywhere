@@ -221,9 +221,6 @@ class TripInfoViewModel @Inject constructor(
             CoroutineScope(Dispatchers.Main).launch {
                 shareCode.value = generateRandomCode()
                 tripModel.tripShareCode = shareCode.value
-                val userShareList = mutableListOf<String>()
-                userShareList.add(carryOnApplication.loginUserModel.userDocumentId)
-                tripModel.shareUserDocumentId = userShareList
                 val work3 = async(Dispatchers.IO) {
                     tripService.updateTripShare(tripModel)
                 }
