@@ -254,6 +254,8 @@ class AddTripInfoViewModel @Inject constructor(
     // 날짜 선택 버튼 눌렀을 때
     fun completeDateOnClick(){
         val tripModel = TripModel()
+        val shareUserList = mutableStateListOf<String>()
+
         tripModel.tripTitle = "여행1"
 
         // 선택된 지역 정보 리스트 변환 (시/도 & 선택된 구/군만 저장)
@@ -290,6 +292,8 @@ class AddTripInfoViewModel @Inject constructor(
 
         tripModel.tripTimeStamp = System.currentTimeMillis()
         tripModel.userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+        shareUserList.add(carryOnApplication.loginUserModel.userDocumentId)
+        tripModel.shareUserDocumentId = shareUserList
 
         // Firebase 저장 실행
         CoroutineScope(Dispatchers.Main).launch {

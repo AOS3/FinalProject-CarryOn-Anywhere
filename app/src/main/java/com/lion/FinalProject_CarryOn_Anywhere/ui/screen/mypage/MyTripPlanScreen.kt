@@ -51,73 +51,76 @@ fun MyTripPlanScreen(
     val selectedPlan = remember { mutableStateOf<TripModel?>(null) }
     val showCodeDialog = remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().background(color = Color.White)) {
-            LikeLionTopAppBar(
-                title = "내 일정",
-                navigationIconImage = Icons.Default.ArrowBack,
-                navigationIconOnClick = { navController.popBackStack() },
-                menuItems = {
-                    IconButton(onClick = { showCodeDialog.value = true }) {
-                        Icon(imageVector = Icons.Default.Group, contentDescription = "친구 공유")
-                    }
-                    IconButton(onClick = { myTripPlanViewModel.addPlanOnClick() }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "일정 추가")
-                    }
-                }
-            )
-
-            if (myTripPlanViewModel.contentListState.isEmpty() && !isLoading) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "등록된 일정이 없습니다.",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(bottom = 10.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Text(
-                        text = "일정을 등록해주세요.",
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White)
-                ) {
-                    items(myTripPlanViewModel.contentListState) { plan ->
-                        LikeLionMyTripPlanItem(
-                            onclick = {
-                                myTripPlanViewModel.listItemOnClick(plan.tripDocumentId)
-                            },
-                            plan = plan,
-                            onDeleteClick = {
-                                selectedPlan.value = plan
-                                showDialog.value = true
-                            }
-                        )
-                    }
-                }
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                CircularProgressIndicator(color = SubColor)
+                Spacer(modifier = Modifier.height(10.dp))
+                Text("데이터를 불러오는 중...", color = Color.Gray)
             }
         }
+    } else {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().background(color = Color.White)) {
+                LikeLionTopAppBar(
+                    title = "내 일정",
+                    navigationIconImage = Icons.Default.ArrowBack,
+                    navigationIconOnClick = { navController.popBackStack() },
+                    menuItems = {
+                        IconButton(onClick = { showCodeDialog.value = true }) {
+                            Icon(imageVector = Icons.Default.Group, contentDescription = "친구 공유")
+                        }
+                        IconButton(onClick = { myTripPlanViewModel.addPlanOnClick() }) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "일정 추가")
+                        }
+                    }
+                )
 
-        // ✅ 로딩 인디케이터 추가
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White.copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+                if (myTripPlanViewModel.contentListState.isEmpty() && !isLoading) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "등록된 일정이 없습니다.",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(bottom = 10.dp),
+                            textAlign = TextAlign.Center
+                        )
+
+                        Text(
+                            text = "일정을 등록해주세요.",
+                            style = MaterialTheme.typography.titleLarge,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White)
+                    ) {
+                        items(myTripPlanViewModel.contentListState) { plan ->
+                            LikeLionMyTripPlanItem(
+                                onclick = {
+                                    myTripPlanViewModel.listItemOnClick(plan.tripDocumentId)
+                                },
+                                plan = plan,
+                                onDeleteClick = {
+                                    selectedPlan.value = plan
+                                    showDialog.value = true
+                                }
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -146,6 +149,7 @@ fun MyTripPlanScreen(
     LikeLionCodeInputDialog(
         showDialog = showCodeDialog,
         onConfirm = { code ->
+            myTripPlanViewModel.joinSharedTrip(code)
             println("입력된 일정 코드: $code")
         },
         onDismiss = { }
