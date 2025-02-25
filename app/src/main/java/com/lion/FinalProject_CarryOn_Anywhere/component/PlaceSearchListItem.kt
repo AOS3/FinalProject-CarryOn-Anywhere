@@ -58,7 +58,7 @@ fun PlaceSearchListItem(
 ) {
 
     // 로딩 여부
-    val isLoading = place["isLoading"] as? Boolean ?: true
+    val isLoading = place["isLoading"] as? Boolean ?: false
 
     val imageUrl = place["firstimage"].toString()
     // 이미지 url http ↔ https 변환

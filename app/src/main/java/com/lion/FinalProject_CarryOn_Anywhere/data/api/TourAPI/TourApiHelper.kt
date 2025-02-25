@@ -44,4 +44,11 @@ object TourApiHelper {
     fun getContentType(contentTypeId: String?): String {
         return contentTypeMap[contentTypeId] ?: "기타"
     }
+
+    // URL 추출 함수
+    fun extractUrl(homepage: String): String {
+        val regex = """<a\s+href=["']([^"']+)["']""".toRegex()
+        val matchResult = regex.find(homepage)
+        return matchResult?.groupValues?.get(1) ?: ""
+    }
 }

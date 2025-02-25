@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.JsonSyntaxException
 import com.kakao.sdk.user.model.User
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
@@ -20,6 +21,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -96,6 +98,7 @@ class PlaceSearchViewModel @Inject constructor(
     // 검색 실행 (첫 페이지)
     fun fetchPlace() {
         val keyword = searchValue.value.trim()
+
         if (keyword.isEmpty() || _isLoading.value) return
 
         _isLoading.value = true
@@ -108,7 +111,7 @@ class PlaceSearchViewModel @Inject constructor(
             try {
                 val response = TourAPIRetrofitClient.instance.getSearchPlaces(
                     serviceKey = "Dv9oAbX/dy1WYtUtdQlhwy6o0rZyscllzmIsF9l4iLwlLtX2YeGQo9vzZl7ZUz4ez4BzWLCoBIvih9MgPFpiYQ==",
-                    keyword = searchKeywords.value.joinToString(" "), // ✅ 여러 키워드를 하나로 합쳐 API 요청
+                    keyword = searchKeywords.value.joinToString(" "),
                     pageNo = currentPage
                 )
 
