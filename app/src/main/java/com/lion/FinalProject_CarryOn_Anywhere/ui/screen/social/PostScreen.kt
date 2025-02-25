@@ -1,9 +1,10 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,11 +38,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -58,8 +60,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.rememberCameraPositionState
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAddPlaceItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyPhoto
@@ -69,18 +75,22 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFieldEndIconMode
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.PostViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreen(
     navController: NavController,
     postViewModel: PostViewModel = hiltViewModel(),
+    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
     onAddClick: () -> Unit
 ) {
     val context = LocalContext.current
@@ -102,17 +112,11 @@ fun PostScreen(
     val isLoading by postViewModel.isLoading.collectAsState()
 
     // ViewModel에서 가져온 데이터
-    val postItems = postViewModel.postItems
-    val chipItems = postViewModel.chipItems
+    val imageUris = postViewModel.imageUris.collectAsState()
 
     val scrollState = rememberScrollState()
     val selectedPostChip = postViewModel.selectedPostChip.collectAsState()
     val selectedChip = postViewModel.selectedChip.collectAsState()
-
-    // 입력 필드 상태
-    val textState = remember { mutableStateOf("") }
-    val contentState = remember { mutableStateOf("") }
-    val imageUris = postViewModel.imageUris.collectAsState()
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogBackState = remember { mutableStateOf(false) }
@@ -129,11 +133,71 @@ fun PostScreen(
                 }
             }
         }
+
+    // NavController에서 전달된 데이터를 가져와서 ViewModel에 반영
+    LaunchedEffect(Unit) {
+        navController.currentBackStackEntry?.savedStateHandle?.let { savedState ->
+            savedState.get<String>("selectedTitle")?.let { postViewModel.updateSelectedTitle(it) }
+            savedState.get<String>("startDateTime")
+                ?.let { postViewModel.updateSelectedStartDate(it) }
+            savedState.get<String>("endDateTime")?.let { postViewModel.updateSelectedEndDate(it) }
+            savedState.get<List<Map<String, Any>>>("tripCityList")
+                ?.let { postViewModel.updateTripCityList(it) }
+            savedState.get<List<Map<String, Any>>>("planList")
+                ?.let { postViewModel.updatePlanList(it) }
+        }
+    }
+
+    // ViewModel에서 선택한 일정 정보 가져오기
+    val selectedTitle by postViewModel.selectedTitle.collectAsState()
+    val selectedStartDate by postViewModel.selectedStartDate.collectAsState()
+    val selectedEndDate by postViewModel.selectedEndDate.collectAsState()
+    val tripCityList by postViewModel.tripCityList.collectAsState()
+    val dailyPlanData by postViewModel.dailyPlanData.collectAsState()
+
+    // `postViewModel`에서 마커 데이터 가져오기
+    val (selectedDayPlaces, markerTitles, markerSnippets) = postViewModel.getMarkerDataForSelectedDay(
+        tripInfoViewModel.selectedDay.value
+    )
+
+    // 기본 지도 위치 설정 (서울을 기본값으로 설정)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            selectedDayPlaces.firstOrNull() ?: LatLng(37.5665, 126.9780), 12f
+        )
+    }
+
+    // 지도 위치 업데이트 (마커가 있을 때만)
+    LaunchedEffect(selectedDayPlaces) {
+        if (selectedDayPlaces.isNotEmpty()) {
+            cameraPositionState.position = CameraPosition.fromLatLngZoom(selectedDayPlaces.first(), 12f)
+        }
+    }
+
+    // selectedPlaceLocation 값이 변경되면 지도 위치 업데이트
+    LaunchedEffect(tripInfoViewModel.selectedPlaceLocation.value) {
+        cameraPositionState.position =
+            CameraPosition.fromLatLngZoom(tripInfoViewModel.selectedPlaceLocation.value, 8f)
+    }
+
+    // 여행 날짜 목록 업데이트
+    LaunchedEffect(tripInfoViewModel.startDate.value, tripInfoViewModel.endDate.value) {
+        tripInfoViewModel.updateFormattedDates()
+        tripInfoViewModel.updateTripDays()
+    }
+
+    // 디버깅 로그 출력 (마커 정보 확인)
+    Log.d("PostScreen", "마커 개수: ${selectedDayPlaces.size}")
+    selectedDayPlaces.forEachIndexed { index, latLng ->
+        Log.d("PostScreen", "마커 위치 $index: ${latLng.latitude}, ${latLng.longitude}")
+        Log.d("PostScreen", "마커 제목: ${markerTitles.getOrNull(index)}, 주소: ${markerSnippets.getOrNull(index)}")
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-    )  {
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -187,8 +251,8 @@ fun PostScreen(
                 text = "게시된 글은 마이 페이지 및 게시판에서\n확인 가능합니다.",
                 confirmButtonTitle = "게시",
                 confirmButtonOnClick = {
-                    val title = textState.value.trim()
-                    val content = contentState.value.trim()
+                    val title = postViewModel.titleState.value.trim()
+                    val content = postViewModel.contentState.value.trim()
                     val imageUrisList = imageUris.value
 
                     val isImageRequired = selectedPostChip.value == "여행 후기"
@@ -219,7 +283,29 @@ fun PostScreen(
                                         content = content,
                                         userDocumentId = loginUserId,
                                         userName = loginUserName,
-                                        imageUrls = uploadedImageUrls
+                                        imageUrls = uploadedImageUrls,
+                                        shareTitle = selectedTitle,
+                                        shareDate = "${selectedStartDate} ~ ${selectedEndDate}",
+                                        sharePlace = tripCityList.map {
+                                            (it["regionName"] ?: "알 수 없음").toString() + " / " + (it["subRegionName"] ?: "알 수 없음").toString()
+                                        },
+                                        sharePlan = dailyPlanData.entries.map { (day, places) ->
+                                            places.map { place ->
+                                                val placeName = place["title"]?.toString() ?: "장소 없음"
+                                                val addr = place["addr1"]?.toString() ?: "주소 정보 없음"
+                                                val mapX = place["mapx"]?.toString()?.toDoubleOrNull()?.toString() ?: "0.0"
+                                                val mapY = place["mapy"]?.toString()?.toDoubleOrNull()?.toString() ?: "0.0"
+
+                                                mapOf(
+                                                    "date" to day,
+                                                    "place" to placeName,
+                                                    "addr" to addr,
+                                                    "mapx" to mapX,
+                                                    "mapy" to mapY
+                                                )
+                                            }
+                                        }.flatten()
+
                                     )
                                     Toast.makeText(
                                         context,
@@ -279,7 +365,7 @@ fun PostScreen(
                             .horizontalScroll(scrollState),
                         horizontalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
-                        postItems.forEach { chipText ->
+                        postViewModel.postItems.forEach { chipText ->
                             LikeLionFilterChip(
                                 text = chipText,
                                 selected = selectedPostChip.value == chipText,
@@ -313,7 +399,7 @@ fun PostScreen(
                                 .horizontalScroll(scrollState),
                             horizontalArrangement = Arrangement.spacedBy(0.dp)
                         ) {
-                            chipItems.forEach { chipText ->
+                            postViewModel.chipItems.forEach { chipText ->
                                 LikeLionFilterChip(
                                     text = chipText,
                                     selected = selectedChip.value == chipText,
@@ -348,15 +434,15 @@ fun PostScreen(
 
                     // 제목 입력 텍스트 필드
                     LikeLionOutlinedTextField(
-                        textFieldValue = textState,
+                        textFieldValue = remember { mutableStateOf(postViewModel.titleState.value) },
                         label = "제목",
                         placeHolder = "제목을 입력하세요",
                         maxLength = 30,
                         showCharCount = true,
-                        onValueChange = { textState.value = it },
+                        onValueChange = { postViewModel.updateTitle(it) },
                         singleLine = true,
                         trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
-                        onTrailingIconClick = { textState.value = "" },
+                        onTrailingIconClick = { postViewModel.updateTitle("") },
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp)
                     )
 
@@ -452,18 +538,18 @@ fun PostScreen(
 
                     // 내용 입력 텍스트 필드
                     LikeLionOutlinedTextField(
-                        textFieldValue = contentState,
+                        textFieldValue = remember { mutableStateOf(postViewModel.contentState.value) },
                         label = "내용",
                         placeHolder = "내용을 입력하세요",
                         maxLength = 500,
                         showCharCount = true,
-                        onValueChange = { contentState.value = it },
+                        onValueChange = { postViewModel.updateContent(it) },
                         modifier = Modifier
                             .padding(start = 20.dp, end = 20.dp, top = 10.dp)
                             .height(300.dp),
                         singleLine = false,
                         trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
-                        onTrailingIconClick = { contentState.value = "" }
+                        onTrailingIconClick = { postViewModel.updateContent("") }
                     )
 
                     // "여행 후기"를 선택하면 보이는 버튼
@@ -482,12 +568,124 @@ fun PostScreen(
                                 navController.navigate(ScreenName.SHARE_SCREEN.name)
                             }
                         )
+
+                        // "일정 공유" 버튼 아래에 선택된 일정 표시
+                        if (selectedTitle.isNotEmpty()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 10.dp)
+                            ) {
+                                // 제목
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 15.dp, bottom = 15.dp),
+                                    verticalAlignment = Alignment.Bottom
+                                ) {
+                                    Text(
+                                        text = selectedTitle,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(end = 10.dp)
+                                    )
+                                }
+
+                                // 일정 날짜
+                                Text(
+                                    text = "$selectedStartDate ~ $selectedEndDate",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = GrayColor,
+                                    modifier = Modifier.padding(bottom = 15.dp)
+                                )
+
+                                // 지역 정보
+                                tripCityList.forEach { trip ->
+                                    val regionName = trip["regionName"] as? String ?: "도시 없음"
+                                    val subRegionName = trip["subRegionName"] as? String ?: "도시 없음"
+
+                                    Text(
+                                        text = "📍 여행 지역: $regionName / $subRegionName",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = GrayColor,
+                                        modifier = Modifier.padding(bottom = 5.dp)
+                                    )
+                                }
+
+                                // Google Map
+//                                Column(
+//                                    modifier = Modifier
+//                                        .height(300.dp)
+//                                        .padding(bottom = 10.dp)
+//                                ) {
+//                                    LikeLionGoogleMap(
+//                                        cameraPositionState = cameraPositionState,
+//                                        modifier = Modifier.fillMaxSize(),
+//                                        selectedPlaces = selectedDayPlaces,
+//                                        isAddTripPlan = true,
+//                                        markerTitle = markerTitles,
+//                                        markerSnippet = markerSnippets,
+//                                    )
+//                                }
+
+                                // "일별 일정 목록"
+                                dailyPlanData.entries.forEachIndexed { index, (day, places) ->
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 10.dp)
+                                    ) {
+                                        // DayX 표시 + 날짜
+                                        Row(
+                                            modifier = Modifier.padding(top = 10.dp, bottom = 20.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "Day${index + 1}  $day",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = Color.Black
+                                            )
+                                        }
+
+                                        places.forEachIndexed { placeIndex, place ->
+                                            val distanceToNext = if (placeIndex < places.lastIndex) {
+                                                // 거리 계산
+                                                tripInfoViewModel.calculateDistance(
+                                                    LatLng(
+                                                        (place["mapy"] as? String)?.toDoubleOrNull() ?: 0.0,
+                                                        (place["mapx"] as? String)?.toDoubleOrNull() ?: 0.0
+                                                    ),
+                                                    LatLng(
+                                                        (places[placeIndex + 1]["mapy"] as? String)?.toDoubleOrNull() ?: 0.0,
+                                                        (places[placeIndex + 1]["mapx"] as? String)?.toDoubleOrNull() ?: 0.0
+                                                    )
+                                                )
+                                            } else {
+                                                null // 마지막 장소는 거리 표시 X
+                                            }
+
+                                            LikeLionAddPlaceItem(
+                                                index = placeIndex,
+                                                lastIndex = places.lastIndex,
+                                                place = place,
+                                                distanceToNext = distanceToNext
+                                            )
+                                        }
+
+                                        LikeLionDivider(
+                                            modifier = Modifier.padding(vertical = 10.dp),
+                                            color = Color.LightGray,
+                                            thickness = 1.dp
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
         // 로딩 상태 compose 호출
-        if(isLoading){
+        if (isLoading) {
             Loading()
         }
     }

@@ -26,7 +26,11 @@ data class Review(
     val content: String,
     val postDate: Long,
     val likes: Int,
-    val comments: Int
+    val comments: Int,
+    val tripDate: String,
+    val shareTitle: String ,
+    val sharePlace: List<String>,
+    val sharePlan: List<Map<String, String>>
 )
 
 @HiltViewModel
@@ -64,7 +68,11 @@ class ReviewViewModel @Inject constructor(
                             postDate = tripReview.tripReviewTimestamp,
                             content = tripReview.tripReviewContent,
                             author = tripReview.userDocumentId,
-                            nickName = tripReview.userName
+                            nickName = tripReview.userName,
+                            tripDate = tripReview.tripReviewShareDate,
+                            shareTitle = tripReview.tripReviewShareTitle,
+                            sharePlace = tripReview.tripReviewSharePlace,
+                            sharePlan = tripReview.tripReviewSharePlan
                         )
                     }.sortedByDescending { it.postDate }
 

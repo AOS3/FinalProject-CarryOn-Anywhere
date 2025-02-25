@@ -28,6 +28,14 @@ class TripReviewModel {
     var tripReviewState = TripReviewState.TRIP_REVIEW_STATE_NORMAL
     // 데이터가 생성된 시간
     var tripReviewTimestamp = 0L
+    // 여행 일정 공유 제목
+    var tripReviewShareTitle:String = ""
+    // 여행 일정 공유 날짜
+    var tripReviewShareDate:String = ""
+    // 여행 일정 공유 장소
+    var tripReviewSharePlace= mutableListOf<String>()
+    // 여행 일정 공유 계획
+    var tripReviewSharePlan: MutableList<Map<String, String>> = mutableListOf()
 
     fun toTripReviewVO(): TripReviewVO {
         val tripReviewVO = TripReviewVO()
