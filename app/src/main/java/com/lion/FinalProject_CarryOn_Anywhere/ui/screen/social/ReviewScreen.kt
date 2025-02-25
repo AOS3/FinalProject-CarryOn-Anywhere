@@ -129,7 +129,7 @@ private fun ReviewCard(review: Review, onClick: () -> Unit) {
 
             // 여행 기간
             Text(
-                text = "여행 기간",
+                text = review.tripDate,
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray,
                 modifier = Modifier.padding(vertical = 5.dp)
