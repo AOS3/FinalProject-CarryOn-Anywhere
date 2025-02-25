@@ -7,10 +7,12 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.storage.FirebaseStorage
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.CarryTalkModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.PlanService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,30 +29,65 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PostViewModel @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext context: Context,
+    private val planService: PlanService
 ) : ViewModel() {
     // UI에서 사용할 데이터 리스트
     val postItems = listOf("여행 후기", "여행 이야기")
     val chipItems = listOf("맛집", "숙소", "여행 일정", "모임")
 
+    // 로딩 상태
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> get() = _isLoading
+
     // 선택된 Chip 상태
     private val _selectedPostChip = MutableStateFlow(postItems[0])
     val selectedPostChip: StateFlow<String> get() = _selectedPostChip
 
+    // 선택된 태그 상태
     private val _selectedChip = MutableStateFlow(chipItems[0])
     val selectedChip: StateFlow<String> get() = _selectedChip
+
+    // 제목 상태 저장
+    private val _titleState = MutableStateFlow("")
+    val titleState: StateFlow<String> get() = _titleState
+
+    // 내용 상태 저장
+    private val _contentState = MutableStateFlow("")
+    val contentState: StateFlow<String> get() = _contentState
+
+    // 선택된 제목
+    private val _selectedTitle = MutableStateFlow("")
+    val selectedTitle: StateFlow<String> get() = _selectedTitle
+
+    // 선택된 시작 날짜
+    private val _selectedStartDate = MutableStateFlow("")
+    val selectedStartDate: StateFlow<String> get() = _selectedStartDate
+
+    // 선택된 마지막 날짜
+    private val _selectedEndDate = MutableStateFlow("")
+    val selectedEndDate: StateFlow<String> get() = _selectedEndDate
+
+    // 선택된 여행의 지역 목록
+    private val _tripCityList = MutableStateFlow<List<Map<String, Any>>>(emptyList())
+    val tripCityList: StateFlow<List<Map<String, Any>>> get() = _tripCityList
+
+    // 선택된 여행의 일정 목록
+    private val _planList = MutableStateFlow<List<Map<String, Any>>>(emptyList())
+    val planList: StateFlow<List<Map<String, Any>>> get() = _planList
 
     // 이미지 URI 리스트
     private val _imageUris = MutableStateFlow<List<Uri>>(emptyList())
     val imageUris: StateFlow<List<Uri>> get() = _imageUris
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> get() = _isLoading
+    // PlanData
+    private val _dailyPlanData = MutableStateFlow<Map<String, List<Map<String, Any?>>>>(emptyMap())
+    val dailyPlanData: StateFlow<Map<String, List<Map<String, Any?>>>> get() = _dailyPlanData
 
+    // 로딩
     fun setLoading(isLoading: Boolean) {
         _isLoading.value = isLoading
     }
-
 
     // 선택된 Post Chip 업데이트
     fun updateSelectedPostChip(chip: String) {
@@ -60,6 +97,41 @@ class PostViewModel @Inject constructor(
     // 선택된 Chip 업데이트
     fun updateSelectedChip(chip: String) {
         _selectedChip.value = chip
+    }
+
+    // 제목 업데이트 함수
+    fun updateTitle(title: String) {
+        _titleState.value = title
+    }
+
+    // 내용 업데이트 함수
+    fun updateContent(content: String) {
+        _contentState.value = content
+    }
+
+    // 선택된 제목 업데이트
+    fun updateSelectedTitle(title: String) {
+        _selectedTitle.value = title
+    }
+
+    // 선택된 시작 날짜 업데이트
+    fun updateSelectedStartDate(date: String) {
+        _selectedStartDate.value = date
+    }
+
+    // 선택된 마지막 날짜 업데이트
+    fun updateSelectedEndDate(date: String) {
+        _selectedEndDate.value = date
+    }
+
+    fun updateTripCityList(cityList: List<Map<String, Any>>) {
+        _tripCityList.value = cityList
+    }
+
+    // 일정 목록 업데이트 후 일정 데이터 불러오기
+    fun updatePlanList(planList: List<Map<String, Any>>) {
+        _planList.value = planList
+        fetchDailyPlanData() // Firestore에서 일정 데이터 가져오기
     }
 
     // 이미지 여러 개 추가
@@ -99,7 +171,11 @@ class PostViewModel @Inject constructor(
         content: String,
         userDocumentId: String,
         userName: String,
-        imageUrls: List<String>
+        imageUrls: List<String>,
+        shareTitle: String,
+        shareDate: String,
+        sharePlace: List<String>,
+        sharePlan: List<Map<String, String>>
     ) {
         val job = Job()
         val coroutineScope = CoroutineScope(Dispatchers.IO + job)
@@ -118,6 +194,10 @@ class PostViewModel @Inject constructor(
                         this.tripReviewLikeCount = 0
                         this.tripReviewReplyList = mutableListOf()
                         this.tripReviewTimestamp = System.currentTimeMillis()
+                        this.tripReviewShareTitle = shareTitle
+                        this.tripReviewShareDate = shareDate
+                        this.tripReviewSharePlace = sharePlace.toMutableList()
+                        this.tripReviewSharePlan = sharePlan.toMutableList()
                     }
 
                     try {
@@ -182,7 +262,7 @@ class PostViewModel @Inject constructor(
                     // 파일 업로드
                     val uploadTask = imageRef.putFile(uri).await()
 
-                    // 🛠업로드 상태 확인
+                    // 업로드 상태 확인
                     if (uploadTask.task.isSuccessful) {
                         val downloadUrl = imageRef.downloadUrl.await().toString()
                         downloadUrls.add(downloadUrl)
@@ -196,5 +276,60 @@ class PostViewModel @Inject constructor(
             }
             return downloadUrls
         }
+    }
+
+    fun fetchDailyPlanData() {
+        viewModelScope.launch {
+            val planDataMap = mutableMapOf<String, MutableList<Map<String, Any?>>>()
+
+            for (plan in _planList.value) {
+
+                val planId = plan["id"] as? String
+
+                if (!planId.isNullOrEmpty()) {
+                    val planData = planService.getPlansByTripDocumentId(planId)
+
+                    planData?.placeList?.let { places ->
+                        val dayKey = planData.planDay ?: "전체 일정"
+                        if (!planDataMap.containsKey(dayKey)) {
+                            planDataMap[dayKey] = mutableListOf()
+                        }
+                        planDataMap[dayKey]?.addAll(places)
+                    }
+                } else {
+                    Log.e("PostViewModel", "planId 값이 없음")
+                }
+            }
+
+            _dailyPlanData.value = planDataMap  // StateFlow 업데이트
+            Log.d("PostViewModel", "불러온 일정 데이터: $planDataMap")
+        }
+    }
+
+    fun getMarkerDataForSelectedDay(day: String): Triple<List<LatLng>, List<String>, List<String>> {
+        val selectedDayPlaces = mutableListOf<LatLng>()
+        val markerTitles = mutableListOf<String>()
+        val markerSnippets = mutableListOf<String>()
+
+        // `dailyPlanData.value`를 직접 가져와서 사용
+        _dailyPlanData.value[day]?.forEach { place ->
+            val placeLat = (place["mapy"] as? String)?.toDoubleOrNull()
+            val placeLng = (place["mapx"] as? String)?.toDoubleOrNull()
+            val title = place["title"] as? String ?: "장소"
+            val addr1 = place["addr1"] as? String ?: "주소 정보 없음"
+
+            if (placeLat != null && placeLng != null) {
+                selectedDayPlaces.add(LatLng(placeLat, placeLng))
+                markerTitles.add(title)
+                markerSnippets.add(addr1)
+            }
+        }
+
+        Log.d("PostViewModel", "dailyPlanData: ${_dailyPlanData.value}")
+        Log.d("PostViewModel", "selectedDay: $day")
+        Log.d("PostViewModel", "dailyPlanData[day]: ${_dailyPlanData.value[day]}")
+
+
+        return Triple(selectedDayPlaces, markerTitles, markerSnippets)
     }
 }
