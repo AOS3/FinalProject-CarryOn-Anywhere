@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.MyPostsViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -75,7 +76,7 @@ fun LikeLionMyComment(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun LikeLionMyCommentList(
-    commentViewModel: CommentViewModel = hiltViewModel(),
+    commentViewModel: MyPostsViewModel = hiltViewModel(),
     commentList: List<ReplyModel>,
     onDeleteConfirmed: (ReplyModel) -> Unit
 ) {

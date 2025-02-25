@@ -119,40 +119,6 @@ class CommentViewModel @Inject constructor(
 
 
 
-    //0225 나의 글 관련 메서드
-
-    // 특정 게시글에 해당하는 댓글 목록 LiveData
-    private val _myAllReplys = MutableStateFlow<List<ReplyModel>>(emptyList())
-    val myAllReplys: StateFlow<List<ReplyModel>> get() = _myAllReplys
-
-    // 사용자 ID로 작성한 댓글 모두 불러오기
-    fun getAllReplysByUserId(userId: String){
-        viewModelScope.launch {
-            val myAllReplys = ReplyService.getAllReplysByUserId(userId)
-            _myAllReplys.value = myAllReplys
-        }
-    }
-
-    // 댓글 삭제
-    // replyId 만으로 댓글 데이터 삭제하기
-    // 댓글 삭제 -> 업데이트(불러오기)
-    fun deleteReplyByReplyDocId(replyDocumentId: String, userId: String) {
-        viewModelScope.launch {
-            // ReplyData에서 댓글 삭제로 상태 변경
-            val isRemove1 = ReplyService.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_DELETE)
-            _isRemove1.postValue(isRemove1)
-
-            // talkDocumentId의 댓글 리스트에서 replyDocumentId 삭제
-            val isRemove2 = ReplyService.deleteReplyByReplyDocId(replyDocumentId)
-            _isRemove2.postValue(isRemove2)
-
-
-            if (isRemove1 && isRemove2) {
-                // 나의 댓글 불러오기
-                getAllReplysByUserId(userId)
-            }
-        }
-    }
 
 
 }

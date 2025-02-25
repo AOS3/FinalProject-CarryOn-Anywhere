@@ -2,7 +2,11 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.repository
 
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.CarryTalkState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TripReviewState
 import kotlinx.coroutines.tasks.await
 
 class TripReviewRepository {
@@ -54,5 +58,31 @@ class TripReviewRepository {
                 throw e
             }
         }
+
+
+        // 나의 여행 후기 가져오기
+        suspend fun getMyTripReviews(userDocumentId:String): List<TripReviewModel> {
+
+            val firestore = FirebaseFirestore.getInstance()
+            val talkCollectionReference = firestore.collection("TripReviewData")
+
+            // 특정 게시글에 대한 댓글 가져오기 : TripReviewData
+            val result = talkCollectionReference
+                .whereEqualTo("userDocumentId", userDocumentId)
+                .whereEqualTo("tripReviewState", TripReviewState.TRIP_REVIEW_STATE_NORMAL)
+                .get()
+                .await()
+
+            if (result.documents.isNotEmpty()) {
+                // Firestore에서 가져온 데이터를 `TripReviewModel` 리스트로 변환 후 반환
+                return result.documents.mapNotNull { document ->
+                    document.toObject(TripReviewModel::class.java)
+                }
+            }
+            else {
+                return emptyList() // 댓글이 없으면 빈 리스트 반환
+            }
+        }
+
     }
 }
