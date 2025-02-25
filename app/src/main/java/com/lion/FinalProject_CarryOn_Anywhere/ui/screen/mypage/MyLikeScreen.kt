@@ -1,69 +1,84 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mylike
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyLikeItem
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyTripPlanItem
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionPlaceSearchList
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.LocationModel
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripPlanModel
+import com.lion.FinalProject_CarryOn_Anywhere.component.PlaceSearchListItem
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiHelper
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.MyLikePageViewModel
 
 @Composable
-fun MyLikeScreen(navController: NavController) {
+fun MyLikeScreen(
+    navController: NavController,
+    myLikePageViewModel: MyLikePageViewModel = hiltViewModel()
+) {
 
-    // 샘플 일정 데이터 (실제 데이터는 ViewModel 또는 Repository에서 가져오기)
-    var likeList by remember {
-        mutableStateOf(
-            listOf(
-                // model 연결
-                LocationModel("경복궁","서울특별시","인문",true),
-                LocationModel("강릉 카페거리", "강원도", "음식", true),
-                LocationModel("동대문 쇼핑몰", "서울", "쇼핑", true),
-                LocationModel("라마다프라자호텔 제주도", "제주도", "숙박", true),
-                LocationModel("롯데월드 어드벤처", "서울", "레포츠", true),
+    // 칩 목록
+    val chipItems = listOf("전체") + TourApiHelper.contentTypeMap.values.toList()
 
-            )
-        )
+    val scrollState = rememberScrollState()
+    // 스크롤 위치를 저장, List의 정보를 포함
+    val listState = rememberLazyListState()
+
+    // 선택한 카테고리 칩
+    val selectedChip by myLikePageViewModel.selectedCategory.collectAsState()
+
+    // 사용자 찜 목록
+    val userLikeList by myLikePageViewModel.userLikeList.collectAsState()
+    // 장소 정보
+    val placeInfo by myLikePageViewModel.placeInfo.collectAsState()
+    // 필터링 된 장소
+    val filteredPlace = if (selectedChip == "전체") placeInfo else myLikePageViewModel.filteredLikeList.collectAsState().value
+
+    // 로딩 상태
+    val isLoading = myLikePageViewModel.isLoading.collectAsState().value
+
+    val context = LocalContext.current
+
+    // 찜 목록 불러오기
+    LaunchedEffect(Unit) {
+        myLikePageViewModel.gettingUserLikeList()
     }
 
-    val chipItems = listOf("전체","자연", "인문", "레포츠", "쇼핑", "음식", "숙박","추천코스")
-    val scrollState = rememberScrollState()
-    val selectedChip = remember { mutableStateOf(chipItems[0]) }
-
-    // 선택된 태그에 따라 필터링된 게시글 목록 생성
-    val filteredPosts = if (selectedChip.value == "전체") {
-        likeList // 전체 글 보기
-    } else {
-        likeList.filter { it.locationCategory == selectedChip.value }
+    LaunchedEffect(placeInfo) {
+        Log.d("MY_LIKE_DEBUG", "화면에서 받아온 placeInfo: $placeInfo") // ✅ UI 반영 확인
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .padding(horizontal = 10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // ✅ 상단 앱바
         LikeLionTopAppBar(
-            title = "나의 찜",
+            title = "내 장소",
             backColor = Color.White,
             navigationIconImage = null, // 네비게이션 아이콘 없음
             scrollValue = 0,
@@ -77,81 +92,108 @@ fun MyLikeScreen(navController: NavController) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(scrollState),
-            horizontalArrangement = Arrangement.spacedBy(0.dp)
+                .horizontalScroll(scrollState)
+                .padding(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             chipItems.forEach { chipText ->
                 LikeLionFilterChip(
                     text = chipText,
-                    selected = selectedChip.value == chipText,
+                    selected = selectedChip == chipText,
                     selectedColor = SubColor,
                     unselectedColor = Color.White,
-                    borderColor = SubColor,
+                    borderColor = Color(0xFFD8D0D0),
                     chipTextStyle = TextStyle(
-                        color = if (selectedChip.value == chipText) Color.White else SubColor,
-                        textAlign = TextAlign.Center
+                        color = if (selectedChip == chipText) Color.White else SubColor,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
                     ),
                     selectedTextColor = Color.White,
-                    unselectedTextColor = SubColor,
+                    unselectedTextColor = Color(0xFFADADAD),
                     modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
                     chipModifier = Modifier
                         .padding(4.dp)
-                        .width(60.dp),
-                    cornerRadius = 100,
+                        .fillMaxWidth(),
+                    cornerRadius = 10,
                     onChipClicked = { text, _ ->
-                        selectedChip.value = text // ✅ 선택된 태그 변경
+                        val typeId = TourApiHelper.contentTypeMap.entries.find { it.value == text }?.key ?: "전체"
+                        myLikePageViewModel.filterByCategory(typeId)
                     },
-                    onDeleteButtonClicked = null
+                    onDeleteButtonClicked = null,
                 )
             }
         }
 
-        // ✅ 필터링된 데이터가 없을 경우 빈 화면 표시
-        if (filteredPosts.isEmpty()) {
-            LikeLionEmptyView(message = "선택한 태그에 해당하는 여행지가 없습니다.")
-        } else {
-            LazyColumn(
+        // 로딩 중일 때
+        if (isLoading) {
+            CircularProgressIndicator(
                 modifier = Modifier
-                    .fillMaxSize()
-//                    .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
-//                verticalArrangement = Arrangement.spacedBy(5.dp),
-//                contentPadding = PaddingValues(bottom = 5.dp)
-            ) {
-                items(filteredPosts) { location ->
-                    LikeLionMyLikeItem(
-                        title = location.locationName,
-                        location = location.locationArea,
-                        category = location.locationCategory,
-                        isFavorite = location.locationLike,
-                        onFavoriteClick = {
-                            likeList = likeList.map {
-                                if (it.locationName == location.locationName) {
-                                    it.copy(locationLike = !it.locationLike)
-                                } else {
-                                    it
+                    .align(Alignment.CenterHorizontally),
+                color = MainColor,
+            )
+        } else {
+            // 필터링 된 데이터가 없을 경우
+            if (filteredPlace.isEmpty()) {
+                LikeLionEmptyView(
+                    message = "선택한 태그에 해당하는 장소가 없습니다.",
+                )
+            } else {
+                // 있을 경우 찜 목록 표시
+                // 검색 리스트
+                LikeLionPlaceSearchList(
+                    dataList = filteredPlace.toMutableList(),
+                    isLoading = isLoading,
+                    listState = listState,
+                    rowComposable = { place ->
+                        val contentId = place["contentid"].toString()
+                        val contentTypeId = place["contenttypeid"].toString()
+                        val isLiked = userLikeList.any { it["contentid"] == contentId }
+
+                        PlaceSearchListItem(
+                            place = place,
+                            iconColor = Color(0xFFFF5255),
+                            iconBackColor = Color.Transparent,
+                            isLiked = isLiked,
+                            onLikeClick = { id, typeId ->
+                                myLikePageViewModel.toggleFavorite(id, typeId) { isAdded ->
+                                    Toast.makeText(
+                                        context,
+                                        if (isAdded) "내 장소에 추가되었습니다" else "내 장소에서 삭제되었습니다",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
-                        },
-                        onItemClick = {
-                            // TODO: 상세 페이지 이동 기능 추가
+                        )
+                    },
+                    onRowClick = { place ->
+                        try {
+                            val mapPlace = place as? Map<String, Any>
+                                ?: throw IllegalArgumentException("place is not a Map")
+                            val contentId = place["contentid"]
+                            val contentTypeId = mapPlace["contenttypeid"] as? String ?: ""
+                            Log.d(
+                                "PLACE_DEBUG",
+                                "contentId: $contentId, contentTypeId: $contentTypeId"
+                            )
+
+                            navController.navigate("${ScreenName.PLACE_INFO_SCREEN.name}/$contentId/$contentTypeId")
+                        } catch (e: Exception) {
+                            Log.e("PLACE_DEBUG", "데이터 변환 오류: ${e.message}")
                         }
-                    )
-                    LikeLionDivider(
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 0.dp),
-                        color = Color.LightGray,
-                        thickness = 1.dp
-                    )
-                }
+                    },
+                )
             }
+
         }
     }
 }
 
 
-// ✅ 미리보기 추가
-@Preview(showBackground = true)
-@Composable
-fun PreviewMyLikeScreen() {
-    val navController = rememberNavController() // ✅ 미리보기용 NavController
-    MyLikeScreen(navController = navController)
-}
+//// ✅ 미리보기 추가
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewMyLikeScreen() {
+//    val navController = rememberNavController() // ✅ 미리보기용 NavController
+//    MyLikeScreen(navController = navController)
+//}

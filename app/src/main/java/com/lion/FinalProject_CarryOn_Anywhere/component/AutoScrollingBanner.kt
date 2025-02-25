@@ -28,7 +28,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.R
 @Composable
 fun AutoScrollingBanner(
     bannerImages: List<Any>,
-    bannerHeight: Dp = 300.dp,
+    bannerHeight: Dp = 400.dp,
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 16.dp,
     onBannerClick: (Int) -> Unit = {}

@@ -8,6 +8,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiHelper
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,6 +26,9 @@ class PlaceInfoViewModel @Inject constructor(
 
     val carryOnApplication = context as CarryOnApplication
 
+    // 로그인한 유저 문서 아이디
+    private val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+
     // 상세 정보
     private val _placeDetail = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val placeDetail: StateFlow<List<Map<String, Any>>> = _placeDetail
@@ -32,6 +36,10 @@ class PlaceInfoViewModel @Inject constructor(
     // 로딩 상태 관리
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    // 사용자 찜 목록 저장 변수
+    private val _userLikeList = MutableStateFlow<List<Map<String, String>>>(emptyList())
+    val userLikeList: StateFlow<List<Map<String, String>>> = _userLikeList
 
     // Back 버튼 동작 메서드
     fun navigationBackIconOnClick() {
@@ -44,6 +52,10 @@ class PlaceInfoViewModel @Inject constructor(
 //        }
     }
 
+    init {
+        gettingUserLikeList()
+    }
+
     // `TouristSpotItem`을 `Map<String, Any>`로 변환하는 메서드
     private fun convertToMap(place: TourApiModel.TouristSpotDetailItem): Map<String, Any> {
         return mapOf(
@@ -54,7 +66,7 @@ class PlaceInfoViewModel @Inject constructor(
             "region" to TourApiHelper.getAreaName(place.areacode),
             "category" to TourApiHelper.getContentType(place.contenttypeid),
             "address" to (place.addr1 ?: "주소 정보 없음"),
-            "homepage" to (place.homepage ?: "홈페이지 정보 없음"),
+            "homepage" to TourApiHelper.extractUrl(place.homepage.toString()),
             "tel" to (place.tel ?: "전화번호 정보 없음"),
             "overview" to (place.overview ?: "상세 설명 없음"),
             )
@@ -84,6 +96,50 @@ class PlaceInfoViewModel @Inject constructor(
             }
         }
     }
+
+    // 사용자의 찜 목록 가져오기 (Firestore에서 불러오기)
+    fun gettingUserLikeList() {
+        viewModelScope.launch {
+            try {
+                val userLikes = UserService.getUserLikeList(userDocumentId)
+                _userLikeList.value = userLikes
+            } catch (e: Exception) {
+                Log.e("PlaceSearchViewModel", "찜 목록 가져오기 실패: ${e.message}")
+            }
+        }
+    }
+
+    // 찜 목록 추가/삭제
+    fun toggleFavorite(
+        contentId: String,
+        contentTypeId: String,
+        onComplete: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val userLikes = _userLikeList.value.toMutableList()
+                val isLiked = userLikes.any { it["contentid"] == contentId }
+
+                if (isLiked) {
+                    // 찜 삭제
+                    UserService.deleteUserLikeList(userDocumentId, contentId)
+                    userLikes.removeAll { it["contentid"] == contentId }
+                } else {
+                    // 찜 추가
+                    UserService.addUserLikeList(userDocumentId, contentId, contentTypeId)
+                    userLikes.add(mapOf("contentid" to contentId, "contenttypeid" to contentTypeId))
+                }
+
+                _userLikeList.value = userLikes
+                onComplete(!isLiked)
+            } catch (e: Exception) {
+                Log.e("PlaceSearchViewModel", "찜 목록 업데이트 실패: ${e.message}")
+                onComplete(false)
+            }
+        }
+
+    }
+
 
 
 }

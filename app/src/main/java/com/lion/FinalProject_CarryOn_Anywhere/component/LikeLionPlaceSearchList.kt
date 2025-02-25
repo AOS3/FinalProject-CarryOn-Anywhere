@@ -24,6 +24,7 @@ fun LikeLionPlaceSearchList(
     isLoading: Boolean,
     listState: LazyListState,
     onRowClick: (Any?) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
         modifier = Modifier
