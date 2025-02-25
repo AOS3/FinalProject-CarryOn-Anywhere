@@ -18,7 +18,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.ReplyModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.MyPostsViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // ✅ 개별 댓글 아이템
 @Composable
@@ -49,7 +55,7 @@ fun LikeLionMyComment(
 
             // ✅ 날짜
             Text(
-                text = comment.replyTimeStamp,
+                text = formattedDate(comment.replyTimeStamp),
                 fontSize = 12.sp,
                 color = Color.Gray
             )
@@ -70,6 +76,7 @@ fun LikeLionMyComment(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun LikeLionMyCommentList(
+    commentViewModel: MyPostsViewModel = hiltViewModel(),
     commentList: List<ReplyModel>,
     onDeleteConfirmed: (ReplyModel) -> Unit
 ) {
@@ -86,6 +93,8 @@ fun LikeLionMyCommentList(
                 onDeleteClick = {
                     selectedComment.value = comment
                     showDialog.value = true // ✅ 삭제 다이얼로그 표시
+
+
                 }
             )
         }
@@ -99,7 +108,18 @@ fun LikeLionMyCommentList(
             text = "데이터가 모두 삭제되며 복구할 수 없습니다.",
             confirmButtonTitle = "삭제",
             confirmButtonOnClick = {
-                selectedComment.value?.let { onDeleteConfirmed(it) }
+                selectedComment.value?.let { comment ->
+                    // CommentViewModel의 deleteReplyByReplyDocId 메서드 실행
+                    commentViewModel.deleteReplyByReplyDocId(
+                        replyDocumentId = comment.replyDocumentId,
+                        userId = comment.userId
+                    )
+
+                    // 삭제 후 갱신
+                    commentViewModel.getAllReplysByUserId(comment.userId)
+                }
+
+
                 showDialog.value = false
             },
             dismissButtonTitle = "취소",
@@ -110,25 +130,33 @@ fun LikeLionMyCommentList(
     }
 }
 
-// ✅ 미리보기
-@Preview(showBackground = true)
-@Composable
-fun PreviewLikeLionMyCommentList() {
-    val testComments = listOf(
-        ReplyModel("토토로", "날씨가 좋아서 다행이에요. 너무 부럽습니다. 진짜 좋아보여요.", "2023-04-25 14:15:22"),
-        ReplyModel("토토로", "터질 것만 같은 행복한 기분으로 틀에 박힌 관념 다 버리고 이제 또 맨 주먹 정신 다시 또 시작하면 나 이루리라 다 나 바라는대로", "2022-04-25 14:15:22"),
-        ReplyModel(
-            "토토로", "파란 하늘위로 훨훨 날아가겠죠\n" +
-                    "어려서 꿈꾸었던 비행기 타고\n" +
-                    "기다리는 동안 아무말도 못해요 내 생각 말할 순 없어요", "2021-04-25 14:15:22"
-        )
-    )
-
-    LikeLionMyCommentList(
-        commentList = testComments,
-        onDeleteConfirmed = { deletedComment ->
-            // ✅ 삭제 처리 로직 (현재는 테스트용 출력)
-            println("Deleted: ${deletedComment.replyContent}")
-        }
-    )
+// 날짜 변환
+private fun formattedDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return format.format(date)
 }
+
+
+// ✅ 미리보기
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewLikeLionMyCommentList() {
+////    val testComments = listOf(
+////        ReplyModel("토토로", "날씨가 좋아서 다행이에요. 너무 부럽습니다. 진짜 좋아보여요.", "2023-04-25 14:15:22"),
+////        ReplyModel("토토로", "터질 것만 같은 행복한 기분으로 틀에 박힌 관념 다 버리고 이제 또 맨 주먹 정신 다시 또 시작하면 나 이루리라 다 나 바라는대로", "2022-04-25 14:15:22"),
+////        ReplyModel(
+////            "토토로", "파란 하늘위로 훨훨 날아가겠죠\n" +
+////                    "어려서 꿈꾸었던 비행기 타고\n" +
+////                    "기다리는 동안 아무말도 못해요 내 생각 말할 순 없어요", "2021-04-25 14:15:22"
+////        )
+////    )
+//
+//    LikeLionMyCommentList(
+//        commentList = testComments,
+//        onDeleteConfirmed = { deletedComment ->
+//            // ✅ 삭제 처리 로직 (현재는 테스트용 출력)
+//            println("Deleted: ${deletedComment.replyContent}")
+//        }
+//    )
+//}

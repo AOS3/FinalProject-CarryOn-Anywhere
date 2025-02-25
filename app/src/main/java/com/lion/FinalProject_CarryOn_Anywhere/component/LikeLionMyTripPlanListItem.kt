@@ -19,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripPlanModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

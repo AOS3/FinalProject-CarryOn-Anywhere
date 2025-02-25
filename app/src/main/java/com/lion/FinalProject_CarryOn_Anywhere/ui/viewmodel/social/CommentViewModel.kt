@@ -104,13 +104,11 @@ class CommentViewModel @Inject constructor(
 
 
     // 추가 구현 필요
-
     // 댓글 신고 -> 업데이트(불러오기)
     fun reportReply(replyDocumentId: String,talkDocumentId: String) {
         viewModelScope.launch {
             val isRemove1 = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_COMPLAINT)
             _isRemove1.postValue(isRemove1)
-
 
             if (isRemove1) {
                 // 댓글 불러오기
@@ -118,5 +116,10 @@ class CommentViewModel @Inject constructor(
             }
         }
     }
+
+
+
+
+
 }
 

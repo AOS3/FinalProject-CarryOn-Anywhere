@@ -1,5 +1,6 @@
 package com.lion.FinalProject_CarryOn_Anywhere.data.server.service
 
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
@@ -27,6 +28,12 @@ class TripReviewService {
         // 여행 후기 데이터 수정
         suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
             TripReviewRepository.updateTripReview(documentId, newTitle, newContent, newImageUrls)
+        }
+
+
+        // 나의 후기 가져오기
+        suspend fun getMyTripReviews(userDocumentId:String): List<TripReviewModel> {
+            return TripReviewRepository.getMyTripReviews(userDocumentId)
         }
     }
 }

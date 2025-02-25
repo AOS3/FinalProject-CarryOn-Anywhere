@@ -26,7 +26,6 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionCodeInputDialog
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.myposts.TripPlanModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.MyTripPlanViewModel

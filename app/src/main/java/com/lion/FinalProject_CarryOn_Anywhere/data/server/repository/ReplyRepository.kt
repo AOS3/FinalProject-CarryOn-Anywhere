@@ -180,5 +180,101 @@ class ReplyRepository {
                 false
             }
         }
+
+
+        //0225 나의 글 관련 메서드
+
+        // 사용자 ID로 작성한 댓글 모두 불러오기
+        suspend fun getAllReplysByUserId(userId: String): List<ReplyModel> {
+            val firestore = FirebaseFirestore.getInstance()
+            val talkCollectionReference = firestore.collection("ReplyData")
+
+
+
+            // 특정 게시글에 대한 댓글 가져오기 : CarryTalkData
+            val result1 = talkCollectionReference
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("replyState", ReplyState.REPLY_STATE_NORMAL)
+                .get()
+                .await()
+
+            if (result1.documents.isNotEmpty()) {
+                // Firestore에서 가져온 데이터를 `ReplyModel` 리스트로 변환 후 반환
+                return result1.documents.mapNotNull { document ->
+                    document.toObject(ReplyModel::class.java)
+                }
+            }
+            else {
+                return emptyList() // 댓글이 없으면 빈 리스트 반환
+            }
+        }
+
+
+        // replyDocumentId로 댓글 글 데이터(CarryTalkData, TripReviewData)의 댓글 리스트(talkReplyList, tripReviewReplyList)에서 삭제하기
+        suspend fun deleteReplyByReplyDocId(replyDocumentId: String): Boolean {
+
+            val fireStore = FirebaseFirestore.getInstance()
+
+            val talkCollection = fireStore.collection("CarryTalkData") // 여행이야기 DB
+            val reviewCollection = fireStore.collection("TripReviewData") // 여행 후기
+            val replyCollection = fireStore.collection("ReplyData")
+
+
+
+            // ReplyData에서 replyDocumentId 문서에 접근해 댓글이 쓰여진 talkDocumentId 가져오기
+
+            val documentReference = replyCollection.document(replyDocumentId)
+            val replySnapshot = documentReference.get().await()
+            if (!replySnapshot.exists()) {
+                // 해당 Reply 문서가 없으면 false 반환
+                return false
+            }
+            val talkDocumentId = replySnapshot.getString("boardDocumentId") ?: ""
+
+
+            return try {
+                // 게시글이 여행 이야기인 경우 `CarryTalkData`에서 댓글 삭제
+                val talkDocumentReference = talkCollection.document(talkDocumentId)
+                val talkSnapshot = talkDocumentReference.get().await()
+
+                if (talkSnapshot.exists()) {
+                    val talkModel = talkSnapshot.toObject(CarryTalkModel::class.java)
+                    talkModel?.let {
+                        val updatedReplyList = it.talkReplyList.toMutableList().apply {
+                            remove(replyDocumentId) // 새 댓글 ID 추가
+                        }
+
+                        // `talkReplyList` 업데이트
+                        talkDocumentReference.update("talkReplyList", updatedReplyList).await()
+                    }
+                }
+
+                // 게시글이 여행 후기인 경우 `TripReviewData`에 댓글 추가
+                // Firestore에서 해당 게시글 가져오기
+                val reviewDocumentReference = reviewCollection.document(talkDocumentId)
+                val reviewSnapshot = reviewDocumentReference.get().await()
+
+                if (reviewSnapshot.exists()) {
+                    val reviewModel = reviewSnapshot.toObject(TripReviewModel::class.java)
+                    reviewModel?.let {
+                        val updatedReplyList = it.tripReviewReplyList.toMutableList().apply {
+                            remove(replyDocumentId)
+                        }
+
+                        // `talkReplyList` 업데이트
+                        reviewDocumentReference.update("tripReviewReplyList", updatedReplyList).await()
+                    }
+                }
+                true
+
+            } catch (e: Exception) {
+                // 에러 처리
+                false
+            }
+        }
+
+
+
+
     }
 }

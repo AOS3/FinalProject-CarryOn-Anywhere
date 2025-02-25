@@ -4,15 +4,19 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.CarryTalkState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TripReviewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 // UI에 보여줄 게시글 데이터 구조
@@ -103,4 +107,8 @@ class StoryViewModel @Inject constructor(
             }
         }
     }
+
+
+
+
 }
