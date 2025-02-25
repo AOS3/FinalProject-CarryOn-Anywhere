@@ -279,7 +279,21 @@ class TripSearchPlaceViewModel @Inject constructor(
 
     // 장소 등록 요청 에서 뒤로가기 눌렀을 때
     fun requestPlaceNavigationOnClick(){
-        carryOnApplication.navHostController.popBackStack()
-        carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/${dayVal.value}/${tripDocumentIdVal.value}/${regionCodesParam.value}/${subRegionCodesParam.value}")
+        when(carryOnApplication.previousScreen.value) {
+            "${ScreenName.TRIP_SEARCH_PLACE.name}/${dayVal.value}/${tripDocumentIdVal.value}/${regionCodesParam.value}/${subRegionCodesParam.value}" -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/${dayVal.value}/${tripDocumentIdVal.value}/${regionCodesParam.value}/${subRegionCodesParam.value}")
+            }
+
+            ScreenName.PLACE_SEARCH_SCREEN.name -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate(ScreenName.PLACE_SEARCH_SCREEN.name)
+            }
+
+            else -> {
+                carryOnApplication.navHostController.popBackStack()
+                carryOnApplication.navHostController.navigate("${ScreenName.TRIP_SEARCH_PLACE.name}/${dayVal.value}/${tripDocumentIdVal.value}/${regionCodesParam.value}/${subRegionCodesParam.value}")
+            }
+        }
     }
 }

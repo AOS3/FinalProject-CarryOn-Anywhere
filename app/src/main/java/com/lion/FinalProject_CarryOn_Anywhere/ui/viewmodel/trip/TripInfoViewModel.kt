@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip
 
 import android.content.Context
+import android.content.Intent
 import android.location.Location
 import android.util.Log
 import android.widget.Toast
@@ -12,6 +13,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.FirebaseFirestore
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.ChipState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripModel
@@ -60,7 +62,11 @@ class TripInfoViewModel @Inject constructor(
     // 바텀시트 상태
     val showBottomSheet = mutableStateOf(false)
 
+    val isLoading = mutableStateOf(false)
+
     val selectRegion = mutableStateListOf<String>()
+
+    val shareCode = mutableStateOf("")
 
     // 날짜 선택
     var startDate = mutableStateOf<Long?>(null)
@@ -91,6 +97,7 @@ class TripInfoViewModel @Inject constructor(
     fun gettingTripData(tripDocumentId: String) {
         // 서버에서 데이터를 가져온다.
         CoroutineScope(Dispatchers.Main).launch {
+            isLoading.value = true
             val work1 = async(Dispatchers.IO) {
                 tripService.selectTripDataOneById(tripDocumentId)
             }
@@ -99,6 +106,7 @@ class TripInfoViewModel @Inject constructor(
             currentTripName.value = tripModel.tripTitle
             startDate.value = tripModel.tripStartDate
             endDate.value = tripModel.tripEndDate
+            shareCode.value = tripModel.tripShareCode
             selectRegion.clear()
 
             tripModel.tripCityList.forEach { cityMap ->
@@ -128,10 +136,18 @@ class TripInfoViewModel @Inject constructor(
                 selectRegion.add(fullRegionInfo)
             }
 
+            updateTripDays()
+
             // 날짜별로 Firestore에서 PlanData 불러오기
             tripDays.forEach { day ->
                 getPlanDataByTripAndDay(tripDocumentId, day)
             }
+
+            if (selectedDay.value == "") {
+                selectedDay.value = tripDays.first()
+            }
+
+            isLoading.value = false
         }
     }
 
@@ -190,8 +206,51 @@ class TripInfoViewModel @Inject constructor(
         }
     }
 
+    fun generateRandomCode(): String {
+        val allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return (1..5)
+            .map { allowedChars.random() }
+            .joinToString("")
+    }
+
+    fun shareOnClick(context: Context) {
+        if (shareCode.value != "") {
+            shareTripCode(context, shareCode.value)
+            Toast.makeText(context, "이미 공유된 계획입니다.", Toast.LENGTH_SHORT).show()
+        } else {
+            CoroutineScope(Dispatchers.Main).launch {
+                shareCode.value = generateRandomCode()
+                tripModel.tripShareCode = shareCode.value
+                val work3 = async(Dispatchers.IO) {
+                    tripService.updateTripShare(tripModel)
+                }
+                work3.join()
+
+                shareTripCode(context, shareCode.value)
+
+                Toast.makeText(context, "공유가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun shareTripCode(context: Context, shareCode: String) {
+        val shareText = """
+        🚀 [CarryOn 여행 일정 공유] 🚀
+        여행 코드: $shareCode
+        
+        CarryOn 앱에서 "일정 코드 입력" 기능을 사용하여 여행을 확인하세요!
+    """.trimIndent()
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }
+        context.startActivity(Intent.createChooser(intent, "여행 코드 공유하기"))
+    }
+
     // 일정 만들기에서 뒤로가기 눌렀을 때
     fun addPlanNavigationOnClick() {
+        isLoading.value = false
         when (carryOnApplication.previousScreen.value) {
             ScreenName.MY_TRIP_PLAN.name -> {
                 carryOnApplication.navHostController.popBackStack()
@@ -206,6 +265,8 @@ class TripInfoViewModel @Inject constructor(
         selectedPlaceLocation.value = LatLng(37.5665, 126.9780)
         regionCodes.clear()
         subRegionCodes.clear()
+        shareCode.value = ""
+        selectedDay.value = ""
     }
 
     fun deletePlanOnClick(tripDocumentId: String) {
@@ -223,6 +284,9 @@ class TripInfoViewModel @Inject constructor(
 
         placesByDay.clear()
         selectedPlaceLocation.value = LatLng(37.5665, 126.9780)
+        regionCodes.clear()
+        subRegionCodes.clear()
+        shareCode.value = ""
     }
 
     fun dialogEditDateOnClick(tripDocumentId: String?) {
