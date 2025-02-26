@@ -94,10 +94,18 @@ class TripSearchPlaceViewModel @Inject constructor(
         )
     }
 
-    private suspend fun fetchPlacesFromAPI(regionCodes: List<String>, subRegionCodes: List<String>, page: Int) {
+    private suspend fun fetchPlacesFromAPI(
+        regionCodes: List<String>,
+        subRegionCodes: List<String>,
+        page: Int,
+        query: String,
+        contentTypeId: String? = null // contentTypeId를 명확히 전달받음
+    ) {
         val apiKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ=="
         val uniqueRegionPairs = regionCodes.zip(subRegionCodes).distinct()
         val newPlaces = mutableListOf<TourApiModel.TouristSpotItem>()
+
+        Log.d("TripSearchPlaceViewModel", "검색어: $query, 요청 contentTypeId: $contentTypeId")
 
         uniqueRegionPairs.forEach { (regionCode, subRegionCode) ->
             try {
@@ -106,21 +114,26 @@ class TripSearchPlaceViewModel @Inject constructor(
                     pageNo = page,
                     areaCode = regionCode,
                     sigunguCode = subRegionCode,
+                    contentTypeId = contentTypeId // contentTypeId를 API 요청에 추가
                 )
-                val placeList = response.body()?.response?.body?.items?.item ?: emptyList()
-                newPlaces.addAll(placeList)
 
+                if (response.isSuccessful) {
+                    val placeList = response.body()?.response?.body?.items?.item ?: emptyList()
+                    newPlaces.addAll(placeList)
+                    Log.d("TripSearchPlaceViewModel", "API 성공: ${placeList.size}개 장소 불러옴 (areaCode=$regionCode, sigunguCode=$subRegionCode)")
+                } else {
+                    Log.e("TripSearchPlaceViewModel", "API 응답 실패: ${response.errorBody()?.string()}")
+                }
             } catch (e: Exception) {
-                Log.e("TripSearchPlaceViewModel", "API 요청 실패: areaCode=$regionCode, sigunguCode=$subRegionCode", e)
+                Log.e("TripSearchPlaceViewModel", "API 요청 중 오류 발생: areaCode=$regionCode, sigunguCode=$subRegionCode", e)
             }
         }
 
-        // 전체 장소 리스트에 추가
         _allPlaces.value = _allPlaces.value + newPlaces
-        // 검색 결과도 갱신
-        filterPlaces()
+        filterPlaces() // API 요청 후 필터링 실행
     }
 
+    // 🔹 검색어를 함께 전달하도록 fetchPlaces 수정
     fun fetchPlaces(regionCodes: List<String>, subRegionCodes: List<String>) {
         if (isFetching) return
         isFetching = true
@@ -129,21 +142,56 @@ class TripSearchPlaceViewModel @Inject constructor(
         hasMorePages = true
         _allPlaces.value = emptyList() // 기존 데이터 초기화
 
+        val query = searchTextFieldValue.value
+
+        // 🔹 검색어에 따른 contentTypeId 매칭
+        val contentTypeId = when {
+            query.contains("관광지") -> "12"
+            query.contains("문화시설") -> "14"
+            query.contains("축제") || query.contains("공연") || query.contains("행사") -> "15"
+            query.contains("여행코스") -> "25"
+            query.contains("레포츠") -> "28"
+            query.contains("숙박") || query.contains("숙소") -> "32"
+            query.contains("쇼핑") -> "38"
+            query.contains("맛집") || query.contains("음식점") -> "39"
+            else -> null
+        }
+
+        Log.d("TripSearchPlaceViewModel", "🔍 장소 검색 시작: 검색어 = $query, 요청 contentTypeId: $contentTypeId")
+
         viewModelScope.launch(Dispatchers.IO) {
-            fetchPlacesFromAPI(regionCodes, subRegionCodes, currentPage)
+            fetchPlacesFromAPI(regionCodes, subRegionCodes, currentPage, query, contentTypeId) // 🔹 contentTypeId 전달
             _isLoading.value = false
             isFetching = false
         }
     }
 
+    // fetchNextPlaces도 검색어 전달 추가
     fun fetchNextPlaces(regionCodes: List<String>, subRegionCodes: List<String>) {
         if (!hasMorePages || isFetching) return
         isFetching = true
         _isLoading.value = true
         currentPage++
 
+        val query = searchTextFieldValue.value
+
+        // 검색어에 따른 contentTypeId 매칭
+        val contentTypeId = when {
+            query.contains("관광지") -> "12"
+            query.contains("문화시설") -> "14"
+            query.contains("축제") || query.contains("공연") || query.contains("행사") -> "15"
+            query.contains("여행코스") -> "25"
+            query.contains("레포츠") -> "28"
+            query.contains("숙박") || query.contains("숙소") -> "32"
+            query.contains("쇼핑") -> "38"
+            query.contains("맛집") || query.contains("음식점") -> "39"
+            else -> null
+        }
+
+        Log.d("TripSearchPlaceViewModel", "📦 다음 페이지 요청: 검색어 = $query, page = $currentPage, 요청 contentTypeId: $contentTypeId")
+
         viewModelScope.launch(Dispatchers.IO) {
-            fetchPlacesFromAPI(regionCodes, subRegionCodes, currentPage)
+            fetchPlacesFromAPI(regionCodes, subRegionCodes, currentPage, query, contentTypeId) // 🔹 contentTypeId 전달
             _isLoading.value = false
             isFetching = false
         }
@@ -152,11 +200,25 @@ class TripSearchPlaceViewModel @Inject constructor(
     fun filterPlaces() {
         val query = searchTextFieldValue.value.lowercase().trim()
 
-        val filteredList = if (query.isEmpty()) {
-            _allPlaces.value
-        } else {
-            _allPlaces.value.filter { place ->
-                listOfNotNull(
+        // 검색어에 따른 contentTypeId 매칭
+        val contentTypeId = when {
+            query.contains("관광지") -> "12"
+            query.contains("문화시설") -> "14"
+            query.contains("축제") || query.contains("공연") || query.contains("행사") -> "15"
+            query.contains("여행코스") -> "25"
+            query.contains("레포츠") -> "28"
+            query.contains("숙박") || query.contains("숙소") -> "32"
+            query.contains("쇼핑") -> "38"
+            query.contains("맛집") || query.contains("음식점") -> "39"
+            else -> null
+        }
+
+        val filteredList = _allPlaces.value.filter { place ->
+            when {
+                // 특정 contentTypeId로 필터링
+                contentTypeId != null -> place.contenttypeid == contentTypeId
+                // 일반 검색어 필터링 (제목, 주소 포함 여부 확인)
+                else -> listOfNotNull(
                     place.title?.lowercase(),
                     place.addr1?.lowercase(),
                     place.addr2?.lowercase()
@@ -165,9 +227,10 @@ class TripSearchPlaceViewModel @Inject constructor(
         }
 
         _filteredPlaces.value = filteredList
+        Log.d("TripSearchPlaceViewModel", "필터 적용 후 장소 개수: ${filteredList.size}")
 
-        // 🔹 검색 결과가 부족하면 추가 데이터 요청
-        if (filteredList.isNotEmpty() && filteredList.size <= currentPage * 10 && hasMorePages) {
+        // 검색 결과가 부족하면 추가 데이터 요청
+        if (filteredList.isEmpty() || (filteredList.size <= currentPage * 10 && hasMorePages)) {
             fetchNextPlaces(regionCodesParam.value.split(","), subRegionCodesParam.value.split(","))
         }
     }
