@@ -84,5 +84,46 @@ class TripReviewRepository {
             }
         }
 
+
+        // 좋아요 기능 추가
+        suspend fun toggleLike(documentId: String, userId: String): Boolean {
+            return try {
+                val docRef = collection.document(documentId)
+                val snapshot = docRef.get().await()
+                val likeUserList = snapshot.get("tripReviewLikeUserList") as? MutableList<String> ?: mutableListOf()
+                var likeCount = snapshot.getLong("tripReviewLikeCount")?.toInt() ?: 0
+
+                if (likeUserList.contains(userId)) {
+                    // 이미 좋아요를 눌렀다면 취소
+                    likeUserList.remove(userId)
+                    likeCount -= 1
+                } else {
+                    // 좋아요 추가
+                    likeUserList.add(userId)
+                    likeCount += 1
+                }
+
+                val updateData = mapOf(
+                    "tripReviewLikeCount" to likeCount,
+                    "tripReviewLikeUserList" to likeUserList
+                )
+
+                docRef.update(updateData).await()
+                likeUserList.contains(userId) // 현재 좋아요 상태 반환
+            } catch (e: Exception) {
+                throw e
+            }
+        }
+
+        // 특정 여행 후기의 좋아요 상태 가져오기
+        suspend fun getLikeStatus(documentId: String, userId: String): Boolean {
+            return try {
+                val snapshot = collection.document(documentId).get().await()
+                val likeUserList = snapshot.get("tripReviewLikeUserList") as? List<String> ?: emptyList()
+                likeUserList.contains(userId)
+            } catch (e: Exception) {
+                false
+            }
+        }
     }
 }

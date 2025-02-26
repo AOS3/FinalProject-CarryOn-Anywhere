@@ -1,6 +1,7 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.review
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
@@ -39,6 +41,16 @@ fun ReviewScreen(
     val reviews by reviewViewModel.reviews.collectAsState()
     // 로딩 상태 감지
     val isLoading by reviewViewModel.isLoading.collectAsState()
+
+    val context = LocalContext.current
+
+    // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
+    val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val loginUserId = try {
+        carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
+    } catch (e: UninitializedPropertyAccessException) {
+        "guest"
+    }
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
@@ -77,14 +89,23 @@ fun ReviewScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(5.dp)
-                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+                .padding(5.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
             items(reviews.size) { index ->
+                val review = reviews[index]
+
                 ReviewCard(
-                    review = reviews[index],
+                    review = review,
+                    isLiked = review.tripReviewLikeUserList.contains(loginUserId),
+                    onLikeClick = {
+                        if (loginUserId == "guest") {
+                            Toast.makeText(context, "로그인을 먼저 진행해 주세요!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            reviewViewModel.toggleLike(review.documentId, loginUserId)
+                        }
+                    },
                     onClick = { navController.navigate("reviewDetail/$index") }
                 )
             }
@@ -93,7 +114,12 @@ fun ReviewScreen(
 }
 
 @Composable
-private fun ReviewCard(review: Review, onClick: () -> Unit) {
+private fun ReviewCard(
+    review: Review,
+    isLiked: Boolean,
+    onLikeClick: () -> Unit,
+    onClick: () -> Unit) {
+
     Card(
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -140,9 +166,11 @@ private fun ReviewCard(review: Review, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 좋아요 아이콘 & 숫자
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    LikeLionLikeButton()
+                    LikeLionLikeButton(
+                        isLiked = isLiked,
+                        onClick = onLikeClick
+                    )
 
                     Text(
                         text = " ${review.likes}",

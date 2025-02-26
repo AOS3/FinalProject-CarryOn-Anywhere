@@ -35,5 +35,15 @@ class TripReviewService {
         suspend fun getMyTripReviews(userDocumentId:String): List<TripReviewModel> {
             return TripReviewRepository.getMyTripReviews(userDocumentId)
         }
+
+        // 좋아요 토글 (추가 및 취소)
+        suspend fun toggleLike(documentId: String, userId: String): Boolean {
+            return TripReviewRepository.toggleLike(documentId, userId)
+        }
+
+        // 특정 후기의 좋아요 상태 가져오기
+        suspend fun getLikeStatus(documentId: String, userId: String): Boolean {
+            return TripReviewRepository.getLikeStatus(documentId, userId)
+        }
     }
 }

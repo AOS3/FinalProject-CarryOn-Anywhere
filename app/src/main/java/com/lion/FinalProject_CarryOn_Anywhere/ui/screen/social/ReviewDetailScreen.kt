@@ -103,6 +103,10 @@ fun ReviewDetailScreen(
         tripInfoViewModel.updateTripDays()
     }
 
+    // ✅ 좋아요 상태를 유지하기 위한 변수
+    val isLiked by remember { mutableStateOf(review.tripReviewLikeUserList.contains(loginUserId)) }
+    val likeCount by remember { mutableStateOf(review.likes) }
+
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
         reviewViewModel.fetchTripReviews()
@@ -365,12 +369,43 @@ fun ReviewDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 좋아요 버튼
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    // ✅ 좋아요 상태를 유지하기 위한 변수
+                    val isLiked = remember { mutableStateOf(review.tripReviewLikeUserList.contains(loginUserId)) }
+                    val likeCount = remember { mutableStateOf(review.likes) }
+
+// 좋아요 버튼
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         LikeLionLikeButton(
-                            size = 30
+                            size = 30,
+                            isLiked = isLiked.value,  // ✅ 좋아요 상태 유지
+                            onClick = {
+                                if (loginUserId == "guest") {
+                                    Toast.makeText(
+                                        context,
+                                        "로그인을 먼저 진행해 주세요!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                } else {
+                                    reviewViewModel.toggleLike(
+                                        review.documentId,
+                                        loginUserId
+                                    )
+
+                                    isLiked.value = !isLiked.value  // ✅ UI에서 즉시 변경
+
+                                    likeCount.value = if (isLiked.value) {
+                                        likeCount.value + 1
+                                    } else {
+                                        likeCount.value - 1
+                                    }
+                                }
+                            }
                         )
+
                         Text(
-                            text = review.likes.toString(),
+                            text = likeCount.value.toString(),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(start = 5.dp)
                         )
