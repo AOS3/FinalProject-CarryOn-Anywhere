@@ -3,6 +3,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.ViewModel
@@ -46,7 +47,8 @@ class PlaceSearchViewModel @Inject constructor(
     val userLikeList: StateFlow<List<Map<String, String>>> = _userLikeList
 
     // 로그인한 유저 문서 아이디
-    private val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+    private val userDocumentId: String?
+        get() = carryOnApplication.loginUserModel?.userDocumentId
 
     // 검색 버튼 누름 여부
     var isSearchTriggered = mutableStateOf(false)
@@ -54,12 +56,27 @@ class PlaceSearchViewModel @Inject constructor(
     // 현재 페이지 번호
     var currentPage = 1
 
+    // 로그인 여부 확인
+    val isLoggedIn = carryOnApplication.isLoggedIn
+
     // 로딩 상태 관리
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _selectedCategory = mutableStateOf("전체") // 카테고리 선택 상태
+    val selectedCategory: State<String> = _selectedCategory
+
+    private val _selectedArea = mutableStateOf("전체") // 지역 선택 상태
+    val selectedArea: State<String> = _selectedArea
+
+    private val _selectedSubRegion = mutableStateOf("전체") // 서브 지역 선택 상태
+    val selectedSubRegion: State<String> = _selectedSubRegion
+
     init {
-        gettingUserLikeList()
+        // 로그인한 경우에만 찜 목록 불러오기, `loginUserModel` 초기화
+        if (isLoggedIn.value && carryOnApplication.loginUserModel != null) {
+            gettingUserLikeList()
+        }
     }
 
     // Back 버튼 동작 메서드
@@ -191,9 +208,12 @@ class PlaceSearchViewModel @Inject constructor(
 
     // 사용자의 찜 목록 가져오기 (Firestore에서 불러오기)
     fun gettingUserLikeList() {
+        // `userDocumentId`가 `null`이면 실행하지 않음
+        val userId = userDocumentId ?: return
+
         viewModelScope.launch {
             try {
-                val userLikes = UserService.getUserLikeList(userDocumentId)
+                val userLikes = UserService.getUserLikeList(userId)
                 _userLikeList.value = userLikes
             } catch (e: Exception) {
                 Log.e("PlaceSearchViewModel", "찜 목록 가져오기 실패: ${e.message}")
@@ -205,8 +225,18 @@ class PlaceSearchViewModel @Inject constructor(
     fun toggleFavorite(
         contentId: String,
         contentTypeId: String,
-        onComplete: (Boolean) -> Unit
+        onLoginRequired: () -> Unit,
+        onComplete: (Boolean) -> Unit,
     ) {
+        // 로그인 유도 팝업 호출
+        if (!isLoggedIn.value) {
+            onLoginRequired()
+            return
+        }
+
+        // `userDocumentId`가 `null`이면 실행하지 않음
+        val userId = userDocumentId ?: return
+
         viewModelScope.launch {
             try {
                 val userLikes = _userLikeList.value.toMutableList()
@@ -214,11 +244,11 @@ class PlaceSearchViewModel @Inject constructor(
 
                 if (isLiked) {
                     // 찜 삭제
-                    UserService.deleteUserLikeList(userDocumentId, contentId)
+                    UserService.deleteUserLikeList(userId, contentId)
                     userLikes.removeAll { it["contentid"] == contentId }
                 } else {
                     // 찜 추가
-                    UserService.addUserLikeList(userDocumentId, contentId, contentTypeId)
+                    UserService.addUserLikeList(userId, contentId, contentTypeId)
                     userLikes.add(mapOf("contentid" to contentId, "contenttypeid" to contentTypeId))
                 }
 

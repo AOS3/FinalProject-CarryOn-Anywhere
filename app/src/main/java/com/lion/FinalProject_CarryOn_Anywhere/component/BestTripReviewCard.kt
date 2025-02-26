@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
@@ -70,8 +71,9 @@ fun BestTripReviewCard(
                 style = Typography.titleMedium,
                 color = SubColor,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+                overflow = TextOverflow.Ellipsis,
+                fontSize = 16.sp,
+                )
 
             Spacer(modifier = Modifier.height(10.dp))
 
@@ -81,14 +83,15 @@ fun BestTripReviewCard(
                 color = SubColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-
-            )
+                fontSize = 14.sp,
+                )
 
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
                 text = content,
                 style = Typography.bodyLarge,
+                fontSize = 14.sp,
                 color = GrayColor,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

@@ -71,6 +71,9 @@ fun PlaceInfoScreen(
     placeInfoViewModel: PlaceInfoViewModel = hiltViewModel(),
 ) {
 
+    // 로그인 여부, 다이얼로그
+    val showDialog = remember { mutableStateOf(false) }
+
     // 사용자 찜 목록
     val userLikeList by placeSearchViewModel.userLikeList.collectAsState()
     var isLiked by remember { mutableStateOf(userLikeList.any { it["contentid"] == contentId }) }
@@ -182,7 +185,7 @@ fun PlaceInfoScreen(
                             iconColor = Color(0xFFFF5255),
                             size = 35.dp,
                             iconButtonOnClick = {
-                                placeInfoViewModel.toggleFavorite(contentId, contentTypeId) {onLiked ->
+                                placeInfoViewModel.toggleFavorite(contentId, contentTypeId, onLoginRequired = { showDialog.value = true }) {onLiked ->
                                     isLiked = onLiked
                                     Toast.makeText(
                                         context,

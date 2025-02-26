@@ -26,9 +26,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel
-    @Inject constructor(
+@Inject constructor(
     @ApplicationContext context: Context,
-    ) : ViewModel() {
+) : ViewModel() {
 
     val carryOnApplication = context as CarryOnApplication
 
@@ -136,9 +136,17 @@ class LoginViewModel
 
                     // Application 객체에 로그인 한 사용자의 정보를 담고 메인 화면으로 이동
                     carryOnApplication.loginUserModel = loginUserModel
+                    // 로그인 상태 업데이트
+                    carryOnApplication.isLoggedIn.value = true
 
-                    carryOnApplication.navHostController.popBackStack(ScreenName.LOGIN_SCREEN.name, true)
-                    carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+//                    carryOnApplication.navHostController.popBackStack(ScreenName.LOGIN_SCREEN.name, true)
+//                    carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+
+                    // 백스택을 완전히 제거하고 메인 화면으로 이동
+                    carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name) {
+                        popUpTo(0) // 모든 백스택 제거
+                        launchSingleTop = true
+                    }
                 }
             }
         }
