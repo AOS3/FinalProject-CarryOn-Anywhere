@@ -246,7 +246,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
                 ) {
                     // 좋아요
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        LikeLionLikeButton()
+//                        LikeLionLikeButton()
                         Text(
                             text = " ${post.likes}",
                             style = MaterialTheme.typography.bodySmall,

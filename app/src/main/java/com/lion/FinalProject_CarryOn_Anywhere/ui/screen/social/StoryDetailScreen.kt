@@ -276,9 +276,11 @@ fun StoryDetailScreen(
                 ) {
                     // 좋아요 버튼
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        LikeLionLikeButton(
-                            size = 30
-                        )
+//                        LikeLionLikeButton(
+//                            size = 30,
+//                            isLiked = review.likes > 0,
+//                            onClick = { }
+//                        )
                         Text(
                             text = post.likes.toString(),
                             style = MaterialTheme.typography.bodyMedium,
