@@ -12,13 +12,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -60,6 +63,9 @@ fun PlaceSearchScreen(
     val searchResults by placeSearchViewModel.placeSearchList.collectAsState()
     // 사용자 찜 목록
     val userLikeList by placeSearchViewModel.userLikeList.collectAsState()
+
+    // 로그인 다이얼로그
+    val showDialog = remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -134,7 +140,9 @@ fun PlaceSearchScreen(
                             iconBackColor = Color.Transparent,
                             isLiked = isLiked,
                             onLikeClick = { id, typeId ->
-                                placeSearchViewModel.toggleFavorite(id, typeId) { isAdded ->
+                                placeSearchViewModel.toggleFavorite(
+                                    id, typeId, onLoginRequired = { showDialog.value = true },
+                                ) { isAdded ->
                                     Toast.makeText(
                                         context,
                                         if (isAdded) "내 장소에 추가되었습니다" else "내 장소에서 삭제되었습니다",
@@ -193,6 +201,32 @@ fun PlaceSearchScreen(
                         cornerRadius = 5,
                     )
                 }
+            }
+
+            // 로그인 유도 다이얼로그
+            if (showDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showDialog.value = false },
+                    title = { Text("로그인이 필요합니다") },
+                    text = { Text("찜 기능을 사용하려면 로그인해야 합니다.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showDialog.value = false
+                                navController.navigate(ScreenName.LOGIN_SCREEN.name)
+                            }
+                        ) {
+                            Text("로그인하기")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDialog.value = false }
+                        ) {
+                            Text("취소")
+                        }
+                    }
+                )
             }
         }
     }

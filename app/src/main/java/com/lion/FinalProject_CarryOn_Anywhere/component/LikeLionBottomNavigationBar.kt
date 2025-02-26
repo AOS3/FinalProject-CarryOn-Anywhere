@@ -50,6 +50,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 fun LikeLionBottomNavigation(
     navController: NavController,
     items: List<BottomNavigationItemData>,
+    // 로그인 상태
+    isLoggedIn: Boolean,
+    // 비로그인 다이얼로그 표시
+    onLoginRequest: () -> Unit,
 ) {
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     NavigationBar(
@@ -103,7 +107,21 @@ fun LikeLionBottomNavigation(
                     ),
                     interactionSource = noRippleInteractionSource,
                     onClick = {
-                        if (currentRoute != item.route) {
+//                        if (currentRoute != item.route) {
+//                            item.route?.let {
+//                                navController.navigate(it) {
+//                                    launchSingleTop = true
+//                                    restoreState = false
+//                                    popUpTo(currentRoute!!) {
+//                                        inclusive = true
+//                                    }
+//                                }
+//                            }
+//                        }
+                        if (!isLoggedIn && item.route == null) {
+                            // 비로그인 상태에서만 다이얼로그 표시
+                            onLoginRequest()
+                        } else if (item.route != null && currentRoute != item.route) {
                             navController.navigate(item.route) {
                                 launchSingleTop = true
                                 restoreState = false
@@ -123,5 +141,5 @@ fun LikeLionBottomNavigation(
 data class BottomNavigationItemData(
     val icon: ImageVector,
     val label: String,
-    val route: String
+    val route: String? = null
 )

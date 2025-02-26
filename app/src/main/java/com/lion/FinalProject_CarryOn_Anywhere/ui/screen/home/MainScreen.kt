@@ -10,23 +10,35 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.rememberAsyncImagePainter
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.AutoScrollingBanner
 import com.lion.FinalProject_CarryOn_Anywhere.component.BestTripReviewCard
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionIconButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
@@ -34,19 +46,13 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.MainViewModel
 
 @Composable
 fun MainScreen(
-    //windowInsetsController: WindowInsetsControllerCompat,
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
+    val topTripReviews by mainViewModel.topTripReviews.observeAsState(emptyList())
 
-    // 시스템 바 표시 여부
-    // windowInsetsController가 변경될 때 실행
-//    LaunchedEffect(windowInsetsController) {
-//        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
-//    }
-//    // 화면이 처음 생성될 때 (최초 1회만 실행)
-//    LaunchedEffect(Unit) {
-//        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
-//    }
+    // 로그인 여부
+    val isLoggedIn by mainViewModel.isLoggedIn.collectAsState()
+    val showDialog = remember { mutableStateOf(false) }
 
     Scaffold(
         //contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom),
@@ -112,7 +118,9 @@ fun MainScreen(
                         .weight(1f),
                     paddingTop = 10.dp,
                     onClick = {
-                        mainViewModel.buttonMainUserTripList()
+                        mainViewModel.buttonMainUserTripList {
+                            showDialog.value = true
+                        }
                     },
                     icon = painterResource(id = R.drawable.calendar),
                     cornerRadius = 5,
@@ -127,7 +135,9 @@ fun MainScreen(
                         .weight(1f),
                     paddingTop = 10.dp,
                     onClick = {
-                        mainViewModel.buttonMainAddTrip()
+                        mainViewModel.buttonMainAddTrip{
+                            showDialog.value = true
+                        }
                     },
                     icon = painterResource(id = R.drawable.add_event),
                     cornerRadius = 5,
@@ -147,17 +157,61 @@ fun MainScreen(
                     .padding(start = 20.dp)
             )
 
-            BestTripReviewCard(
-                image = painterResource(id = R.drawable.sample_tripreview),
-                title = "즐거웠던 3박 4일 제주 여행",
-                writer = "joker911",
-                content = "캐리온으로 여행 계획을 짜고 다녀왔던 제주 여행 후기를 들고왔습니다 ~",
+            Text(
+                text = "✈️ 많은 여행자들이 좋아한 인기 여행 후기예요!🔥",
+                color = Color(0xFFADADAD),
+                style = Typography.bodyLarge,
+                fontSize = 14.sp,
                 modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .padding(start = 20.dp, top = 10.dp)
             )
 
-
+            // Top5 여행 후기
+            Column(
+                modifier = Modifier.padding(horizontal = 15.dp, vertical = 15.dp)
+            ) {
+                topTripReviews.forEach { (review, userId) ->
+                    val firstImage = review.tripReviewImage.firstOrNull()
+                    BestTripReviewCard(
+                        image = if (firstImage != null) {
+                            rememberAsyncImagePainter(firstImage) // URL을 비동기 로드
+                        } else {
+                            painterResource(id = R.drawable.sample_tripreview) // 기본 이미지 사용
+                        },
+                        title = review.tripReviewTitle,
+                        writer = userId,
+                        content = review.tripReviewContent,
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp, vertical = 20.dp)
+                    )
+                }
+            }
         }
+    }
 
+    // 🔹 로그인 유도 다이얼로그
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text("로그인이 필요합니다") },
+            text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDialog.value = false
+                        mainViewModel.carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name)
+                    }
+                ) {
+                    Text("로그인하기")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
     }
 }

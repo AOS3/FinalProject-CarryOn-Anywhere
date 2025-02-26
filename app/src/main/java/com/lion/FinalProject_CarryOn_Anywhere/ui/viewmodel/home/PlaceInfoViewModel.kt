@@ -26,8 +26,11 @@ class PlaceInfoViewModel @Inject constructor(
 
     val carryOnApplication = context as CarryOnApplication
 
+    // 로그인 여부 확인
+    val isLoggedIn = carryOnApplication.isLoggedIn
     // 로그인한 유저 문서 아이디
-    private val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
+    private val userDocumentId: String?
+        get() = carryOnApplication.loginUserModel?.userDocumentId
 
     // 상세 정보
     private val _placeDetail = MutableStateFlow<List<Map<String, Any>>>(emptyList())
@@ -53,7 +56,10 @@ class PlaceInfoViewModel @Inject constructor(
     }
 
     init {
-        gettingUserLikeList()
+        // 로그인한 경우에만 찜 목록 불러오기, `loginUserModel` 초기화
+        if (isLoggedIn.value && carryOnApplication.loginUserModel != null) {
+            gettingUserLikeList()
+        }
     }
 
     // `TouristSpotItem`을 `Map<String, Any>`로 변환하는 메서드
@@ -99,9 +105,12 @@ class PlaceInfoViewModel @Inject constructor(
 
     // 사용자의 찜 목록 가져오기 (Firestore에서 불러오기)
     fun gettingUserLikeList() {
+        // `userDocumentId`가 `null`이면 실행하지 않음
+        val userId = userDocumentId ?: return
+
         viewModelScope.launch {
             try {
-                val userLikes = UserService.getUserLikeList(userDocumentId)
+                val userLikes = UserService.getUserLikeList(userId)
                 _userLikeList.value = userLikes
             } catch (e: Exception) {
                 Log.e("PlaceSearchViewModel", "찜 목록 가져오기 실패: ${e.message}")
@@ -113,8 +122,18 @@ class PlaceInfoViewModel @Inject constructor(
     fun toggleFavorite(
         contentId: String,
         contentTypeId: String,
-        onComplete: (Boolean) -> Unit
+        onLoginRequired: () -> Unit,
+        onComplete: (Boolean) -> Unit,
     ) {
+        // 로그인 유도 팝업 호출
+        if (!isLoggedIn.value) {
+            onLoginRequired()
+            return
+        }
+
+        // `userDocumentId`가 `null`이면 실행하지 않음
+        val userId = userDocumentId ?: return
+
         viewModelScope.launch {
             try {
                 val userLikes = _userLikeList.value.toMutableList()
@@ -122,11 +141,11 @@ class PlaceInfoViewModel @Inject constructor(
 
                 if (isLiked) {
                     // 찜 삭제
-                    UserService.deleteUserLikeList(userDocumentId, contentId)
+                    UserService.deleteUserLikeList(userId, contentId)
                     userLikes.removeAll { it["contentid"] == contentId }
                 } else {
                     // 찜 추가
-                    UserService.addUserLikeList(userDocumentId, contentId, contentTypeId)
+                    UserService.addUserLikeList(userId, contentId, contentTypeId)
                     userLikes.add(mapOf("contentid" to contentId, "contenttypeid" to contentTypeId))
                 }
 

@@ -9,6 +9,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @HiltAndroidApp
 class CarryOnApplication :Application(){
@@ -17,8 +18,6 @@ class CarryOnApplication :Application(){
         super.onCreate()
         // 카카오 SDK 초기화
         KakaoSdk.init(this, BuildConfig.KAKAO_API_KEY)
-
-
     }
 
     // 네비게이션
@@ -32,10 +31,8 @@ class CarryOnApplication :Application(){
     // 로그인한 사용자 객체
     lateinit var loginUserModel: UserModel
 
-
-
     // 로그인 여부
-    //var isLoggedIn = MutableStateFlow(false)
+    var isLoggedIn = MutableStateFlow(false)
 
     // ✅ 테스트용 유저 정보
     var loginCustomerModel = UserModel().apply {

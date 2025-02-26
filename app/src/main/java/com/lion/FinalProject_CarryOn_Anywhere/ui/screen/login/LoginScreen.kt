@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.login.LoginViewModel
@@ -62,6 +63,8 @@ fun LoginScreen(
     windowInsetsController:WindowInsetsControllerCompat,
     loginViewModel: LoginViewModel = hiltViewModel()) {
 
+    val context = LocalContext.current
+
     // 키보드 포커스 상태
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
@@ -70,9 +73,9 @@ fun LoginScreen(
         windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
     }
     // 화면이 처음 생성될 때 (최초 1회만 실행)
-    LaunchedEffect(Unit) {
-        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
-    }
+//    LaunchedEffect(Unit) {
+//        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
+//    }
 
     val activity = LocalContext.current as Activity
 

@@ -46,6 +46,7 @@ class StartViewModel @Inject constructor(
                 if(loginUserModel != null){
 
                     carryOnApplication.loginUserModel = loginUserModel
+                    carryOnApplication.isLoggedIn.value = true
 
                     carryOnApplication.navHostController.popBackStack(ScreenName.START_SCREEN.name, true)
                     carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)

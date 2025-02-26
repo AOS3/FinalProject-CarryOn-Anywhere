@@ -9,8 +9,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
@@ -96,6 +103,9 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
     val carryOnApplication = LocalContext.current.applicationContext as CarryOnApplication
     carryOnApplication.navHostController = navHostController
 
+    val isLoggedIn by carryOnApplication.isLoggedIn.collectAsState()
+    val showDialog = remember { mutableStateOf(false) }
+
     val tripInfoViewModel : TripInfoViewModel = hiltViewModel()
     val addTripInfoViewModel : AddTripInfoViewModel = hiltViewModel()
     val tripSearchPlaceViewModel: TripSearchPlaceViewModel = hiltViewModel()
@@ -123,7 +133,9 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             if (currentRoute in bottomNaviScreens) {
                 LikeLionBottomNavigation(
                     navController = navHostController,
-                    items = LikeLionBottomNavItems()
+                    items = LikeLionBottomNavItems(isLoggedIn),
+                    isLoggedIn = isLoggedIn,
+                    onLoginRequest = {showDialog.value = true}
                 )
             }
         }
@@ -422,7 +434,7 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             composable(
                 route = ScreenName.EDIT_MY_INFO.name
             ) {
-                 EditMyInfoScreen(navHostController)
+                EditMyInfoScreen(navHostController)
             }
 
             // 비밀번호 변경 화면
@@ -465,7 +477,32 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                 route = ScreenName.DOCUMENT_SCREEN2.name
             ) { DocumentScreen2(navHostController)
             }
-
         }
+    }
+
+    // 로그인 필요 다이얼로그
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text("로그인이 필요합니다") },
+            text = { Text("서비스를 사용하려면 로그인이 필요합니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDialog.value = false
+                        navHostController.navigate(ScreenName.LOGIN_SCREEN.name)
+                    }
+                ) {
+                    Text("로그인하기")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
     }
 }

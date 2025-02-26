@@ -86,7 +86,7 @@ class MyPageViewModel @Inject constructor(
                 val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
                 UserService.clearAutoLoginToken(userDocumentId, context)
 
-                // carryOnApplication.isLoggedIn.value = false
+                carryOnApplication.isLoggedIn.value = false
 
                 // 네비게이션 처리
                 carryOnApplication.navHostController.popBackStack(ScreenName.MY_PAGE.name, inclusive = true)

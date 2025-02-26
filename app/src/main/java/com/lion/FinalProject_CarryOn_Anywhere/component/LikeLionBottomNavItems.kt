@@ -8,7 +8,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 
 @Composable
 fun LikeLionBottomNavItems(
-//isLoggedIn: Boolean
+    isLoggedIn: Boolean
     ): List<BottomNavigationItemData> {
 
     return listOf(
@@ -25,13 +25,12 @@ fun LikeLionBottomNavItems(
         BottomNavigationItemData(
             icon = ImageVector.vectorResource(id = R.drawable.favorite_24px),
             label = "내 장소",
-            route = ScreenName.MY_LIKE.name
+            route = if (isLoggedIn) ScreenName.MY_LIKE.name else null
         ),
         BottomNavigationItemData(
             icon = ImageVector.vectorResource(id = R.drawable.account_circle_24px),
             label = "마이페이지",
-            //route = if (isLoggedIn) "loginMyPage" else "logoutMyPage",
-            route = ScreenName.MY_PAGE.name
+            route = if (isLoggedIn) ScreenName.MY_PAGE.name else null
         )
     )
 }
