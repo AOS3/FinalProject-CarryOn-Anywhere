@@ -26,9 +26,10 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.login.CompletedFindIViewModel
 
 @Composable
-fun CompletedFindIdScreen(completedFindIViewModel: CompletedFindIViewModel = hiltViewModel()) {
-
-    val userId = "carryon123"
+fun CompletedFindIdScreen(
+    userId:String,
+    completedFindIViewModel: CompletedFindIViewModel = hiltViewModel()
+) {
 
     Scaffold(
         topBar = {
@@ -48,7 +49,7 @@ fun CompletedFindIdScreen(completedFindIViewModel: CompletedFindIViewModel = hil
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(it)
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 10.dp,),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

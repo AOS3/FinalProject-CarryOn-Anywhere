@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
+import com.kakao.sdk.user.model.User
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.UserVO
@@ -44,6 +45,29 @@ class UserRepository {
                 "user_vo" to userVoList[0]
             )
             return userMap
+        }
+
+        // userName + phoneNo 가 일치하는 사용자 데이터 반환
+        suspend fun getUserDocumentIdByNameAndPhone(userName: String, phoneNumber: String) : String? {
+            val firestore = FirebaseFirestore.getInstance()
+            val collectionReference = firestore.collection("UserData")
+
+            return try {
+                val result = collectionReference
+                    .whereEqualTo("userName", userName)
+                    .whereEqualTo("userPhoneNumber", phoneNumber)
+                    .limit(1)
+                    .get()
+                    .await()
+                if (!result.isEmpty) {
+                    val documentId = result.documents[0].id
+                    documentId
+                } else {
+                    null
+                }
+            } catch (e:Exception) {
+                null
+            }
         }
 
         // 사용자 ID를 통해 사용자 데이터를 가져오는 메서드

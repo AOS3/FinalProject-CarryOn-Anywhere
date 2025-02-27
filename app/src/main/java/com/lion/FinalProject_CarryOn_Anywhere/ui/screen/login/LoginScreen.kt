@@ -13,13 +13,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +72,8 @@ fun LoginScreen(
     // 키보드 포커스 상태
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
+
+    val isLoading by loginViewModel.isLoading.collectAsState()
 
     LaunchedEffect(windowInsetsController) {
         windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
@@ -344,6 +350,23 @@ fun LoginScreen(
                 confirmButtonModifier = Modifier.width(140.dp),
                 dismissButtonModifier = Modifier.width(140.dp),
             )
+        }
+
+        // 로딩 UI (isLoading이 true일 때만 표시)
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(SubColor.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    color = MainColor,
+                    strokeWidth = 8.dp,
+                    modifier = Modifier
+                        .size(100.dp),
+                )
+            }
         }
     }
 }

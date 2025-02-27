@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -19,8 +20,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextField
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFieldEndIconMode
@@ -31,7 +35,11 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.login.FindIdViewModel
 
 @Composable
-fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
+fun FindIdScreen(
+    findIdViewModel: FindIdViewModel = hiltViewModel()
+) {
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -59,8 +67,7 @@ fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
                 // 완료 버튼
                 LikeLionFilledButton(
                     text = "완료",
-                    //isEnabled = userJoinViewModel.isButtonJoinEnabled.value,
-                    isEnabled = true,
+                    isEnabled = findIdViewModel.isButtonFindIdDoneEnabled.value,
                     modifier = Modifier
                         .fillMaxWidth(),
                     paddingTop = 10.dp,
@@ -87,18 +94,19 @@ fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
                 .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.Top,
         ) {
-            // 아이디 텍스트 필드
+            // 이름 텍스트 필드
             LikeLionOutlinedTextField(
                 textFieldValue = findIdViewModel.textFieldFindIdNameValue,
                 label = "이름",
                 placeHolder = "이름",
                 modifier = Modifier,
                 paddingTop = 10.dp,
-                inputCondition = "[^a-zA-Z0-9_]",
+                inputCondition = "[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z]",
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
                 singleLine = true,
                 onValueChange = {
-
+                    findIdViewModel.textFieldFindIdNameValue.value = it
+                    findIdViewModel.updateDoneButtonState()
                 },
             )
 
@@ -121,7 +129,9 @@ fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
                     inputType = LikeLionOutlinedTextFieldInputType.NUMBER,
                     singleLine = true,
                     onValueChange = {
-                        findIdViewModel.updateSendAutoButtonState()
+                        findIdViewModel.textFieldFindIdPhoneValue.value = it
+                        findIdViewModel.updateSendAuthButtonState()
+                        findIdViewModel.updateDoneButtonState()
                     },
                 )
 
@@ -134,7 +144,7 @@ fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
                         .padding(top = 6.dp, start = 5.dp)
                         .height(56.dp),
                     onClick = {
-
+                        findIdViewModel.sendVerificationCode(findIdViewModel.textFieldFindIdPhoneValue.value, context)
                     },
                     cornerRadius = 5,
                     containerColor = SubColor,
@@ -157,8 +167,12 @@ fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
                 },
                 singleLine = true,
                 onValueChange = {
-                    findIdViewModel.updateSendAutoButtonState()
+                    findIdViewModel.textFieldFindIdAuthNumberValue.value = it
+                    findIdViewModel.updateCheckAuthButtonState()
+                    findIdViewModel.updateDoneButtonState()
                 },
+                isError = findIdViewModel.textFieldUFindIdAuthNumberError,
+                supportText = findIdViewModel.textFieldUFindIdAuthNumberErrorText
             )
 
             // 인증 번호 확인 버튼
@@ -169,7 +183,8 @@ fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
                     .fillMaxWidth(),
                 paddingTop = 10.dp,
                 onClick = {
-
+                    findIdViewModel.buttonCheckAuthOnClick(context)
+                    findIdViewModel.updateDoneButtonState()
                 },
                 cornerRadius = 5,
                 containerColor = SubColor,
@@ -177,5 +192,21 @@ fun FindIdScreen(findIdViewModel: FindIdViewModel = hiltViewModel()) {
             )
 
         }
+
+        // Dialog - 존재하지 않는 정보
+        LikeLionAlertDialog(
+            showDialogState = findIdViewModel.showDialogMatchNo,
+            title = "존재하지 않는 아이디",
+            text = "존재하지 않는 정보입니다.\n다시 확인해주세요",
+            confirmButtonTitle = "확인",
+            confirmButtonOnClick = {
+                findIdViewModel.showDialogMatchNo.value = false
+            },
+            titleAlign = TextAlign.Center, // 제목 중앙 정렬
+            textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+            titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+            textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+            confirmButtonModifier = Modifier.width(140.dp),
+        )
     }
 }

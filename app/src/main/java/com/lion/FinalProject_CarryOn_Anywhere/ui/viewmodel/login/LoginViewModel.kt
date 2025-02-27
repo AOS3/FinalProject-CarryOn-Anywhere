@@ -20,6 +20,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -49,6 +51,10 @@ class LoginViewModel
     val textFieldLoginIdError= mutableStateOf(false)
     val textFieldLoginPwError= mutableStateOf(false)
     val alertDialogLoginSignOutError = mutableStateOf(false) // 탈퇴 회원 다이얼로그
+
+    // 로딩 상태 관리
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     // 텍스트 필드 버튼 활성화 메서드
     fun updateButtonState() {
@@ -98,12 +104,13 @@ class LoginViewModel
         // 에러가 있으면 로그인 진행 중단
         if (isError) return
 
-        CoroutineScope(Dispatchers.Main).launch {
-            val work1 = async(Dispatchers.IO) {
+        viewModelScope.launch {
+
+            _isLoading.value = true
+
+            val loginResult = withContext(Dispatchers.IO) {
                 UserService.checkLogin(loginUserId, loginUserPw)
             }
-            // 로그인 결과
-            val loginResult = work1.await()
 
             when(loginResult) {
                 LoginResult.LOGIN_RESULT_ID_NOT_EXIST -> {
@@ -149,6 +156,8 @@ class LoginViewModel
                     }
                 }
             }
+
+            _isLoading.value = false
         }
 
     }
