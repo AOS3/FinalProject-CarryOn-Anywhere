@@ -47,6 +47,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Share
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.SharingViewModel
@@ -124,9 +125,14 @@ fun SharingScreen(
                 contentPadding = PaddingValues(bottom = 20.dp)
             ) {
                 items(shares.size) { index ->
-                    ShareItem(shares[index], navController, index)
+                    if (navController.previousBackStackEntry?.destination?.route == ScreenName.POST_SCREEN.name) {
+                        ShareItem(shares[index], navController, index)
+                    } else {
+                        ShareItemForModifyScreen(shares[index], navController)
+                    }
                 }
             }
+
         }
     }
 }
@@ -207,6 +213,61 @@ private fun ShareItem(share: Share, navController: NavController, index: Int) {
                     }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun ShareItemForModifyScreen(share: Share, navController: NavController) {
+    Card(
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp, horizontal = 15.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(10.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                // 일정 제목
+                Text(
+                    text = share.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 일정 기간
+                Text(
+                    text = "${formattedDate(share.startDateTime)} ~ ${formattedDate(share.endDateTime)}",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+
+            // 선택 버튼
+            LikeLionFilledButton(
+                text = "선택",
+                cornerRadius = 100,
+                fillWidth = false,
+                modifier = Modifier.wrapContentSize(),
+                onClick = {
+                    navController.previousBackStackEntry?.savedStateHandle?.apply {
+                        set("selectedTitle", share.title)
+                        set("startDateTime", formattedDate(share.startDateTime))
+                        set("endDateTime", formattedDate(share.endDateTime))
+                        set("tripCityList", share.tripCityList.mapNotNull { it["regionName"] as? String })
+                        set("planList", share.planList.mapNotNull { it as? Map<String, String> })
+                    }
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
