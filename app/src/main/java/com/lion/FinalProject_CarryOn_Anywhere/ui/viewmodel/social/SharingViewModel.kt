@@ -36,7 +36,7 @@ class SharingViewModel @Inject constructor(
     private val _shares = MutableStateFlow<List<Share>>(emptyList())
     val shares: StateFlow<List<Share>> get() = _shares
 
-    // ✅ loginUserId를 파라미터로 받도록 변경
+    // loginUserId를 파라미터로 받도록 변경
     fun fetchUserTripReviews(loginUserId: String) {
         viewModelScope.launch {
             _isLoading.value = true

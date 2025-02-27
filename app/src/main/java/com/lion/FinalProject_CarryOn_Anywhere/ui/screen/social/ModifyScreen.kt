@@ -40,6 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,7 +64,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
+import com.google.android.gms.maps.model.LatLng
 import com.lion.FinalProject_CarryOn_Anywhere.R
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAddPlaceItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyPhoto
@@ -74,10 +77,12 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.ModifyViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -88,11 +93,12 @@ import kotlinx.coroutines.withContext
 @Composable
 fun ModifyScreen(
     navController: NavController,
-    reviewIndex: Int?,
-    storyIndex: Int?,
+    reviewDocumentId: String?,
+    storyDocumentId: String?,
     storyViewModel: StoryViewModel = hiltViewModel(),
     reviewViewModel: ReviewViewModel = hiltViewModel(),
     modifyViewModel: ModifyViewModel = hiltViewModel(),
+    tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
     onAddClick: () -> Unit
 ) {
     // 로딩 상태 감지
@@ -109,23 +115,34 @@ fun ModifyScreen(
     val allImages: MutableList<String>
     val postItems: List<String>
     val chipItems: List<String>
+    val shareTitle = remember { mutableStateOf("") }
+    val tripDate = remember { mutableStateOf("") }
+    val sharePlace = remember { mutableStateListOf<String>() }
+    val sharePlan = remember { mutableStateListOf<Map<String, String>>() }
 
     // "여행 후기" 수정할 경우 데이터 로드
-    if (reviewIndex != null && storyIndex == null) {
-        val review = reviews.getOrNull(reviewIndex) ?: return
+    if (reviewDocumentId != null && storyDocumentId == null) {
+        val review = reviews.find { it.documentId == reviewDocumentId } ?: return
 
         titleState = remember { mutableStateOf(review.title) }
         contentState = remember { mutableStateOf(review.content) }
         allImages = remember { mutableStateListOf(*review.imageUrls.toTypedArray()) }
+        shareTitle.value = review.shareTitle
+        tripDate.value = review.tripDate
+        sharePlace.clear()
+        sharePlace.addAll(review.sharePlace)
+        sharePlan.clear()
+        sharePlan.addAll(review.sharePlan)
+
 
         postItems = modifyViewModel.postItems
         chipItems = modifyViewModel.chipItems
 
         modifyViewModel.updateSelectedPostChip("여행 후기")
 
-    // "여행 이야기" 수정할 경우 데이터 로드
-    } else if (storyIndex != null && reviewIndex == null) {
-        val post = posts.getOrNull(storyIndex) ?: return
+        // "여행 이야기" 수정할 경우 데이터 로드
+    } else if (storyDocumentId != null && reviewDocumentId == null) {
+        val post = posts.find { it.documentId == storyDocumentId } ?: return
 
         titleState = remember { mutableStateOf(post.title) }
         contentState = remember { mutableStateOf(post.content) }
@@ -164,6 +181,37 @@ fun ModifyScreen(
                 }
             }
         }
+
+    LaunchedEffect(Unit) {
+        navController.currentBackStackEntry?.savedStateHandle?.let { savedState ->
+            savedState.getLiveData<String>("selectedTitle").observeForever { title ->
+                Log.d("ModifyScreen", "🔹 selectedTitle: $title")
+                shareTitle.value = title
+            }
+
+            savedState.getLiveData<String>("startDateTime").observeForever { start ->
+                savedState.getLiveData<String>("endDateTime").observeForever { end ->
+                    Log.d("ModifyScreen", "🔹 tripDate: $start ~ $end")
+                    tripDate.value = "$start ~ $end"
+                }
+            }
+
+            savedState.getLiveData<List<String>>("tripCityList").observeForever { places ->
+                Log.d("ModifyScreen", "🔹 tripCityList: $places")
+                sharePlace.clear()
+                sharePlace.addAll(places)
+            }
+
+            savedState.getLiveData<List<Map<String, String>>>("planList").observeForever { plans ->
+                Log.d("ModifyScreen", "🔹 planList:")
+                plans.forEachIndexed { index, plan ->
+                    Log.d("ModifyScreen", "   Day${index + 1}: $plan")
+                }
+                sharePlan.clear()
+                sharePlan.addAll(plans)
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -260,20 +308,24 @@ fun ModifyScreen(
 
                             withContext(Dispatchers.Main) {
                                 if (!isImageRequired || finalImageUrls.isNotEmpty()) {
-                                    if (selectedPostChip.value == "여행 후기") {
+                                    if (selectedPostChip.value == "여행 후기" && reviewDocumentId != null) {
                                         reviewViewModel.editTripReview(
-                                            documentId = reviews[reviewIndex!!].documentId,
+                                            documentId = reviewDocumentId,
                                             newTitle = newTitle,
                                             newContent = newContent,
-                                            newImageUrls = finalImageUrls
+                                            newImageUrls = finalImageUrls,
+                                            newShareTitle = shareTitle.value,
+                                            newTripDate = tripDate.value,
+                                            newSharePlace = sharePlace,
+                                            newSharePlan = sharePlan
                                         )
 
                                         Toast.makeText(context, "여행 후기 수정 완료!", Toast.LENGTH_SHORT)
                                             .show()
 
-                                    } else if (selectedPostChip.value == "여행 이야기") {
+                                    } else if (selectedPostChip.value == "여행 이야기" && storyDocumentId != null) {
                                         storyViewModel.editCarryTalk(
-                                            documentId = posts[storyIndex!!].documentId,
+                                            documentId = storyDocumentId,
                                             newTag = when (modifyViewModel._selectedChip.value) {
                                                 "맛집" -> TalkTag.TALK_TAG_RESTAURANT.name
                                                 "숙소" -> TalkTag.TALK_TAG_ACCOMMODATION.name
@@ -365,7 +417,11 @@ fun ModifyScreen(
                                     if (text == initialCategory) {
                                         modifyViewModel.updateSelectedPostChip(text)
                                     } else {
-                                        Toast.makeText(context, "카테고리는 변경할 수 없습니다.", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "카테고리는 변경할 수 없습니다.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 },
                                 onDeleteButtonClicked = null
@@ -539,13 +595,14 @@ fun ModifyScreen(
                     )
 
                     // "여행 후기"를 선택하면 보이는 버튼
-                    if (selectedPostChip.value == "여행 후기") {
+                    if (selectedPostChip.value == "여행 후기" && reviews.isNotEmpty()) {
                         LikeLionDivider(
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 10.dp),
                             color = Color.LightGray,
                             thickness = 1.dp
                         )
 
+                        // 일정 공유 버튼
                         LikeLionFilledButton(
                             text = "일정 공유",
                             cornerRadius = 10,
@@ -554,13 +611,121 @@ fun ModifyScreen(
                                 navController.navigate(ScreenName.SHARE_SCREEN.name)
                             }
                         )
+
+                        if (shareTitle.value.isNotEmpty() || sharePlace.isNotEmpty()) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 10.dp)
+                            ) {
+                                // 제목
+                                shareTitle.value.takeIf { it.isNotEmpty() }?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(bottom = 10.dp)
+                                    )
+                                }
+
+                                // 일정 날짜
+                                tripDate.value.takeIf { it.isNotEmpty() }?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = GrayColor,
+                                        modifier = Modifier.padding(bottom = 10.dp)
+                                    )
+                                }
+
+                                // 지역 정보
+                                if (sharePlace.isNotEmpty()) {
+                                    sharePlace.forEach { place ->
+                                        Text(
+                                            text = "📍 여행 지역: $place",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = GrayColor,
+                                            modifier = Modifier.padding(bottom = 5.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            // "일별 일정 목록"
+                            if (sharePlan.isNotEmpty()) {
+                                sharePlan
+                                    .groupBy { it["date"] ?: "날짜 없음" }
+                                    .entries
+                                    .forEachIndexed { index, (day, places) ->
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 20.dp, vertical = 10.dp)
+                                        ) {
+                                            // DayX 표시 + 날짜
+                                            Text(
+                                                text = "Day${index + 1}  $day",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = Color.Black,
+                                                modifier = Modifier.padding(bottom = 10.dp)
+                                            )
+
+                                            places.forEachIndexed { placeIndex, place ->
+                                                val placeName = place["place"] ?: "장소 없음"
+                                                val addr1 = place["addr"] ?: "주소 정보 없음"
+                                                val addr2 = place["addr2"] ?: ""
+
+                                                val mapX =
+                                                    place["mapx"]?.toString()?.toDoubleOrNull()
+                                                        ?: 0.0
+                                                val mapY =
+                                                    place["mapy"]?.toString()?.toDoubleOrNull()
+                                                        ?: 0.0
+
+                                                val distanceToNext =
+                                                    places.getOrNull(placeIndex + 1)
+                                                        ?.let { nextPlace ->
+                                                            val nextMapX =
+                                                                nextPlace["mapx"]?.toString()
+                                                                    ?.toDoubleOrNull() ?: 0.0
+                                                            val nextMapY =
+                                                                nextPlace["mapy"]?.toString()
+                                                                    ?.toDoubleOrNull() ?: 0.0
+
+                                                            tripInfoViewModel.calculateDistance(
+                                                                LatLng(mapY, mapX),
+                                                                LatLng(nextMapY, nextMapX)
+                                                            )
+                                                        }
+
+                                                LikeLionAddPlaceItem(
+                                                    index = placeIndex,
+                                                    lastIndex = places.lastIndex,
+                                                    place = mapOf(
+                                                        "title" to placeName,
+                                                        "addr1" to addr1,
+                                                        "addr2" to addr2
+                                                    ),
+                                                    distanceToNext = distanceToNext
+                                                )
+                                            }
+
+                                            // 구분선
+                                            LikeLionDivider(
+                                                modifier = Modifier.padding(vertical = 10.dp),
+                                                color = Color.LightGray,
+                                                thickness = 1.dp
+                                            )
+                                        }
+                                    }
+                            }
+                        }
                     }
                 }
             }
-        }
-        // 로딩 상태 compose 호출
-        if (isLoading){
-            Loading()
+            // 로딩 상태 compose 호출
+            if (isLoading) {
+                Loading()
+            }
         }
     }
 }
@@ -590,7 +755,7 @@ private fun ModifyScreenPreview() {
     ModifyScreen(
         navController = NavController(LocalContext.current),
         onAddClick = {},
-        reviewIndex = null,
-        storyIndex = 1
+        reviewDocumentId = "reviewDocumentId",
+        storyDocumentId = "storyDocumentId"
     )
 }
