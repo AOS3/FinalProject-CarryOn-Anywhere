@@ -10,6 +10,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
+import com.google.gson.JsonSyntaxException
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.ChipState
 import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourAPIRetrofitClient
@@ -26,6 +27,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -104,27 +106,62 @@ class TripSearchPlaceViewModel @Inject constructor(
         val uniqueRegionPairs = regionCodes.zip(subRegionCodes).distinct()
         val newPlaces = mutableListOf<TourApiModel.TouristSpotItem>()
 
-        uniqueRegionPairs.forEach { (regionCode, subRegionCode) ->
-            try {
-                val response = TourAPIRetrofitClient.instance.getPlaces(
-                    serviceKey = apiKey,
-                    pageNo = page,
-                    areaCode = regionCode,
-                    sigunguCode = subRegionCode,
-                    contentTypeId = contentTypeId
-                )
+        Log.d("TripSearchPlaceViewModel", "검색어에 따른 API 호출 시작 - page: $page, 요청 contentTypeId: $contentTypeId")
 
-                if (response.isSuccessful) {
-                    val placeList = response.body()?.response?.body?.items?.item ?: emptyList()
-                    newPlaces.addAll(placeList)
-                } else {
-                    Log.e("TripSearchPlaceViewModel", "API 응답 실패: ${response.errorBody()?.string()}")
+        delay(300) // 너무 빠른 요청 방지
+
+        uniqueRegionPairs.forEach { (regionCode, subRegionCode) ->
+            Log.d("TripSearchPlaceViewModel", "API 호출: areaCode = $regionCode, sigunguCode = $subRegionCode, pageNo = $page, contentTypeId = $contentTypeId")
+
+            var retryCount = 0
+            val maxRetries = 3 // 최대 재시도 횟수
+            var success = false
+
+            while (retryCount < maxRetries && !success) {
+                try {
+                    val response = TourAPIRetrofitClient.instance.getPlaces(
+                        serviceKey = apiKey,
+                        pageNo = page,
+                        areaCode = regionCode,
+                        sigunguCode = subRegionCode,
+                        contentTypeId = contentTypeId
+                    )
+
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        val placeList = responseBody?.response?.body?.items?.item ?: emptyList()
+                        newPlaces.addAll(placeList)
+                        success = true
+                    } else {
+                        val errorBody = response.errorBody()?.string()
+                        Log.e("TripSearchPlaceViewModel", "API 응답 실패: HTTP ${response.code()}, 오류 내용: $errorBody")
+
+                        // 429 (Too Many Requests)일 경우 일정 시간 대기 후 재시도
+                        if (response.code() == 429) {
+                            Log.w("TripSearchPlaceViewModel", "요청 제한됨. 3초 대기 후 재시도 (${retryCount + 1}/$maxRetries)")
+                            delay(3000)
+                        } else {
+                            break // 다른 오류는 재시도하지 않음
+                        }
+                    }
+                } catch (e: JsonSyntaxException) {
+                    Log.e("TripSearchPlaceViewModel", "JSON 파싱 오류 발생: areaCode=$regionCode, sigunguCode=$subRegionCode, pageNo=$page, contentTypeId=$contentTypeId", e)
+                    break // JSON 파싱 오류는 재시도하지 않음
+                } catch (e: Exception) {
+                    Log.e("TripSearchPlaceViewModel", "API 요청 중 오류 발생: areaCode=$regionCode, sigunguCode=$subRegionCode, contentTypeId=$contentTypeId", e)
+
+                    // 네트워크 문제일 경우 재시도
+                    if (retryCount < maxRetries - 1) {
+                        Log.w("TripSearchPlaceViewModel", "네트워크 오류 발생. 3초 대기 후 재시도 (${retryCount + 1}/$maxRetries)")
+                        delay(3000)
+                    }
                 }
-            } catch (e: Exception) {
-                Log.e("TripSearchPlaceViewModel", "API 요청 중 오류 발생: areaCode=$regionCode, sigunguCode=$subRegionCode", e)
+
+                retryCount++
             }
         }
 
+        // 데이터 업데이트
         _allPlaces.value = _allPlaces.value + newPlaces
         filterPlaces()
     }
@@ -191,31 +228,63 @@ class TripSearchPlaceViewModel @Inject constructor(
 
     fun filterPlaces() {
         val query = searchTextFieldValue.value.lowercase().trim()
+        // 검색어를 공백 기준으로 분리하여 키워드 리스트 생성
+        val queryKeywords = query.split(" ").filter { it.isNotBlank() }.toMutableList()
 
-        // 검색어에 따른 contentTypeId 매칭
+        // 검색어에 따른 contentTypeId 매칭 (매칭된 키워드는 키워드 리스트에서 제거)
         val contentTypeId = when {
-            query.contains("관광지") -> "12"
-            query.contains("문화시설") -> "14"
-            query.contains("축제") || query.contains("공연") || query.contains("행사") -> "15"
-            query.contains("여행코스") -> "25"
-            query.contains("레포츠") -> "28"
-            query.contains("숙박") || query.contains("숙소") -> "32"
-            query.contains("쇼핑") -> "38"
-            query.contains("맛집") || query.contains("음식점") -> "39"
+            query.contains("관광지") -> {
+                queryKeywords.remove("관광지")
+                "12"
+            }
+            query.contains("문화시설") -> {
+                queryKeywords.remove("문화시설")
+                "14"
+            }
+            query.contains("축제") || query.contains("공연") || query.contains("행사") -> {
+                listOf("축제", "공연", "행사").forEach { queryKeywords.remove(it) }
+                "15"
+            }
+            query.contains("여행코스") -> {
+                queryKeywords.remove("여행코스")
+                "25"
+            }
+            query.contains("레포츠") -> {
+                queryKeywords.remove("레포츠")
+                "28"
+            }
+            query.contains("숙박") || query.contains("숙소") -> {
+                listOf("숙박", "숙소").forEach { queryKeywords.remove(it) }
+                "32"
+            }
+            query.contains("쇼핑") -> {
+                queryKeywords.remove("쇼핑")
+                "38"
+            }
+            query.contains("맛집") || query.contains("음식점") -> {
+                listOf("맛집", "음식점").forEach { queryKeywords.remove(it) }
+                "39"
+            }
             else -> null
         }
 
+        // 필터링: contentTypeId 조건과 남은 키워드 모두 매칭되어야 함
         val filteredList = _allPlaces.value.filter { place ->
-            when {
-                // 특정 contentTypeId로 필터링
-                contentTypeId != null -> place.contenttypeid == contentTypeId
-                // 일반 검색어 필터링 (제목, 주소 포함 여부 확인)
-                else -> listOfNotNull(
-                    place.title?.lowercase(),
-                    place.addr1?.lowercase(),
-                    place.addr2?.lowercase()
-                ).any { it.contains(query) }
+            val matchesContentType = contentTypeId?.let { place.contenttypeid == it } ?: true
+
+            // 남은 키워드가 없으면 기본적으로 true
+            val matchesKeywords = if (queryKeywords.isEmpty()) {
+                true
+            } else {
+                queryKeywords.all { keyword ->
+                    listOfNotNull(
+                        place.title?.lowercase(),
+                        place.addr1?.lowercase(),
+                        place.addr2?.lowercase()
+                    ).any { it.contains(keyword) }
+                }
             }
+            matchesContentType && matchesKeywords
         }
 
         _filteredPlaces.value = filteredList
@@ -249,6 +318,8 @@ class TripSearchPlaceViewModel @Inject constructor(
                 // 이전 인덱스와 비교하여 동일하면 추가 안함
                 if (lastPlace != null && lastPlace["contentid"] == place["contentid"]) {
                     Toast.makeText(carryOnApplication, "연속으로 같은 장소를 추가할 수 없습니다.", Toast.LENGTH_SHORT).show()
+
+                    searchTextFieldValue.value = ""
                     carryOnApplication.navHostController.popBackStack()
                     carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$documentId")
                     return@launch
@@ -272,6 +343,7 @@ class TripSearchPlaceViewModel @Inject constructor(
 
                     work2.await()
 
+                    searchTextFieldValue.value = ""
                     carryOnApplication.navHostController.popBackStack()
                     carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$documentId")
                 } else {
@@ -288,6 +360,7 @@ class TripSearchPlaceViewModel @Inject constructor(
                         work4.await()
                     }
 
+                    searchTextFieldValue.value = ""
                     carryOnApplication.navHostController.popBackStack()
                     carryOnApplication.navHostController.navigate("${ScreenName.ADD_TRIP_PLAN.name}/$documentId")
                 }
