@@ -36,6 +36,8 @@ class TripReviewModel {
     var tripReviewSharePlace= mutableListOf<String>()
     // 여행 일정 공유 계획
     var tripReviewSharePlan: MutableList<Map<String, String>> = mutableListOf()
+    // 좋아요 누른 유저 목록
+    var tripReviewLikeUserList = mutableListOf<String>()
 
     fun toTripReviewVO(): TripReviewVO {
         val tripReviewVO = TripReviewVO()

@@ -26,10 +26,12 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.ModeEdit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,18 +70,20 @@ import java.util.Locale
 @Composable
 fun StoryDetailScreen(
     storyViewModel: StoryViewModel = hiltViewModel(),
-    storyIndex: Int,
+    documentId : String,
     navController: NavController,
     onAddClick: () -> Unit
 ) {
     // "여행 이야기" 목록을 가져오고 선택된 "여행 이야기"를 찾음
     val posts by storyViewModel.posts.collectAsState()
-    val post = posts.getOrNull(storyIndex) ?: return
+    val post = posts.find { it.documentId == documentId } ?: return
 
     val context = LocalContext.current
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogDeleteState = remember { mutableStateOf(false) }
+    // 로그인 유도 다이얼로그 상태
+    val showLoginDialog = remember { mutableStateOf(false) }
 
     // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
     val carryOnApplication = context.applicationContext as? CarryOnApplication
@@ -93,6 +97,10 @@ fun StoryDetailScreen(
 
     // 시스템 바텀바 높이 가져오기
     val systemBarHeight = getNavigationBarHeight().dp
+
+    // 좋아요 상태를 유지하기 위한 변수
+    val isLiked = remember { mutableStateOf(post.carryTalkLikeUserList.contains(loginUserId)) }
+    val likeCount = remember { mutableStateOf(post.likes) }
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
@@ -117,7 +125,7 @@ fun StoryDetailScreen(
                     if(isAuthor) {
                         Row {
                             IconButton(onClick = {
-                                navController.navigate("modifyScreen/story/$storyIndex")
+                                navController.navigate("modifyScreen/story/$documentId")
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.ModeEdit,
@@ -137,6 +145,32 @@ fun StoryDetailScreen(
                 }
             )
 
+            // 로그인 유도 다이얼로그
+            if (showLoginDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showLoginDialog.value = false },
+                    title = { Text("로그인이 필요합니다") },
+                    text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showLoginDialog.value = false
+                                navController.navigate(ScreenName.LOGIN_SCREEN.name)
+                            }
+                        ) {
+                            Text("로그인하기")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showLoginDialog.value = false }
+                        ) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
+
             // "삭제" 다이얼로그 표시
             LikeLionAlertDialog(
                 showDialogState = showDialogDeleteState,
@@ -148,7 +182,7 @@ fun StoryDetailScreen(
                     storyViewModel.deleteCarryTalk(
                         post.documentId,
                         onSuccess = {
-                            navController.popBackStack() // ✅ 삭제 후 ReviewScreen으로 이동
+                            navController.popBackStack()
                         },
                         onError = { errorMessage ->
                             Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
@@ -275,12 +309,34 @@ fun StoryDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 좋아요 버튼
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         LikeLionLikeButton(
-                            size = 30
+                            size = 30,
+                            isLiked = isLiked.value,
+                            onClick = {
+                                if (loginUserId == "guest") {
+                                    showLoginDialog.value = true
+                                } else {
+                                    storyViewModel.toggleLike(
+                                        post.documentId,
+                                        loginUserId
+                                    )
+
+                                    isLiked.value = !isLiked.value
+
+                                    likeCount.value = if (isLiked.value) {
+                                        likeCount.value + 1
+                                    } else {
+                                        likeCount.value - 1
+                                    }
+                                }
+                            }
                         )
+
                         Text(
-                            text = post.likes.toString(),
+                            text = likeCount.value.toString(),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(start = 5.dp)
                         )
@@ -337,7 +393,7 @@ private fun getNavigationBarHeight(): Float {
 private fun StoryDetailScreenPreview() {
     StoryDetailScreen(
         navController = NavController(LocalContext.current),
-        storyIndex = 0,
+        documentId = "documentId",
         onAddClick = {}
     )
 }

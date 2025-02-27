@@ -29,10 +29,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Post
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.StoryViewModel
@@ -56,12 +58,23 @@ fun StoryScreen(
     val scrollState = rememberScrollState()
     val selectedChip = remember { mutableStateOf(chipItems[0]) }
 
+    val context = LocalContext.current
+
+    val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val loginUserId = try {
+        carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
+    } catch (e: UninitializedPropertyAccessException) {
+        "guest"
+    }
+
     // 선택된 태그에 따라 필터링된 게시글 목록 생성
     val filteredPosts = if (selectedChip.value == "전체") {
         posts // 전체 글 보기
     } else {
         posts.filter { it.tag == selectedChip.value }
     }
+
+    val showLoginDialog = remember { mutableStateOf(false) }
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
@@ -131,20 +144,76 @@ fun StoryScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()),
+                    .padding(
+                        bottom = WindowInsets.navigationBars.asPaddingValues()
+                            .calculateBottomPadding()
+                    ),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 contentPadding = PaddingValues(bottom = 20.dp)
             ) {
                 items(filteredPosts.size) { index ->
-                    PostItem(filteredPosts[index], navController, index)
+                    val post = filteredPosts[index]
+
+                    PostItem(
+                        post = post,
+                        navController = navController,
+                        isLiked = post.carryTalkLikeUserList.contains(loginUserId),
+                        onLikeClick = {
+                            if (loginUserId == "guest") {
+                                showLoginDialog.value = true
+                            } else {
+                                storyViewModel.toggleLike(post.documentId, loginUserId)
+                            }
+                        },
+                        loginUserId = loginUserId,
+                        showLoginDialog = showLoginDialog,
+                        index = index
+                    )
                 }
             }
         }
     }
+
+    // 로그인 유도 다이얼로그
+    if (showLoginDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showLoginDialog.value = false },
+            title = { Text("로그인이 필요합니다") },
+            text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLoginDialog.value = false
+                        navController.navigate(ScreenName.LOGIN_SCREEN.name)
+                    }
+                ) {
+                    Text("로그인하기")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLoginDialog.value = false }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-private fun PostItem(post: Post, navController: NavController, index: Int) {
+private fun PostItem(
+    post: Post,
+    navController: NavController,
+    isLiked: Boolean,
+    onLikeClick: () -> Unit,
+    loginUserId: String,
+    showLoginDialog: MutableState<Boolean>,
+    index: Int
+) {
+    val likeCount = remember { mutableStateOf(post.likes) }
+    val likedState = remember { mutableStateOf(isLiked) }
+
     Card(
         shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -153,7 +222,7 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
             .fillMaxWidth()
             .padding(vertical = 5.dp, horizontal = 15.dp)
             .clickable {
-                navController.navigate("storyDetail/$index")
+                navController.navigate("storyDetail/${post.documentId}")
             }
     ) {
         Row(
@@ -244,11 +313,28 @@ private fun PostItem(post: Post, navController: NavController, index: Int) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 좋아요
+                    // 좋아요 & 댓글
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        LikeLionLikeButton()
+                        LikeLionLikeButton(
+                            isLiked = likedState.value,
+                            onClick = {
+                                if (loginUserId == "guest") {
+                                    // 로그인하지 않은 경우 다이얼로그 표시
+                                    showLoginDialog.value = true
+                                } else {
+                                    // 로그인한 경우에만 좋아요 처리
+                                    likedState.value = !likedState.value
+                                    likeCount.value = if (likedState.value) {
+                                        likeCount.value + 1
+                                    } else {
+                                        likeCount.value - 1
+                                    }
+                                    onLikeClick()
+                                }
+                            }
+                        )
                         Text(
-                            text = " ${post.likes}",
+                            text = " ${likeCount.value}",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(start = 1.dp)
                         )

@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.review.ReviewScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.SocialViewModel
 
@@ -34,6 +40,9 @@ fun SocialScreen(
 ) {
     // StateFlow 값 감지
     val selectedTabIndex by socialViewModel.selectedTabIndex.collectAsState()
+
+    // 로그인 유도 다이얼로그 상태
+    val showLoginDialog = remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -57,11 +66,7 @@ fun SocialScreen(
                     if (isAuthor) {
                         onAddClick()
                     } else {
-                        Toast.makeText(
-                            context,
-                            "로그인을 먼저 진행해 주세요!",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showLoginDialog.value = true
                     }
                 }) {
                     Icon(
@@ -72,6 +77,32 @@ fun SocialScreen(
                 }
             }
         )
+
+        // 로그인 유도 다이얼로그
+        if (showLoginDialog.value) {
+            AlertDialog(
+                onDismissRequest = { showLoginDialog.value = false },
+                title = { Text("로그인이 필요합니다") },
+                text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLoginDialog.value = false
+                            navController.navigate(ScreenName.LOGIN_SCREEN.name)
+                        }
+                    ) {
+                        Text("로그인하기")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showLoginDialog.value = false }
+                    ) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
 
         // "여행 후기", "여행 이야기" 선택 탭
         LikeLionFixedTabs(

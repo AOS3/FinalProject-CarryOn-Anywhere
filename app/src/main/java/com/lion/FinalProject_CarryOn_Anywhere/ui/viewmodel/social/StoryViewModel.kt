@@ -2,6 +2,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.FirebaseFirestore
@@ -30,12 +31,13 @@ data class Post(
     val postDate: Long,
     val likes: Int,
     val comments: Int,
-    val imageUrls: List<String> = emptyList()
+    val imageUrls: List<String> = emptyList(),
+    val carryTalkLikeUserList: List<String> = emptyList()
 )
 
 @HiltViewModel
 class StoryViewModel @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext private var context: Context
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
@@ -68,7 +70,8 @@ class StoryViewModel @Inject constructor(
                         postDate = talk.talkTimeStamp,
                         likes = talk.talkLikeCount,
                         comments = talk.talkReplyList.size,
-                        imageUrls = talk.talkImage
+                        imageUrls = talk.talkImage,
+                        carryTalkLikeUserList = talk.talkLikeUserList
                     )
                 }.sortedByDescending { it.postDate }
 
@@ -108,7 +111,45 @@ class StoryViewModel @Inject constructor(
         }
     }
 
+    // 좋아요 추가/취소 기능 (로그인 여부 검사)
+    fun toggleLike(reviewId: String, loginUserId: String) {
+        if (loginUserId == "guest") {
+            Toast.makeText(context, "로그인을 먼저 진행해 주세요!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
+        viewModelScope.launch {
+            try {
+                // Firestore에서 좋아요 추가/취소 실행
+                val isLiked = CarryTalkService.toggleLike(reviewId, loginUserId)
 
+                // 현재 리뷰 리스트를 가져옴
+                val currentReviews = _posts.value.toMutableList()
 
+                // 해당 리뷰 찾기
+                val updatedReviews = currentReviews.map { post ->
+                    if (post.documentId == reviewId) {
+                        val updatedLikeUserList = post.carryTalkLikeUserList.toMutableList()
+                        if (isLiked) {
+                            updatedLikeUserList.add(loginUserId)
+                        } else {
+                            updatedLikeUserList.remove(loginUserId)
+                        }
+
+                        post.copy(
+                            carryTalkLikeUserList = updatedLikeUserList,
+                            likes = updatedLikeUserList.size
+                        )
+                    } else {
+                        post
+                    }
+                }
+
+                _posts.value = updatedReviews
+
+            } catch (e: Exception) {
+                Log.e("StoryViewModel", "좋아요 기능 실패: ${e.message}")
+            }
+        }
+    }
 }

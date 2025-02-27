@@ -27,6 +27,8 @@ class CarryTalkModel {
     var talkState = CarryTalkState.CARRYTALK_STATE_NORMAL
     // 데이터가 생성된 시간
     var talkTimeStamp = 0L
+    // 좋아요 누른 유저 목록
+    var talkLikeUserList = mutableListOf<String>()
 
     fun toCarryTalkVO(): CarryTalkVO {
         val carryTalkVO = CarryTalkVO()

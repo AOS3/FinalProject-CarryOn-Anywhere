@@ -26,10 +26,12 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.ModeEdit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -51,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.firestore.DocumentId
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAddPlaceItem
@@ -71,18 +74,20 @@ import java.util.Locale
 fun ReviewDetailScreen(
     reviewViewModel: ReviewViewModel = hiltViewModel(),
     tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
-    reviewIndex: Int,
+    documentId: String,
     navController: NavController,
     onAddClick: () -> Unit
 ) {
     // "여행 후기" 목록을 가져오고 선택된 "여행 후기"를 찾음
     val reviews by reviewViewModel.reviews.collectAsState()
-    val review = reviews.getOrNull(reviewIndex) ?: return
+    val review = reviews.find { it.documentId == documentId } ?: return
 
     val context = LocalContext.current
 
     // 다이얼로그 상태 변수 (초기값: false)
     val showDialogDeleteState = remember { mutableStateOf(false) }
+    // 로그인 유도 다이얼로그 상태
+    val showLoginDialog = remember { mutableStateOf(false) }
 
     // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
     val carryOnApplication = context.applicationContext as? CarryOnApplication
@@ -102,6 +107,10 @@ fun ReviewDetailScreen(
         tripInfoViewModel.updateFormattedDates()
         tripInfoViewModel.updateTripDays()
     }
+
+    // 좋아요 상태를 유지하기 위한 변수
+    val isLiked = remember { mutableStateOf(review.tripReviewLikeUserList.contains(loginUserId)) }
+    val likeCount = remember { mutableStateOf(review.likes) }
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
@@ -126,7 +135,7 @@ fun ReviewDetailScreen(
                     if (isAuthor) {
                         Row {
                             IconButton(onClick = {
-                                navController.navigate("modifyScreen/review/$reviewIndex")
+                                navController.navigate("modifyScreen/review/$documentId")
                             }) {
                                 Icon(
                                     imageVector = Icons.Default.ModeEdit,
@@ -145,6 +154,32 @@ fun ReviewDetailScreen(
                     }
                 }
             )
+
+            // 로그인 유도 다이얼로그
+            if (showLoginDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showLoginDialog.value = false },
+                    title = { Text("로그인이 필요합니다") },
+                    text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showLoginDialog.value = false
+                                navController.navigate(ScreenName.LOGIN_SCREEN.name)
+                            }
+                        ) {
+                            Text("로그인하기")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showLoginDialog.value = false }
+                        ) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
 
             // "삭제" 다이얼로그 표시
             LikeLionAlertDialog(
@@ -324,6 +359,12 @@ fun ReviewDetailScreen(
                                         distanceToNext = distanceToNext
                                     )
                                 }
+
+                                LikeLionDivider(
+                                    modifier = Modifier.padding(vertical = 10.dp),
+                                    color = Color.LightGray,
+                                    thickness = 1.dp
+                                )
                             }
                         }
                     }
@@ -365,12 +406,34 @@ fun ReviewDetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 좋아요 버튼
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         LikeLionLikeButton(
-                            size = 30
+                            size = 30,
+                            isLiked = isLiked.value,
+                            onClick = {
+                                if (loginUserId == "guest") {
+                                    showLoginDialog.value = true
+                                } else {
+                                    reviewViewModel.toggleLike(
+                                        review.documentId,
+                                        loginUserId
+                                    )
+
+                                    isLiked.value = !isLiked.value
+
+                                    likeCount.value = if (isLiked.value) {
+                                        likeCount.value + 1
+                                    } else {
+                                        likeCount.value - 1
+                                    }
+                                }
+                            }
                         )
+
                         Text(
-                            text = review.likes.toString(),
+                            text = likeCount.value.toString(),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(start = 5.dp)
                         )
@@ -426,7 +489,7 @@ private fun getNavigationBarHeight(): Float {
 private fun ReviewDetailScreenPreview() {
     ReviewDetailScreen(
         navController = NavController(LocalContext.current),
-        reviewIndex = 0,
-        onAddClick = {}
+        onAddClick = {},
+        documentId = "documentId"
     )
 }

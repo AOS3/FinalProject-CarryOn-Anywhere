@@ -19,11 +19,10 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 
 @Composable
 fun LikeLionLikeButton(
-    initialLiked: Boolean = false,
-    size: Int = 20
+    isLiked: Boolean,  // 외부에서 상태 관리
+    size: Int = 20,
+    onClick: () -> Unit  // 클릭 이벤트 콜백 추가
 ) {
-    var isLiked by remember { mutableStateOf(initialLiked) }
-
     val iconColor = if (isLiked) MainColor else Color.Black
 
     Image(
@@ -34,7 +33,7 @@ fun LikeLionLikeButton(
             .clickable(
                 indication = null, // 클릭 리플 효과 제거
                 interactionSource = remember { MutableInteractionSource() } // 터치 이벤트 추적 X
-            ) { isLiked = !isLiked },
+            ) { onClick() },  // 클릭 시 외부에서 상태 변경 처리
         colorFilter = ColorFilter.tint(iconColor)
     )
 }

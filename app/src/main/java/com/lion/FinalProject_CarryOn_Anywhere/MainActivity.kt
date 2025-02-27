@@ -355,10 +355,10 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
 
             // 여행 후기 상세 화면
-            composable("reviewDetail/{reviewIndex}") { backStackEntry ->
-                val reviewIndex = backStackEntry.arguments?.getString("reviewIndex")?.toIntOrNull() ?: 0
+            composable("reviewDetail/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
                 ReviewDetailScreen(
-                    reviewIndex = reviewIndex,
+                    documentId = documentId,
                     navController = navHostController,
                     onAddClick = {
                         navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
@@ -367,10 +367,10 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
 
             // 여행 이야기 상세 화면
-            composable("storyDetail/{storyIndex}") { backStackEntry ->
-                val storyIndex = backStackEntry.arguments?.getString("storyIndex")?.toIntOrNull() ?: 0
+            composable("storyDetail/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
                 StoryDetailScreen(
-                    storyIndex = storyIndex,
+                    documentId = documentId,
                     navController = navHostController,
                     onAddClick = {
                         navHostController.navigate(ScreenName.STORY_SCREEN.name)
@@ -388,28 +388,28 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
 
             // 글 수정 화면 (여행 후기)
-            composable("modifyScreen/review/{reviewIndex}") { backStackEntry ->
-                val reviewIndex = backStackEntry.arguments?.getString("reviewIndex")?.toIntOrNull()
+            composable("modifyScreen/review/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
                 ModifyScreen(
                     navController = navHostController,
                     onAddClick = {
                         navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
                     },
-                    reviewIndex = reviewIndex,
-                    storyIndex = null
+                    reviewDocumentId = documentId,
+                    storyDocumentId = null
                 )
             }
 
             // 글 수정 화면 (여행 이야기)
-            composable("modifyScreen/story/{storyIndex}") { backStackEntry ->
-                val storyIndex = backStackEntry.arguments?.getString("storyIndex")?.toIntOrNull()
+            composable("modifyScreen/story/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
                 ModifyScreen(
                     navController = navHostController,
                     onAddClick = {
                         navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
                     },
-                    reviewIndex = null,
-                    storyIndex = storyIndex
+                    reviewDocumentId = null,
+                    storyDocumentId = documentId
                 )
             }
 

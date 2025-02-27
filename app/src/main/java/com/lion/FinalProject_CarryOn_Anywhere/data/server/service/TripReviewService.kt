@@ -26,14 +26,25 @@ class TripReviewService {
         }
 
         // 여행 후기 데이터 수정
-        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
-            TripReviewRepository.updateTripReview(documentId, newTitle, newContent, newImageUrls)
+        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>, newShareTitle: String,
+                                     newTripDate: String, newSharePlace: List<String>, newSharePlan: List<Map<String, String>>) {
+            TripReviewRepository.updateTripReview(documentId, newTitle, newContent, newImageUrls, newShareTitle, newTripDate, newSharePlace, newSharePlan)
         }
 
 
         // 나의 후기 가져오기
         suspend fun getMyTripReviews(userDocumentId:String): List<TripReviewModel> {
             return TripReviewRepository.getMyTripReviews(userDocumentId)
+        }
+
+        // 좋아요 토글 (추가 및 취소)
+        suspend fun toggleLike(documentId: String, userId: String): Boolean {
+            return TripReviewRepository.toggleLike(documentId, userId)
+        }
+
+        // 특정 후기의 좋아요 상태 가져오기
+        suspend fun getLikeStatus(documentId: String, userId: String): Boolean {
+            return TripReviewRepository.getLikeStatus(documentId, userId)
         }
     }
 }
