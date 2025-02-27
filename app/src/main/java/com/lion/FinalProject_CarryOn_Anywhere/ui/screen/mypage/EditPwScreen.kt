@@ -100,7 +100,7 @@ fun EditPwScreen(
                             .padding(end = 4.dp)
                     )
                     Text(
-                        text = "영문 숫자 포함 10자 이상",
+                        text = "영문 숫자 포함 8자 이상",
                         fontSize = 14.sp
                     )
                 }
@@ -116,10 +116,10 @@ fun EditPwScreen(
                     inputType = LikeLionOutlinedTextFieldInputType.PASSWORD,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done // ✅ "완료" 버튼 활성화
+                        imeAction = ImeAction.Done // "완료" 버튼 활성화
                     ),
                     keyboardActions = KeyboardActions(
-                        onDone = { keyboardController?.hide() } // ✅ "완료" 누르면 키보드 숨김
+                        onDone = { keyboardController?.hide() } // "완료" 누르면 키보드 숨김
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -127,7 +127,7 @@ fun EditPwScreen(
                 )
 
 
-                // ✅ 등록 버튼
+                // 등록 버튼
                 LikeLionFilledButton(
                     text = "등록",
                     cornerRadius = 5,
@@ -157,7 +157,7 @@ fun EditPwScreen(
             .fillMaxWidth()
     )
 
-    // ✅ 유효성 검사 다이얼로그
+    //유효성 검사 다이얼로그
     if (editPwViewModel.showDialogPwEmpty.value) {
         LikeLionAlertDialog(
             showDialogState = editPwViewModel.showDialogPwEmpty,
@@ -180,7 +180,7 @@ fun EditPwScreen(
         LikeLionAlertDialog(
             showDialogState = editPwViewModel.showDialogPwShort,
             title = "입력 오류",
-            text = "새 비밀번호는 10자 이상 입력해야 합니다.",
+            text = "새 비밀번호는 8자 이상 입력해야 합니다.",
             confirmButtonTitle = "확인"
         )
     }

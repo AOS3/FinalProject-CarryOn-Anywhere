@@ -370,5 +370,27 @@ class UserRepository {
 
             documentRef.update("userLikeList", currentLikeList).await()
         }
+
+
+        // 카카오 로그인 토큰 여부 확인하기
+        suspend fun checkKakaoToken(userId: String): String? {
+
+            val firestore = FirebaseFirestore.getInstance()
+            val collectionReference = firestore.collection("UserData")
+
+            // 특정 사용자 데이터 가져오기
+            val result = collectionReference
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+
+            // 결과에서 비밀번호 필드만 추출
+            if (result.documents.isNotEmpty()) {
+                val document = result.documents[0] // 첫 번째 문서 가져오기 (단일 사용자라 가정)
+                return document.getString("userKakaoToken") // Firestore에서 "userKakaoToken" 필드 추출
+            }
+            else return null
+
+        }
     }
 }

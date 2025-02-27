@@ -1,6 +1,5 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.runtime.Composable
@@ -19,13 +18,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.*
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionProductList
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import kotlinx.coroutines.launch
-import com.lion.FinalProject_CarryOn_Anywhere.R // ✅ drawable 리소스 추가
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyCommentList
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTripStoryList
 import androidx.compose.runtime.remember
@@ -34,17 +31,12 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyLikeItem
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionProductItem
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.MyPostsViewModel
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable

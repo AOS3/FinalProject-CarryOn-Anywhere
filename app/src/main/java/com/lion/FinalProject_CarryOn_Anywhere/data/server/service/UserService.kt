@@ -196,5 +196,13 @@ class UserService() {
             return UserRepository.getUserLikeList(userDocumentId)
         }
 
+        // 카카오 토큰 여부 확인하기
+        suspend fun checkKakaoToken(userId: String): Boolean {
+            val kakaoToken = UserRepository.checkKakaoToken(userId)
+
+            // null이거나 빈 문자열이면 false 반환
+            return !kakaoToken.isNullOrBlank()
+        }
+
     }
 }

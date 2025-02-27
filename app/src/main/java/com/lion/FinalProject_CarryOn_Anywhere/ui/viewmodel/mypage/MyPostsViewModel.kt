@@ -12,6 +12,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkServi
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.ReplyService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TripReviewState
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,25 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+// UI에 보여줄 데이터 구조
+data class MyReview(
+    val documentId: String = "",
+    val imageUrls: List<String>,
+    val title: String,
+    val author: String,
+    val nickName : String,
+    val content: String,
+    val postDate: Long,
+    val likes: Int,
+    val comments: Int,
+    val tripDate: String,
+    val shareTitle: String ,
+    val sharePlace: List<String>,
+    val sharePlan: List<Map<String, String>>
+)
+
+
+
 @HiltViewModel
 class MyPostsViewModel @Inject constructor(
     @ApplicationContext context: Context
@@ -27,14 +48,36 @@ class MyPostsViewModel @Inject constructor(
 
 
     // 특정 게시글에 해당하는 댓글 목록 LiveData
-    private val _myTripReviews = MutableStateFlow<List<TripReviewModel>>(emptyList())
-    val myTripReviews: StateFlow<List<TripReviewModel>> get() = _myTripReviews
+    private val _myTripReviews = MutableStateFlow<List<Review>>(emptyList())
+    val myTripReviews: StateFlow<List<Review>> get() = _myTripReviews
 
     // 여행 후기 가져오기
     fun getMyTripReviews(userDocumentId:String){
         viewModelScope.launch {
             val myTripReviews = TripReviewService.getMyTripReviews(userDocumentId)
-            _myTripReviews.value = myTripReviews
+
+            val reviewList = myTripReviews
+                .filter { it.tripReviewState == TripReviewState.TRIP_REVIEW_STATE_NORMAL}
+                .map { tripReview ->
+                    Review(
+                        documentId = tripReview.tripReviewDocumentId,
+                        imageUrls = tripReview.tripReviewImage,
+                        title = tripReview.tripReviewTitle,
+                        likes = tripReview.tripReviewLikeCount,
+                        comments = tripReview.tripReviewReplyList.size,
+                        postDate = tripReview.tripReviewTimestamp,
+                        content = tripReview.tripReviewContent,
+                        author = tripReview.userDocumentId,
+                        nickName = tripReview.userName,
+                        tripDate = tripReview.tripReviewShareDate,
+                        shareTitle = tripReview.tripReviewShareTitle,
+                        sharePlace = tripReview.tripReviewSharePlace,
+                        sharePlan = tripReview.tripReviewSharePlan
+                    )
+                }.sortedByDescending { it.postDate }
+
+            _myTripReviews.value = reviewList
+
         }
     }
 
