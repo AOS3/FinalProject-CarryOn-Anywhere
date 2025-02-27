@@ -40,5 +40,15 @@ class CarryTalkService {
         suspend fun getMyCarryTalk(userDocumentId:String): List<CarryTalkModel> {
             return CarryTalkRepository.getMyCarryTalk(userDocumentId)
         }
+
+        // 좋아요 토글 (추가 및 취소)
+        suspend fun toggleLike(documentId: String, userId: String): Boolean {
+            return CarryTalkRepository.toggleLike(documentId, userId)
+        }
+
+        // 특정 후기의 좋아요 상태 가져오기
+        suspend fun getLikeStatus(documentId: String, userId: String): Boolean {
+            return CarryTalkRepository.getLikeStatus(documentId, userId)
+        }
     }
 }
