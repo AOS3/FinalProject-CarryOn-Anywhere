@@ -201,9 +201,10 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             // 아이디 찾기 완료 화면
             composable(
-                route = ScreenName.COMPLETED_FIND_ID_SCREEN.name
+                route = "${ScreenName.COMPLETED_FIND_ID_SCREEN.name}/{userId}"
             ) {
-                CompletedFindIdScreen()
+                val userId = currentBackStackEntry?.arguments?.getString("userId") ?: "알 수 없음"
+                CompletedFindIdScreen(userId = userId)
             }
             // 비밀번호 찾기 화면
             composable(

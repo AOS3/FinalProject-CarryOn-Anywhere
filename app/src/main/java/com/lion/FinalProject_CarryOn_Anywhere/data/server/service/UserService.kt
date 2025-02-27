@@ -38,7 +38,17 @@ class UserService() {
             }
         }
 
-        // 사용자 Document Id를 통해 사용자 정보를 가져오는 메서드
+        // userName + phoneNo 가 일치하는 사용자 데이터 반환
+        suspend fun getUserDocumentIdByNameAndPhone(userName: String, phoneNumber: String) : UserModel? {
+            val userDocumentId = UserRepository.getUserDocumentIdByNameAndPhone(userName, phoneNumber)
+
+            return userDocumentId?.let { documentId ->
+                val userVO = UserRepository.selectUserDataByUserDocumentIdOne(documentId)
+                userVO.toUserModel(documentId)
+            }
+        }
+
+            // 사용자 Document Id를 통해 사용자 정보를 가져오는 메서드
         suspend fun selectUserDataByUserDocumentIdOne(userDocumentId:String) : UserModel{
             val userVO = UserRepository.selectUserDataByUserDocumentIdOne(userDocumentId)
             val userModel = userVO.toUserModel(userDocumentId)
