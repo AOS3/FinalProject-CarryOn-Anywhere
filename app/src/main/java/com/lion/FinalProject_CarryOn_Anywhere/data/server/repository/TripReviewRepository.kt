@@ -46,12 +46,17 @@ class TripReviewRepository {
         }
 
         // 여행 후기 데이터 수정
-        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
+        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>,
+                                     newShareTitle: String, newTripDate: String, newSharePlace: List<String>, newSharePlan: List<Map<String, String>>) {
             try {
                 val updateData = mapOf(
                     "tripReviewTitle" to newTitle,
                     "tripReviewContent" to newContent,
-                    "tripReviewImage" to newImageUrls
+                    "tripReviewImage" to newImageUrls,
+                    "tripReviewShareTitle" to newShareTitle,
+                    "tripReviewShareDate" to newTripDate,
+                    "tripReviewSharePlace" to newSharePlace,
+                    "tripReviewSharePlan" to newSharePlan
                 )
                 collection.document(documentId).update(updateData).await()
             } catch (e: Exception) {

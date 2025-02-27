@@ -104,16 +104,35 @@ class ReviewViewModel @Inject constructor(
     }
 
     // 여행 후기 수정 후 UI 업데이트
-    fun editTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
+    fun editTripReview(
+        documentId: String,
+        newTitle: String,
+        newContent: String,
+        newImageUrls: List<String>,
+        newShareTitle: String,     // 추가된 일정 제목
+        newTripDate: String,       // 추가된 일정 날짜
+        newSharePlace: List<String>,  // 추가된 지역 정보
+        newSharePlan: List<Map<String, String>> // 추가된 여행 일정
+    ) {
         viewModelScope.launch {
             try {
-                TripReviewService.updateTripReview(documentId, newTitle, newContent, newImageUrls)
-                fetchTripReviews()
+                TripReviewService.updateTripReview(
+                    documentId,
+                    newTitle,
+                    newContent,
+                    newImageUrls,
+                    newShareTitle,     // Firestore에 일정 제목 업데이트
+                    newTripDate,       // Firestore에 일정 날짜 업데이트
+                    newSharePlace,     // Firestore에 여행 지역 업데이트
+                    newSharePlan       // Firestore에 여행 일정 업데이트
+                )
+                fetchTripReviews() // 업데이트 후 UI 갱신
             } catch (e: Exception) {
                 Log.e("ReviewViewModel", "여행 후기 수정 실패: ${e.message}")
             }
         }
     }
+
 
     // 좋아요 추가/취소 기능 (로그인 여부 검사)
     fun toggleLike(reviewId: String, loginUserId: String) {

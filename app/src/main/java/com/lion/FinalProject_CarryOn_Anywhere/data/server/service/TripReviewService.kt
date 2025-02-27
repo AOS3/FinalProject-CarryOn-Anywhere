@@ -26,8 +26,9 @@ class TripReviewService {
         }
 
         // 여행 후기 데이터 수정
-        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>) {
-            TripReviewRepository.updateTripReview(documentId, newTitle, newContent, newImageUrls)
+        suspend fun updateTripReview(documentId: String, newTitle: String, newContent: String, newImageUrls: List<String>, newShareTitle: String,
+                                     newTripDate: String, newSharePlace: List<String>, newSharePlan: List<Map<String, String>>) {
+            TripReviewRepository.updateTripReview(documentId, newTitle, newContent, newImageUrls, newShareTitle, newTripDate, newSharePlace, newSharePlan)
         }
 
 

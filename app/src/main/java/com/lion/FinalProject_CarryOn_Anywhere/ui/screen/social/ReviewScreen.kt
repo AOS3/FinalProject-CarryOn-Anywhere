@@ -29,6 +29,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
@@ -51,6 +52,9 @@ fun ReviewScreen(
     } catch (e: UninitializedPropertyAccessException) {
         "guest"
     }
+
+    // 로그인 유도 다이얼로그 상태
+    val showLoginDialog = remember { mutableStateOf(false) }
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
@@ -101,15 +105,41 @@ fun ReviewScreen(
                     isLiked = review.tripReviewLikeUserList.contains(loginUserId),
                     onLikeClick = {
                         if (loginUserId == "guest") {
-                            Toast.makeText(context, "로그인을 먼저 진행해 주세요!", Toast.LENGTH_SHORT).show()
+                            showLoginDialog.value = true
                         } else {
                             reviewViewModel.toggleLike(review.documentId, loginUserId)
                         }
                     },
-                    onClick = { navController.navigate("reviewDetail/$index") }
+                    onClick = { navController.navigate("reviewDetail/${review.documentId}") }
                 )
             }
         }
+    }
+
+    // 로그인 유도 다이얼로그
+    if (showLoginDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showLoginDialog.value = false },
+            title = { Text("로그인이 필요합니다") },
+            text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLoginDialog.value = false
+                        navController.navigate(ScreenName.LOGIN_SCREEN.name) // 로그인 화면 이동
+                    }
+                ) {
+                    Text("로그인하기")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLoginDialog.value = false }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
     }
 }
 
