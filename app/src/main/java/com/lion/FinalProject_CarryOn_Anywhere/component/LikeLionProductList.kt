@@ -28,36 +28,37 @@ import java.util.Locale
 
 // 나의 글 -> 여행 후기에 들어가는 컴포넌트
 
-@Composable
-fun LikeLionProductList(
-    productList: List<Review>,
-    onCreatorNameClick: (Review) -> Unit = {},
-    onLikeClick: (Review) -> Unit = {},
-    onItemClick: (Review) -> Unit = {},
-    columns: Int = 2
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 5.dp)
-    ) {
-        items(productList) { product ->
-            LikeLionProductItem(
-                product = product,
-                onCreatorNameClick = onCreatorNameClick,
-                onLikeClick = onLikeClick,
-                onItemClick = onItemClick
-            )
-        }
-    }
-}
+//@Composable
+//fun LikeLionProductList(
+//    productList: List<Review>,
+//    onCreatorNameClick: (Review) -> Unit = {},
+//    onLikeClick: (Review) -> Unit = {},
+//    onItemClick: (Review) -> Unit = {},
+//    columns: Int = 2
+//) {
+//    LazyVerticalGrid(
+//        columns = GridCells.Fixed(columns),
+//        modifier = Modifier.fillMaxSize(),
+//        contentPadding = PaddingValues(horizontal = 5.dp)
+//    ) {
+//        items(productList) { product ->
+//            LikeLionProductItem(
+//                product = product,
+//                onCreatorNameClick = onCreatorNameClick,
+//                onLikeClick = onLikeClick,
+//                onItemClick = onItemClick
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun LikeLionProductItem(
     product: Review,
     onCreatorNameClick: (Review) -> Unit,
     onLikeClick: (Review) -> Unit,
-    onItemClick: (Review) -> Unit
+    onItemClick: (Review) -> Unit,
+
 ) {
     Card(
         modifier = Modifier

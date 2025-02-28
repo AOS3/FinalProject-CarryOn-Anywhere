@@ -106,17 +106,12 @@ class FindPwViewModel
                 // 유저 정보를 담아 화면 이동
                 val userId = userModel.userId
                 carryOnApplication.navHostController.navigate(
-
-                    // 음...
                     "${ScreenName.CHANGE_PW_SCREEN}/$userId"
                 )
             } else {
                 showDialogMatchNo.value = true
             }
-
         }
-
-        carryOnApplication.navHostController.navigate(ScreenName.CHANGE_PW_SCREEN.name)
     }
 
 

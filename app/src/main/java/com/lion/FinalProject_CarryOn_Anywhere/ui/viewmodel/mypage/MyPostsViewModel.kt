@@ -60,7 +60,7 @@ class MyPostsViewModel @Inject constructor(
                 .filter { it.tripReviewState == TripReviewState.TRIP_REVIEW_STATE_NORMAL}
                 .map { tripReview ->
                     Review(
-                        documentId = tripReview.tripReviewDocumentId,
+                        documentId = tripReview.tripDocumentId,
                         imageUrls = tripReview.tripReviewImage,
                         title = tripReview.tripReviewTitle,
                         likes = tripReview.tripReviewLikeCount,
@@ -72,7 +72,8 @@ class MyPostsViewModel @Inject constructor(
                         tripDate = tripReview.tripReviewShareDate,
                         shareTitle = tripReview.tripReviewShareTitle,
                         sharePlace = tripReview.tripReviewSharePlace,
-                        sharePlan = tripReview.tripReviewSharePlan
+                        sharePlan = tripReview.tripReviewSharePlan,
+                        tripReviewLikeUserList = tripReview.tripReviewLikeUserList
                     )
                 }.sortedByDescending { it.postDate }
 
