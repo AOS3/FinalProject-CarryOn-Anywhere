@@ -92,7 +92,9 @@ fun TripSearchPlaceScreen(
             LikeLionSearchTopAppBar(
                 textFieldValue = tripSearchPlaceViewModel.searchTextFieldValue,
                 onSearchTextChange = { tripSearchPlaceViewModel.searchTextFieldValue.value = it },
-                onSearchClick = { tripSearchPlaceViewModel.filterPlaces() },
+                onSearchClick = {
+                    tripSearchPlaceViewModel.filterPlaces()
+                },
                 onBackClick = {
                     tripSearchPlaceViewModel.tripSearchNavigationOnClick(tripDocumentId)
                 },
@@ -159,6 +161,7 @@ fun TripSearchPlaceScreen(
                             title = place.title ?: "알 수 없는 장소",
                             subtitle = place.addr1 ?: "주소 없음",
                             location = place.addr2 ?: "",
+                            contentTypeId = place.contenttypeid ?: "",
                             onSelectClick = {
                                 val placeMap = tripSearchPlaceViewModel.toPlaceMap(place)
                                 tripSearchPlaceViewModel.addPlaceToDay(selectedDay, placeMap, tripDocumentId)

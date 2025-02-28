@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.lion.FinalProject_CarryOn_Anywhere.R
@@ -32,6 +33,7 @@ fun LikeLionPlaceListItem(
     title: String,
     subtitle: String,
     location: String,
+    contentTypeId: String,
     onSelectClick: () -> Unit
 
 ) {
@@ -49,7 +51,7 @@ fun LikeLionPlaceListItem(
             contentDescription = "장소 이미지",
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(70.dp)
+                .size(80.dp)
                 .clip(RoundedCornerShape(10.dp)),
             placeholder = painterResource(R.drawable.noplaceimg),
             error = painterResource(R.drawable.noplaceimg)
@@ -64,10 +66,29 @@ fun LikeLionPlaceListItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "$subtitle • $location",
+                text = "$subtitle $location",
+                style = MaterialTheme.typography.bodyMedium,
+                color = GrayColor
+            )
+
+            Text(
+                text = when (contentTypeId) {
+                    "12" -> "관광지"
+                    "14" -> "문화시설"
+                    "15" -> "축제공연행사"
+                    "25" -> "여행코스"
+                    "28" -> "레포츠"
+                    "32" -> "숙박"
+                    "38" -> "쇼핑"
+                    "39" -> "음식점"
+                    else -> "기타"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = GrayColor
             )
