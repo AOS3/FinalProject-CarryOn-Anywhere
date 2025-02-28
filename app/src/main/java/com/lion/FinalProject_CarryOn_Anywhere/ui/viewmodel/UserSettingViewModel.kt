@@ -6,8 +6,10 @@ import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.storage.FirebaseStorage
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.UserRepository
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.Tools
@@ -42,6 +44,8 @@ class UserSettingViewModel @Inject constructor(
 
     val selectedPushAgree = mutableStateOf(carryOnApplication.loginUserModel.userAppPushAgree)
 
+    // 카카오 계정 연동 여부 상태 변수
+    val isKakaoLinkedState = mutableStateOf(false)
 
     // 보여줄 이미지 요소
     val showImage1State = mutableStateOf(false)
@@ -244,5 +248,19 @@ class UserSettingViewModel @Inject constructor(
 
     fun validateName() {
         isNameValid.value = textFieldModifyNameValue.value.isNotBlank()
+    }
+
+    // ✅ 카카오 토큰 확인 함수 추가
+    fun checkKakaoToken() {
+        val userId = carryOnApplication.loginUserModel.userId
+
+        viewModelScope.launch {
+            try {
+                val isKakaoLinked = UserService.checkKakaoToken(userId)
+                isKakaoLinkedState.value = isKakaoLinked
+            } catch (e: Exception) {
+                println("카카오 토큰 확인 실패: ${e.localizedMessage}")
+            }
+        }
     }
 }

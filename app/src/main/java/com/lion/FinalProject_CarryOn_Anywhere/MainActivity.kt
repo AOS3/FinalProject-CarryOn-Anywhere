@@ -214,9 +214,10 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
             }
             // 비밀번호 변경 화면
             composable(
-                route = ScreenName.CHANGE_PW_SCREEN.name
+                route = "${ScreenName.CHANGE_PW_SCREEN.name}/{userId}"
             ) {
-                ChangePwScreen()
+                val userId = currentBackStackEntry?.arguments?.getString("userId") ?: "알 수 없음"
+                ChangePwScreen(userId = userId)
             }
             // 메인 화면
             composable(

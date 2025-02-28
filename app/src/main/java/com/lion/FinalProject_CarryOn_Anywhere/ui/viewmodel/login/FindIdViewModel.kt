@@ -95,7 +95,7 @@ class FindIdViewModel
                 textFieldFindIdNameValue.value,
                 textFieldFindIdPhoneValue.value
             )
-            // 유저 정보가 있는 경우
+            // 이름과 폰 번호로 User 정보를 가져온다.
             if (userModel != null) {
                 // 유저 정보를 담아 화면 이동
                 val userId = userModel.userId

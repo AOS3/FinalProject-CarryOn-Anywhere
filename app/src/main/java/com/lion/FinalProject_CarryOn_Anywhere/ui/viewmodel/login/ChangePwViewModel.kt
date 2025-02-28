@@ -3,10 +3,13 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.login
 import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,12 +33,9 @@ class ChangePwViewModel@Inject constructor(
             ScreenName.CHANGE_PW_SCREEN.name,
             inclusive = true
         )
-//        carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name) {
-//            launchSingleTop = true
-//        }
     }
 
-    // 비밀번호 변경 다이얼로그 확인 버튼 눌렀을 때
+    // 비밀번호 변경 성공 시 화면 이동
     fun navigationConfirmButtonClick() {
         showDialogPwOk.value = false
         carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name) {
@@ -44,10 +44,45 @@ class ChangePwViewModel@Inject constructor(
         }
     }
 
-    // 완료 버튼 눌렀을 때
+    // 비밀번호 변경 버튼
     fun buttonChangePwDoneOnClick() {
-        showDialogPwOk.value = true
+
+        viewModelScope.launch {
+            if (validatePassword()) {
+                UserService.updateUserPwData(
+                    carryOnApplication.loginUserModel,
+                    textFieldChangePwPwValue.value.toString()
+                )
+                showDialogPwOk.value = true // 비밀번호 변경 성공 다이얼로그 표시
+            }
+        }
+
     }
 
+    val showDialogPwMismatch = mutableStateOf(false) // 새 비밀번호 불일치 확인
+    val showDialogPwShort = mutableStateOf(false) // 새 비밀번호 10자 미만 확인
+
+    // ✅ 비밀번호 유효성 검사 메서드
+    fun validatePassword(): Boolean {
+
+        return when {
+
+            textFieldChangePwPwValue.value.length < 8 -> {
+                showDialogPwShort.value = true // 새 비밀번호가 8자 미만이면 다이얼로그 표시
+                false
+            }
+
+            textFieldChangePwPwValue.value != textFieldChangePwCheckPwValue.value -> {
+                showDialogPwMismatch.value = true // 새 비밀번호 확인이 일치하지 않으면 다이얼로그 표시
+                false
+            }
+            else -> true
+        }
+    }
+
+    // 현재 비밀번호 가져오기
+    suspend fun selectUserPasswordByUserId(userId:String): String? {
+        return UserService.selectUserPasswordByUserId(userId)
+    }
 
 }

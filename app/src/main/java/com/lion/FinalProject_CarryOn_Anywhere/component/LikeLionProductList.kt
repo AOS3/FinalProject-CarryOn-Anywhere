@@ -17,12 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
-import com.lion.FinalProject_CarryOn_Anywhere.R
-import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -30,36 +28,37 @@ import java.util.Locale
 
 // 나의 글 -> 여행 후기에 들어가는 컴포넌트
 
-@Composable
-fun LikeLionProductList(
-    productList: List<TripReviewModel>,
-    onCreatorNameClick: (TripReviewModel) -> Unit = {},
-    onLikeClick: (TripReviewModel) -> Unit = {},
-    onItemClick: (TripReviewModel) -> Unit = {},
-    columns: Int = 2
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(columns),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 5.dp)
-    ) {
-        items(productList) { product ->
-            LikeLionProductItem(
-                product = product,
-                onCreatorNameClick = onCreatorNameClick,
-                onLikeClick = onLikeClick,
-                onItemClick = onItemClick
-            )
-        }
-    }
-}
+//@Composable
+//fun LikeLionProductList(
+//    productList: List<Review>,
+//    onCreatorNameClick: (Review) -> Unit = {},
+//    onLikeClick: (Review) -> Unit = {},
+//    onItemClick: (Review) -> Unit = {},
+//    columns: Int = 2
+//) {
+//    LazyVerticalGrid(
+//        columns = GridCells.Fixed(columns),
+//        modifier = Modifier.fillMaxSize(),
+//        contentPadding = PaddingValues(horizontal = 5.dp)
+//    ) {
+//        items(productList) { product ->
+//            LikeLionProductItem(
+//                product = product,
+//                onCreatorNameClick = onCreatorNameClick,
+//                onLikeClick = onLikeClick,
+//                onItemClick = onItemClick
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun LikeLionProductItem(
-    product: TripReviewModel,
-    onCreatorNameClick: (TripReviewModel) -> Unit,
-    onLikeClick: (TripReviewModel) -> Unit,
-    onItemClick: (TripReviewModel) -> Unit
+    product: Review,
+    onCreatorNameClick: (Review) -> Unit,
+    onLikeClick: (Review) -> Unit,
+    onItemClick: (Review) -> Unit,
+
 ) {
     Card(
         modifier = Modifier
@@ -85,7 +84,7 @@ fun LikeLionProductItem(
                     contentAlignment = Alignment.Center
                 ) {
                     // 맨 처음 사진만 나오게 한다
-                    product.tripReviewImage.firstOrNull()?.let { imageUrl ->
+                    product.imageUrls.firstOrNull()?.let { imageUrl ->
                         Image(
                             painter = rememberAsyncImagePainter(imageUrl),
                             contentDescription = "여행 후기 Image",
@@ -105,7 +104,7 @@ fun LikeLionProductItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = product.tripReviewTitle,
+                text = product.title,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .padding(start = 5.dp)
@@ -117,14 +116,10 @@ fun LikeLionProductItem(
         }
 
         Text(
-            // ###### text 수정 필요.
-            // 여행 기간 tripReviewShareDate인데 없는 것도 있어서 확인해봐야함..
-            text = formattedDate(product.tripReviewTimestamp),
+            text = product.tripDate,
             fontSize = 13.sp, // ✅ 원하는 크기로 설정
             modifier = Modifier.padding(start = 5.dp, end = 5.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-
+            style = MaterialTheme.typography.bodySmall,
         )
 
 
@@ -136,14 +131,14 @@ fun LikeLionProductItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ){
             Text(
-                text = "리뷰  ${product.tripReviewReplyList.size} ",
+                text = "리뷰  ${product.comments} ",
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 5.dp),
                 color = Color.Gray
             )
 
             Text(
-                text = "좋아요 ${product.tripReviewLikeCount} ",
+                text = "좋아요 ${product.likes} ",
                 fontSize = 12.sp,
                 modifier = Modifier.padding(end = 5.dp),
                 color = Color.Gray
@@ -154,6 +149,7 @@ fun LikeLionProductItem(
     }
 }
 
+
 // 날짜 변환
 private fun formattedDate(timestamp: Long): String {
     val date = Date(timestamp)
@@ -161,15 +157,15 @@ private fun formattedDate(timestamp: Long): String {
     return format.format(date)
 }
 
-// ✅ 테스트용 ProductModel 리스트
-@Composable
-fun PreviewProductList() {
-
-}
-
-// ✅ Jetpack Compose Preview 추가
-@Preview(showBackground = true)
-@Composable
-fun PreviewProductGrid() {
-    PreviewProductList()
-}
+//// ✅ 테스트용 ProductModel 리스트
+//@Composable
+//fun PreviewProductList() {
+//
+//}
+//
+//// ✅ Jetpack Compose Preview 추가
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewProductGrid() {
+//    PreviewProductList()
+//}

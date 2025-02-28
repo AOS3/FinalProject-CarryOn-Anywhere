@@ -6,6 +6,9 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
@@ -19,13 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.*
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionProductList
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import kotlinx.coroutines.launch
-import com.lion.FinalProject_CarryOn_Anywhere.R // ✅ drawable 리소스 추가
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyCommentList
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTripStoryList
 import androidx.compose.runtime.remember
@@ -34,17 +34,13 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
-import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionMyLikeItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionProductItem
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage.MyPostsViewModel
-import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -134,21 +130,28 @@ fun TravelReviewScreen(
         Spacer(modifier = Modifier.height(5.dp))
 
 
-        // ✅ 필터링된 데이터가 없을 경우 빈 화면 표시
         if (tripReviews.isEmpty()) {
             LikeLionEmptyView(message = "선택한 태그에 해당하는 여행 후기가 없습니다.")
         } else {
-            LikeLionProductList(
-                productList = tripReviews,
-                onCreatorNameClick = { /* 작성자 클릭 처리 */ },
-                onLikeClick = { /* 좋아요 클릭 처리 */ },
-                onItemClick = { product ->
-                    // 리스트에서 해당 제품의 인덱스를 구하여 reviewDetail 화면으로 이동
-                    val index = tripReviews.indexOf(product)
-                    navController.navigate("reviewDetail/$index")
-                },
-                columns = 2
-            )
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2), // ✅ 2열로 배치
+                modifier = Modifier.fillMaxSize(),
+                //contentPadding = PaddingValues(8.dp), // ✅ 아이템 간 여백
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                items(tripReviews) { tripReview ->
+                    LikeLionProductItem(
+                        product = tripReview,
+                        onCreatorNameClick = { },
+                        onLikeClick = { },
+                        onItemClick = { product ->
+                            val documentId = tripReview.documentId
+                            navController.navigate("reviewDetail/$documentId")
+                        },
+                    )
+                }
+            }
         }
     }
 }
@@ -242,8 +245,11 @@ fun TravelStoryScreen(
                         post = story,
                         onClick = {
                         // 클릭 시 해당 여행 이야기로 이동
-                            val index = filteredPosts.indexOf(story)
-                            navController.navigate("storyDetail/$index")
+                            val talkDocumentId = story.talkDocumentId
+
+                            Log.d("test1111","$talkDocumentId")
+
+                            navController.navigate("storyDetail/$talkDocumentId")
 
                             myPostsViewModel.getMyCarryTalk(userDocumentId)
                         }

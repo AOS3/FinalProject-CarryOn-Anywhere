@@ -32,13 +32,7 @@ class EditPwViewModel @Inject constructor(
     // 다이얼로그 제어 변수
     var showDialogPwOk = mutableStateOf(false)
 
-
-    // 현재 비밀번호
-    var currentPw =  mutableStateOf("")
-
-
-
-    // ✅ 뒤로 가기 버튼
+    // 뒤로 가기 버튼
     fun navigationIconOnClick() {
         carryOnApplication.navHostController.popBackStack(
             ScreenName.EDIT_PW.name,
@@ -47,12 +41,13 @@ class EditPwViewModel @Inject constructor(
     }
 
 
-    // ✅ 비밀번호 변경 성공 시 화면 이동
+    // 비밀번호 변경 성공 시 화면 이동
     fun navigationConfirmButtonClick() {
         showDialogPwOk.value = false
         carryOnApplication.navHostController.popBackStack() // 다시 계정 설정 화면으로 이동
     }
 
+    // 비밀번호 변경 버튼
     fun buttonChangePwDoneOnClick() {
         viewModelScope.launch {
             if (validatePassword()) {
@@ -69,7 +64,7 @@ class EditPwViewModel @Inject constructor(
     // ✅ 유효성 검사 다이얼로그 상태
     val showDialogPwEmpty = mutableStateOf(false) // 현재 비밀번호 미입력
     val showDialogPw1Mismatch = mutableStateOf(false) // 현재 비밀번호 비밀번호 불일치
-    val showDialogPwShort = mutableStateOf(false) // 새 비밀번호 10자 미만
+    val showDialogPwShort = mutableStateOf(false) // 새 비밀번호 8자 미만
     val showDialogPw2Mismatch = mutableStateOf(false) // 새 비밀번호 불일치
 
     // ✅ 비밀번호 유효성 검사 메서드
@@ -84,8 +79,8 @@ class EditPwViewModel @Inject constructor(
                 showDialogPw1Mismatch.value = true // 현재 비밀번호와 일치하지 않으면 다이얼로그 표시
                 false
             }
-            textFieldNewPw.value.length < 10 -> {
-                showDialogPwShort.value = true // 새 비밀번호가 10자 미만이면 다이얼로그 표시
+            textFieldNewPw.value.length < 8 -> {
+                showDialogPwShort.value = true // 새 비밀번호가 8자 미만이면 다이얼로그 표시
                 false
             }
             textFieldNewPw.value != textFieldNewPw2.value -> {

@@ -55,9 +55,15 @@ fun EditMyInfoScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
+
+    // LaunchedEffect로 프로필 이미지를 초기 로드
     LaunchedEffect(Unit) {
         userSettingViewModel.loadProfileImage() // Glide로 프로필 이미지 로드
+        userSettingViewModel.checkKakaoToken()
     }
+
+    // ViewModel의 상태 값 관찰
+    val isKakaoLinked by userSettingViewModel.isKakaoLinkedState
 
     // ✅ 바텀시트 상태 추가
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -80,10 +86,6 @@ fun EditMyInfoScreen(
             }
         }
 
-    // LaunchedEffect로 프로필 이미지를 초기 로드
-    LaunchedEffect(Unit) {
-        userSettingViewModel.loadProfileImage() // Glide로 프로필 이미지 로드
-    }
 
     Scaffold(
         topBar = {
@@ -171,7 +173,7 @@ fun EditMyInfoScreen(
                 }
             }
 
-            // ✅ 버튼을 프로필 이미지 **아래 중앙에 배치**
+            // 버튼을 프로필 이미지 **아래 중앙에 배치**
             Box(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -225,14 +227,15 @@ fun EditMyInfoScreen(
                 Row(
                     modifier = Modifier.padding(end = 10.dp)
                 ) {
+
                     LikeLionImage(
                         painter = painterResource(id = R.drawable.kakao_login_logo),
                         modifier = Modifier.size(40.dp),
                         isCircular = true,
-                        onClick = {
-
-                        }
+                        onClick = { },
+                        isGrayscale = !isKakaoLinked // 카카오 계정이 연동되지 않은 경우 흑백 처리
                     )
+
                 }
             }
 

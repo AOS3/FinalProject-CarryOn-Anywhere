@@ -17,36 +17,36 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.ColorMatrix
+
 
 @Composable
 fun LikeLionImage(
     bitmap: Bitmap? = null,
-    painter : Painter,
+    painter: Painter,
     contentScale: ContentScale = ContentScale.Fit,
     modifier: Modifier,
-    tintColor : Color? = null,
-    // 이미지가 동그라미 모형인지
+    tintColor: Color? = null,
     isCircular: Boolean = false,
-    // 모서리 둥글기
     cornerRadius: Dp = 0.dp,
-    // 테두리 두께
     borderWidth: Dp = 0.dp,
-    // 테두리 색상
     borderColor: Color = Color.Transparent,
-    // 클릭 이벤트
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    isGrayscale: Boolean = false //흑백 여부
 ) {
+    val grayscaleColorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+
     Image(
         modifier = modifier
             .then(
                 if (isCircular) {
                     Modifier
-                        .clip(CircleShape) // 동그라미 모양
-                        .border(borderWidth, borderColor, CircleShape) // 동그라미 테두리
+                        .clip(CircleShape)
+                        .border(borderWidth, borderColor, CircleShape)
                 } else {
                     Modifier
-                        .clip(RoundedCornerShape(cornerRadius)) // 모서리 둥글기
-                        .border(borderWidth, borderColor, RoundedCornerShape(cornerRadius)) // 둥근 사각형 테두리
+                        .clip(RoundedCornerShape(cornerRadius))
+                        .border(borderWidth, borderColor, RoundedCornerShape(cornerRadius))
                 }
             )
             .then(
@@ -55,10 +55,7 @@ fun LikeLionImage(
         painter = bitmap?.asImageBitmap()?.let { BitmapPainter(it) } ?: painter,
         contentDescription = null,
         contentScale = contentScale,
-        colorFilter = if(tintColor != null){
-            ColorFilter.tint(tintColor)
-        } else {
-            null
-        },
+        colorFilter = if (isGrayscale) grayscaleColorFilter else tintColor?.let { ColorFilter.tint(it) }
     )
 }
+
