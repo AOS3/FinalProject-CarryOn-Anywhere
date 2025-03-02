@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.rememberAsyncImagePainter
@@ -29,6 +30,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
+import com.lion.FinalProject_CarryOn_Anywhere.component.shimmerEffect
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Review
@@ -148,7 +150,11 @@ private fun ReviewCard(
     review: Review,
     isLiked: Boolean,
     onLikeClick: () -> Unit,
-    onClick: () -> Unit) {
+    onClick: () -> Unit
+) {
+    // Firestore에서 가져온 첫 번째 이미지 로딩 상태 감지
+    val imageUrl = review.imageUrls.firstOrNull()
+    val isImageLoaded = remember { mutableStateOf(false) }
 
     Card(
         shape = RoundedCornerShape(10.dp),
@@ -160,18 +166,30 @@ private fun ReviewCard(
             .clickable { onClick() }
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            // Firestore에서 가져온 첫 번째 이미지 출력
-            if (review.imageUrls.isNotEmpty()) {
-                Image(
-                    painter = rememberAsyncImagePainter(review.imageUrls[0]),
-                    contentDescription = "여행 후기 이미지",
-                    contentScale = ContentScale.Crop,
+
+            if (imageUrl != null) {
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .padding(bottom = 10.dp)
                         .clip(RoundedCornerShape(10.dp))
-                )
+                ) {
+                    if (!isImageLoaded.value) {
+                        SkeletonPlaceholder()
+                    }
+
+                    Image(
+                        painter = rememberAsyncImagePainter(
+                            model = imageUrl,
+                            onSuccess = { isImageLoaded.value = true } // 로딩 완료 시 상태 변경
+                        ),
+                        contentDescription = "여행 후기 이미지",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+                }
             }
 
             // 제목
@@ -180,18 +198,36 @@ private fun ReviewCard(
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(vertical = 5.dp)
             )
 
-            // 여행 기간
+            // 작성자
             Text(
-                text = review.tripDate,
-                style = MaterialTheme.typography.bodySmall,
+                text = review.nickName,
+                fontSize = 12.sp,
+                color = Color.Gray
+            )
+
+            val tripDate = review.tripDate
+            val modifiedTripDate = tripDate.replace(Regex("\\b20(\\d{2}-\\d{2}-\\d{2})\\b"), "$1")
+
+            // 여행 기간
+            val displayedTripDate = if (modifiedTripDate.isNullOrBlank() || modifiedTripDate.trim() == "~") {
+                "일정 없음"
+            } else {
+                modifiedTripDate
+            }
+
+            Text(
+                text = displayedTripDate,
+                fontSize = 12.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(vertical = 5.dp)
             )
 
-            // 좋아요(왼쪽), 댓글(오른쪽) 정렬
+
+            // 좋아요 및 댓글 UI
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -201,7 +237,6 @@ private fun ReviewCard(
                         isLiked = isLiked,
                         onClick = onLikeClick
                     )
-
                     Text(
                         text = " ${review.likes}",
                         style = MaterialTheme.typography.bodySmall,
@@ -228,6 +263,16 @@ private fun ReviewCard(
             }
         }
     }
+}
+
+@Composable
+private fun SkeletonPlaceholder() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(10.dp))
+            .shimmerEffect(radius = 10.dp)
+    )
 }
 
 @Preview(showBackground = true)
