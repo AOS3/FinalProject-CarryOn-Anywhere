@@ -231,8 +231,14 @@ private fun ShareItemForModifyScreen(share: Share, navController: NavController)
             modifier = Modifier.padding(10.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                // 일정 제목
+            // 왼쪽 Column (태그, 제목, 내용, 작성자 정보)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(), // Row의 높이를 상속
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // 제목
                 Text(
                     text = share.title,
                     style = MaterialTheme.typography.bodyLarge,
@@ -243,31 +249,47 @@ private fun ShareItemForModifyScreen(share: Share, navController: NavController)
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // 일정 기간
+                // 작성 날짜
                 Text(
                     text = "${formattedDate(share.startDateTime)} ~ ${formattedDate(share.endDateTime)}",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color.LightGray
                 )
             }
 
-            // 선택 버튼
-            LikeLionFilledButton(
-                text = "선택",
-                cornerRadius = 100,
-                fillWidth = false,
-                modifier = Modifier.wrapContentSize(),
-                onClick = {
-                    navController.previousBackStackEntry?.savedStateHandle?.apply {
-                        set("selectedTitle", share.title)
-                        set("startDateTime", formattedDate(share.startDateTime))
-                        set("endDateTime", formattedDate(share.endDateTime))
-                        set("tripCityList", share.tripCityList.mapNotNull { it["regionName"] as? String })
-                        set("planList", share.planList.mapNotNull { it as? Map<String, String> })
+            // 오른쪽 Column (선택 버튼)
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // 사용자가 일정 선택 시 해당 정보를 PostScreen에 전달
+                LikeLionFilledButton(
+                    text = "선택",
+                    cornerRadius = 100,
+                    fillWidth = false,
+                    modifier = Modifier.wrapContentSize(),
+                    onClick = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("selectedTitle", share.title)
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("startDateTime", formattedDate(share.startDateTime))
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("endDateTime", formattedDate(share.endDateTime))
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("tripCityList", share.tripCityList)
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("planList", share.planList)
+                        navController.popBackStack()
                     }
-                    navController.popBackStack()
-                }
-            )
+                )
+            }
         }
     }
 }
