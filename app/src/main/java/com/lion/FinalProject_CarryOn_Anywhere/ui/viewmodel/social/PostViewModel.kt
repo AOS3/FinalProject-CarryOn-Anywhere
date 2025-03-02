@@ -124,11 +124,12 @@ class PostViewModel @Inject constructor(
         _selectedEndDate.value = date
     }
 
+    // 선택된 여행 지역 업데이트
     fun updateTripCityList(cityList: List<Map<String, Any>>) {
         _tripCityList.value = cityList
     }
 
-    // 일정 목록 업데이트 후 일정 데이터 불러오기
+    // 선택된 일정 목록 업데이트 후 일정 데이터 업데이트
     fun updatePlanList(planList: List<Map<String, Any>>) {
         _planList.value = planList
         fetchDailyPlanData() // Firestore에서 일정 데이터 가져오기
@@ -311,7 +312,7 @@ class PostViewModel @Inject constructor(
         val markerTitles = mutableListOf<String>()
         val markerSnippets = mutableListOf<String>()
 
-        // `dailyPlanData.value`를 직접 가져와서 사용
+        // "dailyPlanData.value"를 직접 가져와서 사용
         _dailyPlanData.value[day]?.forEach { place ->
             val placeLat = (place["mapy"] as? String)?.toDoubleOrNull()
             val placeLng = (place["mapx"] as? String)?.toDoubleOrNull()

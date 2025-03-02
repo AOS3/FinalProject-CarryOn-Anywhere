@@ -34,6 +34,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilterChip
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
+import com.lion.FinalProject_CarryOn_Anywhere.component.shimmerEffect
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.Post
@@ -211,8 +212,13 @@ private fun PostItem(
     showLoginDialog: MutableState<Boolean>,
     index: Int
 ) {
+    // 좋아요 상태 관리
     val likeCount = remember { mutableStateOf(post.likes) }
     val likedState = remember { mutableStateOf(isLiked) }
+
+    // 이미지 로딩 상태 관리
+    val imageUrl = post.imageUrls.firstOrNull()
+    val isImageLoaded = remember { mutableStateOf(false) }
 
     Card(
         shape = RoundedCornerShape(10.dp),
@@ -290,16 +296,23 @@ private fun PostItem(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // 이미지
+                // 이미지 or 스켈레톤 Placeholder 표시
                 Box(
                     modifier = Modifier
                         .size(70.dp)
                         .padding(bottom = 8.dp)
+                        .clip(RoundedCornerShape(10.dp))
                 ) {
-                    // Firebase Storage URL을 위한 Coil 이미지 로더 사용
-                    post.imageUrls.firstOrNull()?.let { imageUrl ->
+                    if (!isImageLoaded.value) {
+                        SkeletonPlaceholder()
+                    }
+
+                    imageUrl?.let { url ->
                         Image(
-                            painter = rememberAsyncImagePainter(imageUrl),
+                            painter = rememberAsyncImagePainter(
+                                model = url,
+                                onSuccess = { isImageLoaded.value = true } // 로딩 완료 감지
+                            ),
                             contentDescription = "Post Image",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -369,6 +382,15 @@ private fun formattedDate(timestamp: Long): String {
     return format.format(date)
 }
 
+@Composable
+private fun SkeletonPlaceholder() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(RoundedCornerShape(10.dp))
+            .shimmerEffect(radius = 10.dp)
+    )
+}
 
 @Preview(showBackground = true)
 @Composable

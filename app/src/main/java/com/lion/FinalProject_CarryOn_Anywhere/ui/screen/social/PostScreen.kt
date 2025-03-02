@@ -81,6 +81,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.PostViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -293,6 +294,7 @@ fun PostScreen(
                                             places.map { place ->
                                                 val placeName = place["title"]?.toString() ?: "장소 없음"
                                                 val addr = place["addr1"]?.toString() ?: "주소 정보 없음"
+                                                val addrDetail = place["addr2"]?.toString() ?: "주소 정보 없음"
                                                 val mapX = place["mapx"]?.toString()?.toDoubleOrNull()?.toString() ?: "0.0"
                                                 val mapY = place["mapy"]?.toString()?.toDoubleOrNull()?.toString() ?: "0.0"
 
@@ -300,6 +302,7 @@ fun PostScreen(
                                                     "date" to day,
                                                     "place" to placeName,
                                                     "addr" to addr,
+                                                    "addrDetail" to addrDetail,
                                                     "mapx" to mapX,
                                                     "mapy" to mapY
                                                 )
