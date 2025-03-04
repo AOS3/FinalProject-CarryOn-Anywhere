@@ -293,6 +293,34 @@ fun ReviewDetailScreen(
                         Spacer1(modifier = Modifier.height(10.dp))
                     }
 
+                    // 이미지 리스트
+                    items(review.imageUrls) { imageUrl ->
+                        val isImageLoaded = remember { mutableStateOf(false) }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                        ) {
+                            if (!isImageLoaded.value) {
+                                SkeletonPlaceholder()
+                            }
+
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    model = imageUrl,
+                                    onSuccess = { isImageLoaded.value = true } // 이미지 로딩 완료 시
+                                ),
+                                contentDescription = "Review Image",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(10.dp))
+                            )
+                        }
+                    }
+
                     // 일별 일정 목록 출력
                     item {
                         if (review.sharePlan.isNotEmpty()) {
@@ -403,34 +431,6 @@ fun ReviewDetailScreen(
                             }
                         }
                     }
-
-                    // 이미지 리스트
-                    items(review.imageUrls) { imageUrl ->
-                        val isImageLoaded = remember { mutableStateOf(false) }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                        ) {
-                            if (!isImageLoaded.value) {
-                                SkeletonPlaceholder()
-                            }
-
-                            Image(
-                                painter = rememberAsyncImagePainter(
-                                    model = imageUrl,
-                                    onSuccess = { isImageLoaded.value = true } // 이미지 로딩 완료 시
-                                ),
-                                contentDescription = "Review Image",
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(10.dp))
-                            )
-                        }
-                    }
                 }
             }
 
@@ -508,7 +508,11 @@ fun ReviewDetailScreen(
                     }
 
                     // 공유 버튼
-                    IconButton(onClick = { }) {
+                    IconButton(
+                        onClick = {
+                            Toast.makeText(context, "추후 구현 예정입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.IosShare,
                             contentDescription = "Share",
