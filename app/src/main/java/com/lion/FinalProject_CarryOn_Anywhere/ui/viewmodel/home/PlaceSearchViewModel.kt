@@ -110,12 +110,15 @@ class PlaceSearchViewModel @Inject constructor(
 
         _isLoading.value = true
         currentPage = 1
+        // 검색 시도
+        isSearchTriggered.value = true
 
         // 검색어 공백 기준으로 분리
         searchKeywords.value = keyword.split(" ").filter { it.isNotEmpty() }
 
         viewModelScope.launch {
             try {
+                _placeSearchList.value = emptyList()
                 val response = TourAPIRetrofitClient.instance.getSearchPlaces(
                     serviceKey = carryOnApplication.tourApiKey,
                     keyword = searchKeywords.value.joinToString(" "),
@@ -134,6 +137,8 @@ class PlaceSearchViewModel @Inject constructor(
                     delay(500) // 데이터 로드 후 약간의 딜레이 (UI 업데이트 보장)
                     updateLoadingState()
                 } else {
+                    // 검색 결과가 없을 경우 빈 리스트 유지
+                    _placeSearchList.value = emptyList()
                     Log.e("API_ERROR", "API 응답 실패: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
