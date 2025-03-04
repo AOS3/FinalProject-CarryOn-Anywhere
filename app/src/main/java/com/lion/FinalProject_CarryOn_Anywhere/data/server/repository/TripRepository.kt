@@ -48,6 +48,19 @@ class TripRepository {
         documentReference.update(customerMap).await()
     }
 
+    // 여행 공유 부분 데이터를 수정한다.
+    suspend fun updateTripTitle(tripVO: TripVO, tripDocumentId: String) {
+        // 수정할 데이터를 담을 맵
+        val customerMap = mapOf(
+            "tripTitle" to tripVO.tripTitle,
+        )
+        // 수정할 문서에 접근할 수 있는 객체를 가져온다.
+        val firestore = FirebaseFirestore.getInstance()
+        val collectionReference = firestore.collection("TripData")
+        val documentReference = collectionReference.document(tripDocumentId)
+        documentReference.update(customerMap).await()
+    }
+
     // 여행 목록들을 가져온다.
     suspend fun gettingTripList(userDocumentId: String): MutableList<Map<String, *>> {
         val firestore = FirebaseFirestore.getInstance()

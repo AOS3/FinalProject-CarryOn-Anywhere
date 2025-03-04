@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -53,7 +54,7 @@ class TripInfoViewModel @Inject constructor(
     val deletePlanDialogState = mutableStateOf(false)
     val editTripNameDialogState = mutableStateOf(false)
 
-    var currentTripName = mutableStateOf("여행1")
+    var currentTripName = mutableStateOf("")
     val editTripNameTextFieldValue = mutableStateOf("")
 
     // 날짜별 리스트 자동 생성
@@ -62,11 +63,12 @@ class TripInfoViewModel @Inject constructor(
     // 바텀시트 상태
     val showBottomSheet = mutableStateOf(false)
 
-    val isLoading = mutableStateOf(false)
+    val isLoading = mutableStateOf(true)
 
     val selectRegion = mutableStateListOf<String>()
 
     val shareCode = mutableStateOf("")
+    val tripTitle = mutableStateOf("")
 
     // 날짜 선택
     var startDate = mutableStateOf<Long?>(null)
@@ -103,7 +105,11 @@ class TripInfoViewModel @Inject constructor(
             }
             tripModel = work1.await()
 
-            currentTripName.value = tripModel.tripTitle
+            if(tripModel.tripTitle == "여행1") {
+                currentTripName.value = "여행1"
+            } else {
+                currentTripName.value = tripModel.tripTitle
+            }
             startDate.value = tripModel.tripStartDate
             endDate.value = tripModel.tripEndDate
             shareCode.value = tripModel.tripShareCode
@@ -147,6 +153,7 @@ class TripInfoViewModel @Inject constructor(
                 selectedDay.value = tripDays.first()
             }
 
+            delay(200)
             isLoading.value = false
         }
     }
@@ -229,6 +236,26 @@ class TripInfoViewModel @Inject constructor(
                 shareTripCode(context, shareCode.value)
 
                 Toast.makeText(context, "공유가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun updateTitleOnClick(context: Context, tripDocumentId: String){
+        if (currentTripName.value == editTripNameTextFieldValue.value) {
+            editTripNameTextFieldValue.value = ""
+            Toast.makeText(context, "기존과 똑같은 이름입니다.", Toast.LENGTH_SHORT).show()
+        } else {
+            CoroutineScope(Dispatchers.Main).launch {
+                tripModel.tripTitle = editTripNameTextFieldValue.value
+                val work3 = async(Dispatchers.IO) {
+                    tripService.updateTripTitle(tripModel)
+                }
+                work3.join()
+
+                editTripNameDialogState.value = false
+                editTripNameTextFieldValue.value = ""
+                gettingTripData(tripDocumentId)
+                Toast.makeText(context, "수정이 완료되었습니다.", Toast.LENGTH_SHORT).show()
             }
         }
     }

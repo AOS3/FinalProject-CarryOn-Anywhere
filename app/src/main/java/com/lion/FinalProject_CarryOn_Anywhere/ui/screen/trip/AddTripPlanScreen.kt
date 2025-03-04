@@ -367,10 +367,8 @@ fun AddTripPlanScreen(
                         .padding(start = 10.dp),
                     confirmButtonOnClick = {
                         if (tripInfoViewModel.editTripNameTextFieldValue.value.isNotBlank()) {
-                            tripInfoViewModel.currentTripName.value = tripInfoViewModel.editTripNameTextFieldValue.value
+                            tripInfoViewModel.updateTitleOnClick(context, tripDocumentId)
                         }
-                        tripInfoViewModel.editTripNameTextFieldValue.value = ""
-                        tripInfoViewModel.editTripNameDialogState.value = false
                     },
                     dismissButtonTitle = "취소",
                     dismissContainerColor = Color.Transparent,
