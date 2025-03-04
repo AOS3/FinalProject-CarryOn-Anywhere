@@ -29,6 +29,7 @@ android {
         resValue("string", "KAKAO_REDIRECT_URI", "\"${properties["KAKAO_REDIRECT_URI"]}\"")
 
         buildConfigField("String", "TOUR_API_KEY", "\"${properties["TOUR_API_KEY"]}\"")
+        buildConfigField("String", "GOOLE_MAP_API_KEY", "\"${properties["GOOLE_MAP_API_KEY"]}\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

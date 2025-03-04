@@ -28,7 +28,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCQEC8qCCiD3MVjJR-fAeutsa_jZa9uI5U"/>
+            android:value="@string/google_maps_key"/>
 
         <activity
             android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
