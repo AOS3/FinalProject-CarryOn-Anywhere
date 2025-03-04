@@ -98,8 +98,8 @@ class MainViewModel @Inject constructor(
     }
 
     // 여행 후기로 이동하는 메서드
-    fun showTripReviewDetailScreen(){
-        //carryOnApplication.navHostController.navigate()
+    fun showTripReviewDetailScreen(reviewDocumentId: String){
+        carryOnApplication.navHostController.navigate("reviewDetail/$reviewDocumentId")
     }
 
     private fun gettingBannerList() {

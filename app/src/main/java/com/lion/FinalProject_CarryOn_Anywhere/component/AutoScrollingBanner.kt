@@ -11,6 +11,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.BannerModel
+import kotlinx.coroutines.delay
 
 // AutoScrolling 적용 안함
 @Composable
@@ -41,6 +43,18 @@ fun AutoScrollingBanner(
 ) {
 
     val pagerState = rememberPagerState(pageCount = {bannerList.size})
+
+    // 3초마다 페이지 넘기기
+    LaunchedEffect(bannerList.size) {
+        // bannerList가 비어있지 않을 때만 실행
+        if (bannerList.isNotEmpty()) {
+            while (true) {
+                delay(3000)
+                val nextPage = (pagerState.currentPage + 1) % bannerList.size
+                pagerState.animateScrollToPage(nextPage)
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -89,50 +103,50 @@ fun AutoScrollingBanner(
             }
         }
 
-//        CustomPagerIndicator(
-//            pagerState = pagerState,
-//            pageCount = bannerImages.size,
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .padding(bottom = 16.dp),
-//            activeColor = Color.Gray,
-//            inactiveColor = Color.LightGray,
-//            activeIndicatorWidth = 16.dp, // 활성화된 인디케이터 너비
-//            inactiveIndicatorWidth = 8.dp, // 비활성화된 인디케이터 너비
-//            indicatorHeight = 8.dp,
-//            spacing = 6.dp
-//        )
+        CustomPagerIndicator(
+            pagerState = pagerState,
+            pageCount = bannerList.size,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 16.dp),
+            activeColor = Color.Gray,
+            inactiveColor = Color.LightGray,
+            activeIndicatorWidth = 16.dp, // 활성화된 인디케이터 너비
+            inactiveIndicatorWidth = 8.dp, // 비활성화된 인디케이터 너비
+            indicatorHeight = 8.dp,
+            spacing = 6.dp
+        )
 
     }
 }
 
-//@Composable
-//fun CustomPagerIndicator(
-//    pagerState: PagerState,
-//    pageCount: Int,
-//    modifier: Modifier = Modifier,
-//    activeColor: Color = Color.Gray,
-//    inactiveColor: Color = Color.LightGray,
-//    activeIndicatorWidth: Dp = 24.dp, // 현재 페이지의 너비
-//    inactiveIndicatorWidth: Dp = 8.dp, // 다른 페이지의 너비
-//    indicatorHeight: Dp = 8.dp,
-//    spacing: Dp = 4.dp
-//) {
-//    Row(
-//        modifier = modifier,
-//        horizontalArrangement = Arrangement.Center,
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//        repeat(pageCount) { index ->
-//            val isActive = pagerState.currentPage == index
-//            Box(
-//                modifier = Modifier
-//                    .padding(horizontal = spacing / 2)
-//                    .width(if (isActive) activeIndicatorWidth else inactiveIndicatorWidth)
-//                    .height(indicatorHeight)
-//                    .clip(CircleShape)
-//                    .background(if (isActive) activeColor else inactiveColor)
-//            )
-//        }
-//    }
-//}
+@Composable
+fun CustomPagerIndicator(
+    pagerState: PagerState,
+    pageCount: Int,
+    modifier: Modifier = Modifier,
+    activeColor: Color = Color.Gray,
+    inactiveColor: Color = Color.LightGray,
+    activeIndicatorWidth: Dp = 24.dp, // 현재 페이지의 너비
+    inactiveIndicatorWidth: Dp = 8.dp, // 다른 페이지의 너비
+    indicatorHeight: Dp = 8.dp,
+    spacing: Dp = 4.dp
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(pageCount) { index ->
+            val isActive = pagerState.currentPage == index
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = spacing / 2)
+                    .width(if (isActive) activeIndicatorWidth else inactiveIndicatorWidth)
+                    .height(indicatorHeight)
+                    .clip(CircleShape)
+                    .background(if (isActive) activeColor else inactiveColor)
+            )
+        }
+    }
+}

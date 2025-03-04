@@ -244,7 +244,10 @@ fun MainScreen(
                             writer = userId,
                             content = review.tripReviewContent,
                             modifier = Modifier
-                                .padding(horizontal = 20.dp, vertical = 20.dp)
+                                .padding(horizontal = 20.dp, vertical = 20.dp),
+                            onClick = {
+                                mainViewModel.showTripReviewDetailScreen(review.tripReviewDocumentId)
+                            }
                         )
                     }
                 }
