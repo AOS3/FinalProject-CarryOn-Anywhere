@@ -111,24 +111,31 @@ fun StoryDetailScreen(
 
         // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
         val carryOnApplication = context.applicationContext as? CarryOnApplication
+        val isLoggedIn by carryOnApplication?.isLoggedIn?.collectAsState() ?: remember { mutableStateOf(false) }
         val loginUserId = try {
             carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
         } catch (e: UninitializedPropertyAccessException) {
             "guest"
         }
-        // 로그인하지 않은 경우 버튼 숨김
-        val isAuthor = loginUserId != "guest" && post.author == loginUserId
 
         // 시스템 바텀바 높이 가져오기
         val systemBarHeight = getNavigationBarHeight().dp
 
+        // 로그인하지 않은 경우 버튼 숨김
+        val isAuthor = remember(isLoggedIn) { isLoggedIn && post.author == loginUserId }
         // 좋아요 상태를 유지하기 위한 변수
-        val isLiked = remember { mutableStateOf(post.carryTalkLikeUserList.contains(loginUserId)) }
+        val isLiked = remember(isLoggedIn) { mutableStateOf(if (isLoggedIn) post.carryTalkLikeUserList.contains(loginUserId) else false) }
         val likeCount = remember { mutableStateOf(post.likes) }
 
         // 최신 데이터 반영
         LaunchedEffect(Unit) {
             storyViewModel.fetchCarryTalkPosts()
+        }
+
+        // 로그인 상태 변경 시 UI 업데이트 (로그아웃하면 초기화)
+        LaunchedEffect(isLoggedIn) {
+            storyViewModel.fetchCarryTalkPosts()
+            isLiked.value = if (isLoggedIn) post.carryTalkLikeUserList.contains(loginUserId) else false
         }
 
         Box(
@@ -357,7 +364,7 @@ fun StoryDetailScreen(
                                 size = 30,
                                 isLiked = isLiked.value,
                                 onClick = {
-                                    if (loginUserId == "guest") {
+                                    if (!isLoggedIn) {
                                         showLoginDialog.value = true
                                     } else {
                                         storyViewModel.toggleLike(

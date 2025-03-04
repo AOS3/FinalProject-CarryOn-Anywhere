@@ -49,6 +49,7 @@ fun ReviewScreen(
 
     // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
     val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val isLoggedIn by carryOnApplication?.isLoggedIn?.collectAsState() ?: remember { mutableStateOf(false) }
     val loginUserId = try {
         carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
     } catch (e: UninitializedPropertyAccessException) {
@@ -60,6 +61,11 @@ fun ReviewScreen(
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
+        reviewViewModel.fetchTripReviews()
+    }
+
+    // 로그인 상태가 변경될 때마다 리뷰 데이터를 다시 불러오기
+    LaunchedEffect(isLoggedIn) {
         reviewViewModel.fetchTripReviews()
     }
 
@@ -102,11 +108,18 @@ fun ReviewScreen(
             items(reviews.size) { index ->
                 val review = reviews[index]
 
+                // "isLiked"를 로그인 여부에 따라 설정
+                val isLiked = if (!isLoggedIn) {
+                    false
+                } else {
+                    review.tripReviewLikeUserList.contains(loginUserId)
+                }
+
                 ReviewCard(
                     review = review,
-                    isLiked = review.tripReviewLikeUserList.contains(loginUserId),
+                    isLiked = isLiked,
                     onLikeClick = {
-                        if (loginUserId == "guest") {
+                        if (!isLoggedIn) {
                             showLoginDialog.value = true
                         } else {
                             reviewViewModel.toggleLike(review.documentId, loginUserId)
@@ -225,7 +238,6 @@ private fun ReviewCard(
                 color = Color.Gray,
                 modifier = Modifier.padding(vertical = 5.dp)
             )
-
 
             // 좋아요 및 댓글 UI
             Row(
