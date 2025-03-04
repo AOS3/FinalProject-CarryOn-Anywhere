@@ -61,9 +61,9 @@ class FindIdViewModel
             ScreenName.FIND_ID_SCREEN.name,
             inclusive = true
         )
-//        carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name) {
-//            launchSingleTop = true
-//        }
+        carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name) {
+            launchSingleTop = true
+        }
     }
 
     // 인증 요청 버튼 활성화 메서드
