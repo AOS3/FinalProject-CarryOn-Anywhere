@@ -165,7 +165,7 @@ fun PlaceSearchScreen(
                         }
                     }
                 )
-            } else {
+            } else if (placeSearchViewModel.isSearchTriggered.value) {
                 // 검색 결과 없을 때
                 Column(
                     modifier = Modifier
