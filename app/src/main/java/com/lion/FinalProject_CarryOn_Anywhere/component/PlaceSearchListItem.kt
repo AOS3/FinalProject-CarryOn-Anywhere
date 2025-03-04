@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
-import coil3.compose.rememberAsyncImagePainter
 import com.lion.FinalProject_CarryOn_Anywhere.R
+import com.lion.FinalProject_CarryOn_Anywhere.data.api.TourAPI.TourApiHelper
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
@@ -67,6 +67,10 @@ fun PlaceSearchListItem(
         imageUrl.startsWith("https://") -> imageUrl.replace("https://", "http://")
         else -> null
     }
+
+    val contentTypeId = place["contenttypeid"] ?: ""
+    val contentType = TourApiHelper.contentTypeMap[contentTypeId] ?: "기타"
+
 
     Row(
         modifier = Modifier
@@ -117,7 +121,7 @@ fun PlaceSearchListItem(
             )
 
             Text(
-                text = place["region"].toString(),
+                text = place["areacode"].toString(),
                 style = Typography.labelLarge,
                 color = SubColor,
                 fontSize = 13.sp,
@@ -126,7 +130,7 @@ fun PlaceSearchListItem(
             )
 
             Text(
-                text = place["category"].toString(),
+                text = contentType,
                 style = Typography.labelLarge,
                 fontSize = 13.sp,
                 color = GrayColor,

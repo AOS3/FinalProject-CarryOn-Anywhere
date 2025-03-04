@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -84,7 +85,7 @@ class MainActivity : ComponentActivity() {
         val windowInsetsController =
             WindowCompat.getInsetsController(window, window.decorView)
 
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+        //windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
 
         setContent {
             FinalProject_CarryOn_AnywhereTheme {

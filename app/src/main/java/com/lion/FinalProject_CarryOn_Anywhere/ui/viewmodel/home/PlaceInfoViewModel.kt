@@ -82,7 +82,7 @@ class PlaceInfoViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = TourAPIRetrofitClient.instance.getDetailCommon1(
-                    serviceKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ==",
+                    serviceKey = carryOnApplication.tourApiKey,
                     contentId = contentId,
                     contentTypeId = contentTypeId,
                 )

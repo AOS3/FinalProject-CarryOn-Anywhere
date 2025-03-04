@@ -63,15 +63,6 @@ class PlaceSearchViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _selectedCategory = mutableStateOf("전체") // 카테고리 선택 상태
-    val selectedCategory: State<String> = _selectedCategory
-
-    private val _selectedArea = mutableStateOf("전체") // 지역 선택 상태
-    val selectedArea: State<String> = _selectedArea
-
-    private val _selectedSubRegion = mutableStateOf("전체") // 서브 지역 선택 상태
-    val selectedSubRegion: State<String> = _selectedSubRegion
-
     init {
         // 로그인한 경우에만 찜 목록 불러오기, `loginUserModel` 초기화
         if (isLoggedIn.value && carryOnApplication.loginUserModel != null) {
@@ -97,8 +88,7 @@ class PlaceSearchViewModel @Inject constructor(
             "contenttypeid" to (place.contenttypeid ?: ""),
             "firstimage" to (place.firstimage ?: ""),
             "title" to (place.title ?: "장소 정보 없음"),
-            "region" to TourApiHelper.getAreaName(place.areacode),
-            "category" to TourApiHelper.getContentType(place.contenttypeid),
+            "areacode" to TourApiHelper.getAreaName(place.areacode),
             "address" to (place.addr1 ?: "주소 정보 없음"),
             "call" to (place.tel ?: "전화번호 정보 없음"),
             "isLoading" to true // 로딩 값
@@ -127,7 +117,7 @@ class PlaceSearchViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = TourAPIRetrofitClient.instance.getSearchPlaces(
-                    serviceKey = "Dv9oAbX/dy1WYtUtdQlhwy6o0rZyscllzmIsF9l4iLwlLtX2YeGQo9vzZl7ZUz4ez4BzWLCoBIvih9MgPFpiYQ==",
+                    serviceKey = carryOnApplication.tourApiKey,
                     keyword = searchKeywords.value.joinToString(" "),
                     pageNo = currentPage
                 )
@@ -143,7 +133,7 @@ class PlaceSearchViewModel @Inject constructor(
                     // 일정 시간 후 로딩 상태를 false로 변경
                     delay(500) // 데이터 로드 후 약간의 딜레이 (UI 업데이트 보장)
                     updateLoadingState()
-                    } else {
+                } else {
                     Log.e("API_ERROR", "API 응답 실패: ${response.errorBody()?.string()}")
                 }
             } catch (e: Exception) {
@@ -164,7 +154,7 @@ class PlaceSearchViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val response = TourAPIRetrofitClient.instance.getSearchPlaces(
-                    serviceKey = "Dv9oAbX/dy1WYtUtdQlhwy6o0rZyscllzmIsF9l4iLwlLtX2YeGQo9vzZl7ZUz4ez4BzWLCoBIvih9MgPFpiYQ==",
+                    serviceKey = carryOnApplication.tourApiKey,
                     keyword = searchValue.value.trim(),
                     pageNo = currentPage
                 )

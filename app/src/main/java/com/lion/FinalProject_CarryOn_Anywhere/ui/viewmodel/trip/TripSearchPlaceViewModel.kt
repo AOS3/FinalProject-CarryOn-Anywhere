@@ -102,7 +102,7 @@ class TripSearchPlaceViewModel @Inject constructor(
         page: Int,
         contentTypeId: String? = null
     ) {
-        val apiKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ=="
+        val apiKey = carryOnApplication.tourApiKey
         val uniqueRegionPairs = regionCodes.zip(subRegionCodes).distinct()
         val newPlaces = mutableListOf<TourApiModel.TouristSpotItem>()
 

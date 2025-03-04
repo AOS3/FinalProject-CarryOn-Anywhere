@@ -61,7 +61,7 @@ class MyLikePageViewModel @Inject constructor(
             "contenttypeid" to (place.contenttypeid ?: ""),
             "firstimage" to (place.firstimage ?: ""),
             "title" to (place.title ?: "장소 정보 없음"),
-            "region" to TourApiHelper.getAreaName(place.areacode),
+            "areacode" to TourApiHelper.getAreaName(place.areacode),
             "category" to TourApiHelper.getContentType(place.contenttypeid),
             "isLoading" to true // 로딩 값,
         )
@@ -128,7 +128,7 @@ class MyLikePageViewModel @Inject constructor(
 
                         try {
                             val response = TourAPIRetrofitClient.instance.getDetailCommon1(
-                                serviceKey = "Dv9oAbX/dy1WYtUtdQlhwy6o0rZyscllzmIsF9l4iLwlLtX2YeGQo9vzZl7ZUz4ez4BzWLCoBIvih9MgPFpiYQ==",
+                                serviceKey = carryOnApplication.tourApiKey,
                                 contentId = contentId,
                                 contentTypeId = contentTypeId,
                             )

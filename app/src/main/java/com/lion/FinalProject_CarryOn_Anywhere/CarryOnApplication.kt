@@ -18,7 +18,11 @@ class CarryOnApplication :Application(){
         super.onCreate()
         // 카카오 SDK 초기화
         KakaoSdk.init(this, BuildConfig.KAKAO_API_KEY)
+
     }
+
+    // 관광공사 API KEY
+    val tourApiKey = BuildConfig.TOUR_API_KEY
 
     // 네비게이션
     lateinit var navHostController: NavHostController
