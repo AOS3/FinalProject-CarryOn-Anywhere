@@ -88,7 +88,7 @@ class AddTripInfoViewModel @Inject constructor(
     fun fetchRegions() {
         viewModelScope.launch {
             try {
-                val apiKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ=="
+                val apiKey = carryOnApplication.tourApiKey
                 val response = TourAPIRetrofitClient.instance.getRegionCodes(apiKey)
 
                 val rawRegionList = response.body()?.response?.body?.items?.item
@@ -136,7 +136,7 @@ class AddTripInfoViewModel @Inject constructor(
     fun fetchSubRegions(regionName: String) {
         viewModelScope.launch {
             try {
-                val apiKey = "6d5mkmqFyluWJNMUzIer6qA43/S6w+LWlCCspcQwyeSs9fesUnARurM+nBCqBxQ982Sl0OoHXILuM8nFrjKsjQ=="
+                val apiKey = carryOnApplication.tourApiKey
                 val areaCodes = getRegionCode(regionName).split(",").map { it.trim() }
 
                 if (areaCodes.isEmpty() || areaCodes.contains("0")) {

@@ -67,23 +67,18 @@ fun LoginScreen(
     windowInsetsController:WindowInsetsControllerCompat,
     loginViewModel: LoginViewModel = hiltViewModel()) {
 
-    val context = LocalContext.current
-
     // 키보드 포커스 상태
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
 
+    // 로딩 상태
     val isLoading by loginViewModel.isLoading.collectAsState()
+
+    val activity = LocalContext.current as Activity
 
     LaunchedEffect(windowInsetsController) {
         windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
     }
-    // 화면이 처음 생성될 때 (최초 1회만 실행)
-//    LaunchedEffect(Unit) {
-//        windowInsetsController?.show(WindowInsetsCompat.Type.systemBars())
-//    }
-
-    val activity = LocalContext.current as Activity
 
     Scaffold(
 
