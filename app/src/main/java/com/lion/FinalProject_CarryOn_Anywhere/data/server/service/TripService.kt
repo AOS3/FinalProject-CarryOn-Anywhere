@@ -25,6 +25,12 @@ class TripService(val tripRepository: TripRepository) {
         tripRepository.updateTripShare(tripVO, tripModel.tripDocumentId)
     }
 
+    // 사용자 데이터를 수정한다.
+    suspend fun updateTripTitle(tripModel: TripModel){
+        val tripVO = tripModel.toTripVO()
+        tripRepository.updateTripTitle(tripVO, tripModel.tripDocumentId)
+    }
+
     suspend fun gettingTripList(userDocumentId: String) : MutableList<TripModel>{
         // 글정보를 가져온다.
         val tripList = mutableListOf<TripModel>()
