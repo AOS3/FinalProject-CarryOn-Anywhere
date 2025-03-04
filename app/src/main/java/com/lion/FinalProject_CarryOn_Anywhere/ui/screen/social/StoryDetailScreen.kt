@@ -405,7 +405,11 @@ fun StoryDetailScreen(
                     }
 
                     // 공유 버튼
-                    IconButton(onClick = { }) {
+                    IconButton(
+                        onClick = {
+                            Toast.makeText(context, "추후 구현 예정입니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.IosShare,
                             contentDescription = "Share",
