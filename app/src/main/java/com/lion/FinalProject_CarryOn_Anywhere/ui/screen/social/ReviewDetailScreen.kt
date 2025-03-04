@@ -116,13 +116,12 @@ fun ReviewDetailScreen(
 
         // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
         val carryOnApplication = context.applicationContext as? CarryOnApplication
+        val isLoggedIn by carryOnApplication?.isLoggedIn?.collectAsState() ?: remember { mutableStateOf(false) }
         val loginUserId = try {
             carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
         } catch (e: UninitializedPropertyAccessException) {
             "guest"
         }
-        // 로그인하지 않은 경우 버튼 숨김
-        val isAuthor = loginUserId != "guest" && review.author == loginUserId
 
         // 시스템 바텀바 높이 가져오기
         val systemBarHeight = getNavigationBarHeight().dp
@@ -133,14 +132,21 @@ fun ReviewDetailScreen(
             tripInfoViewModel.updateTripDays()
         }
 
+        // 로그인하지 않은 경우 버튼 숨김
+        val isAuthor = remember(isLoggedIn) { isLoggedIn && review.author == loginUserId }
         // 좋아요 상태를 유지하기 위한 변수
-        val isLiked =
-            remember { mutableStateOf(review.tripReviewLikeUserList.contains(loginUserId)) }
+        val isLiked = remember(isLoggedIn) { mutableStateOf(if (isLoggedIn) review.tripReviewLikeUserList.contains(loginUserId) else false) }
         val likeCount = remember { mutableStateOf(review.likes) }
 
         // 최신 데이터 반영
         LaunchedEffect(Unit) {
             reviewViewModel.fetchTripReviews()
+        }
+
+        // 로그인 상태 변경 시 UI 업데이트 (로그아웃하면 초기화)
+        LaunchedEffect(isLoggedIn) {
+            reviewViewModel.fetchTripReviews()
+            isLiked.value = if (isLoggedIn) review.tripReviewLikeUserList.contains(loginUserId) else false
         }
 
         Box(
