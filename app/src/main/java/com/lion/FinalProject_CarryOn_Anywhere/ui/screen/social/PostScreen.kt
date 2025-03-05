@@ -440,7 +440,7 @@ fun PostScreen(
                         textFieldValue = remember { mutableStateOf(postViewModel.titleState.value) },
                         label = "제목",
                         placeHolder = "제목을 입력하세요",
-                        maxLength = 30,
+//                        maxLength = 30,
                         showCharCount = true,
                         onValueChange = { postViewModel.updateTitle(it) },
                         singleLine = true,
@@ -469,7 +469,7 @@ fun PostScreen(
                             items(imageUris.value.size) { index ->
                                 Box(
                                     modifier = Modifier
-                                        .size(90.dp) //
+                                        .size(90.dp)
                                         .padding(top = 4.dp, end = 4.dp)
                                 ) {
                                     Box(
@@ -544,7 +544,7 @@ fun PostScreen(
                         textFieldValue = remember { mutableStateOf(postViewModel.contentState.value) },
                         label = "내용",
                         placeHolder = "내용을 입력하세요",
-                        maxLength = 500,
+//                        maxLength = 500,
                         showCharCount = true,
                         onValueChange = { postViewModel.updateContent(it) },
                         modifier = Modifier
