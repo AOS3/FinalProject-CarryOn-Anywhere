@@ -502,7 +502,7 @@ fun ModifyScreen(
                         textFieldValue = titleState,
                         label = "제목",
                         placeHolder = "제목을 입력하세요",
-                        maxLength = 30,
+//                        maxLength = 30,
                         showCharCount = true,
                         onValueChange = { modifyViewModel.updateTitle(it) },
                         singleLine = true,
@@ -610,7 +610,7 @@ fun ModifyScreen(
                         textFieldValue = contentState,
                         label = "내용",
                         placeHolder = "내용을 입력하세요",
-                        maxLength = 500,
+//                        maxLength = 500,
                         showCharCount = true,
                         onValueChange = { modifyViewModel.updateContent(it) },
                         modifier = Modifier

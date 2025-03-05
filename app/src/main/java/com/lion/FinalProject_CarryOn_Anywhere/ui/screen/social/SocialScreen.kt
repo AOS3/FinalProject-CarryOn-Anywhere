@@ -46,15 +46,12 @@ fun SocialScreen(
 
     val context = LocalContext.current
 
-    // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
+    // 로그인 여부를 State로 관리
     val carryOnApplication = context.applicationContext as? CarryOnApplication
-    val loginUserId = try {
-        carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
-    } catch (e: UninitializedPropertyAccessException) {
-        "guest"
-    }
-    // 로그인하지 않은 경우 버튼 숨김
-    val isAuthor = loginUserId != "guest"
+    val isLoggedIn = carryOnApplication?.isLoggedIn?.collectAsState()?.value ?: false
+
+    // 로그인 여부에 따라 버튼 활성화
+    val isAuthor = isLoggedIn
 
     Column {
         LikeLionTopAppBar(

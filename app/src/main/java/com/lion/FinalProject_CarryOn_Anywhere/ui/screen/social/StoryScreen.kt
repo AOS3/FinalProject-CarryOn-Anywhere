@@ -62,6 +62,7 @@ fun StoryScreen(
     val context = LocalContext.current
 
     val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val isLoggedIn by carryOnApplication?.isLoggedIn?.collectAsState() ?: remember { mutableStateOf(false) }
     val loginUserId = try {
         carryOnApplication?.loginUserModel?.userDocumentId ?: "guest"
     } catch (e: UninitializedPropertyAccessException) {
@@ -79,6 +80,11 @@ fun StoryScreen(
 
     // 최신 데이터 반영
     LaunchedEffect(Unit) {
+        storyViewModel.fetchCarryTalkPosts()
+    }
+
+    // 로그인 상태가 변경될 때마다 리뷰 데이터를 다시 불러오기
+    LaunchedEffect(isLoggedIn) {
         storyViewModel.fetchCarryTalkPosts()
     }
 
@@ -155,12 +161,19 @@ fun StoryScreen(
                 items(filteredPosts.size) { index ->
                     val post = filteredPosts[index]
 
+                    // "isLiked"를 로그인 여부에 따라 설정
+                    val isLiked = if (!isLoggedIn) {
+                        false
+                    } else {
+                        post.carryTalkLikeUserList.contains(loginUserId)
+                    }
+
                     PostItem(
                         post = post,
                         navController = navController,
-                        isLiked = post.carryTalkLikeUserList.contains(loginUserId),
+                        isLiked = isLiked,
                         onLikeClick = {
-                            if (loginUserId == "guest") {
+                            if (!isLoggedIn) {
                                 showLoginDialog.value = true
                             } else {
                                 storyViewModel.toggleLike(post.documentId, loginUserId)
