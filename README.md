@@ -1,7 +1,6 @@
 # 국내 여행 일정 생성 서비스 ‘캐리온’
 
-![최종프로젝트_2팀_발표.jpg](https://github.com/user-attachments/assets/987b5c63-7bdb-4628-b790-b9c8f9610706)
-
+<img src="https://github.com/user-attachments/assets/987b5c63-7bdb-4628-b790-b9c8f9610706" width="500">
 
 
 ## **프로젝트 소개**
