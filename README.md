@@ -103,38 +103,19 @@
 
 ---
 
-![image 1](https://github.com/user-attachments/assets/24ad5cc7-98c7-4e50-8d87-6560069cf06f)
+| ![image 1](https://github.com/user-attachments/assets/24ad5cc7-98c7-4e50-8d87-6560069cf06f) | ![image 6](https://github.com/user-attachments/assets/e17c3c25-fceb-441d-bb92-74ff41b4caf2) |
+| --- | --- |
+| ![image 3](https://github.com/user-attachments/assets/f5ebe8cf-3dcc-4b7f-8d5c-eef6f54e4f3c) | ![image 8](https://github.com/user-attachments/assets/094f27b8-91c8-4c51-847c-8e252b7ee47b) |
+| ![image 2](https://github.com/user-attachments/assets/5156bfa5-cfd3-426c-9997-6b3d706e4093) | ![image 5](https://github.com/user-attachments/assets/0d4b47f0-e6e9-46d7-8248-3d94ff0469b0) |
+| ![image 7](https://github.com/user-attachments/assets/36259faa-fca0-42e6-8a81-8a553c39d0ff) | ![image 4](https://github.com/user-attachments/assets/93db3f4a-dd5c-43c4-9495-1acc90482a69) |
+| ![image 9](https://github.com/user-attachments/assets/df425c29-70d1-4212-8278-e44f422052c4) | 
 
-
-![image 2](https://github.com/user-attachments/assets/5156bfa5-cfd3-426c-9997-6b3d706e4093)
-
-
-![image 3](https://github.com/user-attachments/assets/f5ebe8cf-3dcc-4b7f-8d5c-eef6f54e4f3c)
-
-
-![image 4](https://github.com/user-attachments/assets/93db3f4a-dd5c-43c4-9495-1acc90482a69)
-
-
-![image 5](https://github.com/user-attachments/assets/0d4b47f0-e6e9-46d7-8248-3d94ff0469b0)
-
-
-![image 6](https://github.com/user-attachments/assets/e17c3c25-fceb-441d-bb92-74ff41b4caf2)
-
-
-![image 7](https://github.com/user-attachments/assets/36259faa-fca0-42e6-8a81-8a553c39d0ff)
-
-
-![image 8](https://github.com/user-attachments/assets/094f27b8-91c8-4c51-847c-8e252b7ee47b)
-
-
-![image 9](https://github.com/user-attachments/assets/df425c29-70d1-4212-8278-e44f422052c4)
-
-
+    
 ## 시연영상
 
 ---
 
-https://youtu.be/QOMqkSoCrjo
+- https://youtu.be/QOMqkSoCrjo
 
 ## 추후 개선사항
 
