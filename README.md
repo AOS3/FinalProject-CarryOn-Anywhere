@@ -115,7 +115,7 @@
 
 ---
 
-- https://youtu.be/QOMqkSoCrjo
+- 🎥 [[Android 프로젝트] 캐리온 시연영상](https://youtu.be/QOMqkSoCrjo)
 
 ## 추후 개선사항
 
