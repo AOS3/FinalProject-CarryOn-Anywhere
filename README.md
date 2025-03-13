@@ -71,25 +71,29 @@
     - 협업 툴: GitHub Issues, Pull Request
 
 ## 레퍼런스
+---
+#### 📊 **DB 설계서**
+> 앱의 핵심 데이터 구조를 설계한 문서입니다.
+
+🔗 [DB 목록.xlsx](https://docs.google.com/spreadsheets/d/11xW7QGEtBlWqxMNuQ7tYBlN-ymfP_E1sA-evmzJtfC0/edit?gid=1433313731#gid=1433313731)  
+🔗 [ERD (Entity-Relationship Diagram)](https://dbdiagram.io/d/CarryOn-67a9b2e4263d6cf9a0974ab3)
 
 ---
 
-<aside>
-**📊 DB 설계서**
-- [DB 목록.xlsx](https://docs.google.com/spreadsheets/d/11xW7QGEtBlWqxMNuQ7tYBlN-ymfP_E1sA-evmzJtfC0/edit?gid=1433313731#gid=1433313731)
-- [ERD](https://dbdiagram.io/d/CarryOn-67a9b2e4263d6cf9a0974ab3)
-</aside>
+#### 🎨 **디자인**
+> UI/UX 설계를 위한 디자인 리소스입니다.
 
-<aside>
-**🧑‍🎨 디자인**
-- [Figma_캐리온](https://www.figma.com/design/2btJIpCIFaiRhE1GYcKMZB/%ED%8C%8C%EC%9D%B4%EB%84%90%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8_2%ED%8C%80?node-id=350-16420&t=VhlLZcwhsYpTr8cY-1)
-</aside>
+🔗 [Figma_캐리온](https://www.figma.com/design/2btJIpCIFaiRhE1GYcKMZB/%ED%8C%8C%EC%9D%B4%EB%84%90%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8_2%ED%8C%80?node-id=350-16420&t=VhlLZcwhsYpTr8cY-1)
 
-<aside>
+---
 
-**🙋 요구사항 명세서**
-- [요구사항 명세서.xlsx](https://docs.google.com/spreadsheets/d/1tD7FVl9ZmXt9sas6y4ChpS8wdmZQxfB7/edit?gid=1388090367#gid=1388090367)
-</aside>
+#### 📜 **요구사항 명세서**
+> 프로젝트의 기능과 요구사항을 정리한 문서입니다.
+
+🔗 [요구사항 명세서.xlsx](https://docs.google.com/spreadsheets/d/1tD7FVl9ZmXt9sas6y4ChpS8wdmZQxfB7/edit?gid=1388090367#gid=1388090367)
+
+
+
 
 ## 핵심 기능
 
