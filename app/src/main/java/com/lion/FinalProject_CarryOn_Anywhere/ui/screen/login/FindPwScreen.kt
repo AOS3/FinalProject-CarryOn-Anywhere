@@ -106,6 +106,9 @@ fun FindPwScreen(findPwViewModel: FindPwViewModel = hiltViewModel()) {
                     findPwViewModel.textFieldFindPwIdValue.value = it
                     findPwViewModel.updateDoneButtonState()
                 },
+                isError = findPwViewModel.textFieldUFindPwNotExistUserError,
+                supportText = findPwViewModel.textFieldUFindPwNotExistUserErrorText,
+                enabled = !findPwViewModel.isInputDisabled.value
             )
 
             Row(
@@ -131,18 +134,21 @@ fun FindPwScreen(findPwViewModel: FindPwViewModel = hiltViewModel()) {
                         findPwViewModel.updateSendAutoButtonState()
                         findPwViewModel.updateDoneButtonState()
                     },
+                    isError = findPwViewModel.textFieldUFindPwMismatchUserError,
+                    supportText = findPwViewModel.textFieldUFindPwMismatchUserErrorText,
+                    enabled = !findPwViewModel.isInputDisabled.value
                 )
 
                 // 인증 요청 버튼
                 LikeLionFilledButton(
                     text = "인증요청",
-                    isEnabled = findPwViewModel.isButtonFindPwPhoneNoEnabled.value,
+                    isEnabled = findPwViewModel.isButtonFindPwPhoneNoEnabled.value && !findPwViewModel.isInputDisabled.value,
                     modifier = Modifier
                         .weight(0.4f)
                         .padding(top = 6.dp, start = 5.dp)
                         .height(56.dp),
                     onClick = {
-                        findPwViewModel.sendVerificationCode(findPwViewModel.textFieldFindPwPhoneValue.value,context)
+                        findPwViewModel.buttonFindPwVerificationOnClick(context)
                     },
                     cornerRadius = 5,
                     containerColor = SubColor,
@@ -170,13 +176,14 @@ fun FindPwScreen(findPwViewModel: FindPwViewModel = hiltViewModel()) {
                     findPwViewModel.updateDoneButtonState()
                 },
                 isError = findPwViewModel.textFieldUFindPwAuthNumberError,
-                supportText = findPwViewModel.textFieldUFindPwAuthNumberErrorText
+                supportText = findPwViewModel.textFieldUFindPwAuthNumberErrorText,
+                enabled = !findPwViewModel.isInputDisabled.value
             )
 
             // 인증 번호 확인 버튼
             LikeLionFilledButton(
                 text = "인증 확인",
-                isEnabled = findPwViewModel.isButtonFindPwAuthNoEnabled.value,
+                isEnabled = findPwViewModel.isButtonFindPwAuthNoEnabled.value && !findPwViewModel.isInputDisabled.value,
                 modifier = Modifier
                     .fillMaxWidth(),
                 paddingTop = 10.dp,

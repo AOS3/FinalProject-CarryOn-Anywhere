@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
@@ -43,6 +44,11 @@ fun ChangePwScreen(
     changePwViewModel: ChangePwViewModel = hiltViewModel()
 ) {
 
+    // userId를 사용하여 UserModel을 가져오는 로직 추가
+    LaunchedEffect(userId) {
+        changePwViewModel.gettingUserModel(userId)
+    }
+
     Scaffold(
         topBar = {
             LikeLionTopAppBar(
@@ -55,7 +61,7 @@ fun ChangePwScreen(
             )
         },
 
-    ) {
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -70,7 +76,9 @@ fun ChangePwScreen(
             LikeLionOutlinedTextField(
                 paddingTop = 10.dp,
                 textFieldValue = changePwViewModel.textFieldChangePwPwValue,
-                onValueChange = { changePwViewModel.textFieldChangePwPwValue.value = it },
+                onValueChange = {
+                    changePwViewModel.updateDoneButtonState()
+                },
                 label = "새 비밀번호",
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -78,27 +86,33 @@ fun ChangePwScreen(
                 inputType = LikeLionOutlinedTextFieldInputType.PASSWORD,
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.PASSWORD,
                 singleLine = true,
+                isError = changePwViewModel.textFieldChangePwConditionError,
+                supportText = changePwViewModel.textFieldChangePwConditionErrorText
             )
 
-            Row(modifier = Modifier.padding(bottom = 10.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Check",
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(end = 4.dp)
-                )
-                Text(
-                    text = "영문 숫자 포함 8자 이상",
-                    fontSize = 14.sp
-                )
+            if (!changePwViewModel.textFieldChangePwConditionError.value) {
+                Row(modifier = Modifier.padding(bottom = 10.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Check",
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 4.dp)
+                    )
+                    Text(
+                        text = "영문 숫자 포함 8자 이상",
+                        fontSize = 14.sp
+                    )
+                }
             }
 
             // 새 비밀번호 확인 텍스트 필드
             LikeLionOutlinedTextField(
                 paddingTop = 10.dp,
                 textFieldValue = changePwViewModel.textFieldChangePwCheckPwValue,
-                onValueChange = { changePwViewModel.textFieldChangePwCheckPwValue.value = it },
+                onValueChange = {
+                    changePwViewModel.updateDoneButtonState()
+                },
                 label = "새 비밀번호 확인",
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -109,19 +123,23 @@ fun ChangePwScreen(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done // "완료" 버튼 활성화
-                ),
+                     ),
+                isError = changePwViewModel.textFieldChangePwMismatchError,
+                supportText = changePwViewModel.textFieldChangePwMismatchErrorText
 
             )
 
-            // 가입 완료 버튼
+            // 비밀번호 변경 버튼
             LikeLionFilledButton(
                 text = "비밀번호 변경",
-                isEnabled = true,
+                isEnabled = changePwViewModel.isButtonChangePwDoneEnabled.value,
                 modifier = Modifier
                     .fillMaxWidth(),
-                paddingTop = 10.dp,
+                paddingTop = 20.dp,
                 onClick = {
-                    changePwViewModel.buttonChangePwDoneOnClick()
+                    if (changePwViewModel.validatePassword()) {
+                        changePwViewModel.buttonChangePwDoneOnClick()
+                    }
                 },
                 cornerRadius = 5,
                 containerColor = MainColor,
@@ -143,26 +161,27 @@ fun ChangePwScreen(
             titleModifier = Modifier
                 .fillMaxWidth(),
             textModifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            containerColor = Color.White
         )
 
-        // 유효성 검사 다이얼로그
-        if (changePwViewModel.showDialogPwShort.value) {
-            LikeLionAlertDialog(
-                showDialogState = changePwViewModel.showDialogPwShort,
-                title = "입력 오류",
-                text = "새 비밀번호는 8자 이상 입력해야 합니다.",
-                confirmButtonTitle = "확인"
-            )
-        }
-
-        if (changePwViewModel.showDialogPwMismatch.value) {
-            LikeLionAlertDialog(
-                showDialogState = changePwViewModel.showDialogPwMismatch,
-                title = "입력 오류",
-                text = "새 비밀번호가 일치하지 않습니다.",
-                confirmButtonTitle = "확인"
-            )
-        }
+//        // 유효성 검사 다이얼로그
+//        if (changePwViewModel.showDialogPwShort.value) {
+//            LikeLionAlertDialog(
+//                showDialogState = changePwViewModel.showDialogPwShort,
+//                title = "입력 오류",
+//                text = "새 비밀번호는 8자 이상 입력해야 합니다.",
+//                confirmButtonTitle = "확인"
+//            )
+//        }
+//
+//        if (changePwViewModel.showDialogPwMismatch.value) {
+//            LikeLionAlertDialog(
+//                showDialogState = changePwViewModel.showDialogPwMismatch,
+//                title = "입력 오류",
+//                text = "새 비밀번호가 일치하지 않습니다.",
+//                confirmButtonTitle = "확인"
+//            )
+//        }
     }
 }

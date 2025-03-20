@@ -49,6 +49,8 @@ fun LikeLionAlertDialog(
     icon: ImageVector? = null,
     title: String? = null,
     text: String? = null,
+    // 배경 색상
+    containerColor:Color = Color.Transparent
 ) {
     if (showDialogState.value) {
         AlertDialog(
@@ -56,6 +58,7 @@ fun LikeLionAlertDialog(
             onDismissRequest = {
                 showDialogState.value = false
             },
+            containerColor = Color.White,
             // 확인 및 취소 버튼을 한 줄에 배치
             confirmButton = {
                 Row(
