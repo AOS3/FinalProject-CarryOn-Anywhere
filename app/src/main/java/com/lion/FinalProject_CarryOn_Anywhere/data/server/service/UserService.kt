@@ -48,7 +48,7 @@ class UserService() {
             }
         }
 
-            // 사용자 Document Id를 통해 사용자 정보를 가져오는 메서드
+        // 사용자 Document Id를 통해 사용자 정보를 가져오는 메서드
         suspend fun selectUserDataByUserDocumentIdOne(userDocumentId:String) : UserModel{
             val userVO = UserRepository.selectUserDataByUserDocumentIdOne(userDocumentId)
             val userModel = userVO.toUserModel(userDocumentId)

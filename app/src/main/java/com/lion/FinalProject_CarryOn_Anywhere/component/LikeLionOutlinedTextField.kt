@@ -80,6 +80,8 @@ fun LikeLionOutlinedTextField(
     onTrailingIconClick: (() -> Unit)? = null,
     // 입력값 변경 이벤트
     onValueChange: (String) -> Unit = {},
+    // 텍스트필드 활성화 여부
+    enabled:Boolean = true,
 ) {
     // 비밀번호 보기 여부
     var isShowingPasswordFlag by rememberSaveable { mutableStateOf(false) }
@@ -103,16 +105,18 @@ fun LikeLionOutlinedTextField(
             }
         },
         onValueChange = { newValue ->
-            textFieldValue.value = newValue
-            val filteredValue = if (inputCondition == null) {
-                newValue
-            } else {
-                newValue.replace(inputCondition.toRegex(), "")
-            }
+            if (enabled) {
+                textFieldValue.value = newValue
+                val filteredValue = if (inputCondition == null) {
+                    newValue
+                } else {
+                    newValue.replace(inputCondition.toRegex(), "")
+                }
 
-            if (filteredValue.length <= maxLength) {
-                textFieldValue.value = filteredValue
-                onValueChange(filteredValue)
+                if (filteredValue.length <= maxLength) {
+                    textFieldValue.value = filteredValue
+                    onValueChange(filteredValue)
+                }
             }
         },
         singleLine = singleLine,
