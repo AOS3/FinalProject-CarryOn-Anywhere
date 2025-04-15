@@ -3,6 +3,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.vo
 import com.google.firebase.Timestamp
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.PrivacyPolicyAgree
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 
 class UserVO {
@@ -37,6 +38,8 @@ class UserVO {
     var userState: Int = 1
     // 추가 : 앱 푸시 수신 동의 (1: 동의 2: 미동의)
     var userAppPushAgree: Int = 1
+    // 개인정보처리방침 동의
+    var userPrivacyPolicyAgree:Int = 1
 
     fun toUserModel(userDocumentId:String) : UserModel {
         val userModel = UserModel()
@@ -64,6 +67,11 @@ class UserVO {
         when(userAppPushAgree){
             AppPushState.APP_PUSH_ENABLE.number -> userModel.userAppPushAgree = AppPushState.APP_PUSH_ENABLE
             AppPushState.APP_PUSH_DISABLE.number -> userModel.userAppPushAgree = AppPushState.APP_PUSH_DISABLE
+        }
+
+        when(userPrivacyPolicyAgree){
+            PrivacyPolicyAgree.PRIVACY_POLICY_AGREE.number -> userModel.userPrivacyPolicyAgree = PrivacyPolicyAgree.PRIVACY_POLICY_AGREE
+            PrivacyPolicyAgree.PRIVACY_POLICY_DISAGREE.number -> userModel.userPrivacyPolicyAgree = PrivacyPolicyAgree.PRIVACY_POLICY_DISAGREE
         }
 
         return userModel
