@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -505,7 +506,8 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                 ) {
                     Text("취소")
                 }
-            }
+            },
+            containerColor = Color.Transparent
         )
     }
 }
