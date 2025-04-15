@@ -2,6 +2,7 @@ package com.lion.FinalProject_CarryOn_Anywhere.data.server.model
 
 import com.google.firebase.Timestamp
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.PrivacyPolicyAgree
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.TripVO
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.vo.UserVO
@@ -55,6 +56,9 @@ class UserModel {
     // 추가 : 앱 푸시 수신 동의
     var userAppPushAgree = AppPushState.APP_PUSH_ENABLE
 
+    // 개인정보처리방침 동의
+    var userPrivacyPolicyAgree = PrivacyPolicyAgree.PRIVACY_POLICY_AGREE
+
     fun toUserVO(): UserVO {
         val userVO = UserVO()
         userVO.userKakaoToken = userKakaoToken
@@ -72,6 +76,7 @@ class UserModel {
         userVO.userTimeStamp = userTimeStamp
         userVO.userState = userState.number
         userVO.userAppPushAgree = userAppPushAgree.number
+        userVO.userPrivacyPolicyAgree = userPrivacyPolicyAgree.number
 
         return userVO
     }

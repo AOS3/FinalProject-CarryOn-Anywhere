@@ -5,6 +5,8 @@ enum class ScreenName{
     LOGIN_SCREEN,
     // 회원가입 화면
     USER_JOIN_SCREEN,
+    // 개인정보 처리방침 화면
+    PRIVACY_POLICY_SCREEN,
     // 아이디 찾기 화면
     FIND_ID_SCREEN,
     // 아이디 찾기 완료 화면
@@ -150,5 +152,13 @@ enum class AppPushState(val number:Int, val str:String){
     APP_PUSH_ENABLE(1, "동의"),
     // 비활성화
     APP_PUSH_DISABLE(2, "미동의"),
+}
+
+// 개인정보처리방침 동의 여부
+enum class PrivacyPolicyAgree(val number:Int, val str:String){
+    // 활성화
+    PRIVACY_POLICY_AGREE(1, "동의"),
+    // 비활성화
+    PRIVACY_POLICY_DISAGREE(2, "미동의"),
 }
 

@@ -43,6 +43,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.CompletedFindIdScr
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindIdScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.PrivacyPolicyWebViewScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mylike.MyLikeScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.DocumentScreen
@@ -194,6 +195,17 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                 route = ScreenName.USER_JOIN_SCREEN.name
             ) {
                 UserJoinScreen()
+            }
+            // 개인정보 처리방침 화면
+            composable(
+                route = ScreenName.PRIVACY_POLICY_SCREEN.name
+            ) {  
+                PrivacyPolicyWebViewScreen(
+                    url = "https://sites.google.com/view/carryon-privacypolicy/",
+                    onBackPressed = {
+                        carryOnApplication.navHostController.popBackStack()
+                    }
+                )
             }
             // 아이디 찾기 화면
             composable(
@@ -507,7 +519,7 @@ fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
                     Text("취소")
                 }
             },
-            containerColor = Color.Transparent
+            containerColor = Color.White
         )
     }
 }

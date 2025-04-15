@@ -1,7 +1,9 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login
 
 import android.app.Activity
+import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionCheckBox
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionFilledButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextField
@@ -34,6 +38,8 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFiel
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubTextColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.Typography
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.login.UserJoinViewModel
 
 @Composable
@@ -285,6 +291,34 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 buttonHeight = 50.dp,
             )
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 개인정보 처리방침 체크박스
+                LikeLionCheckBox(
+                    text = "개인정보처리방침 동의",
+                    checkedValue = userJoinViewModel.isCheckBoxUserJoinPrivacyAccept,
+                    checkedColor = MainColor,
+                    uncheckedColor = Color.LightGray,
+                    modifier = Modifier,
+                    textModifier = Modifier,
+                )
+                Text(
+                    text = "(약관보기)",
+                    color = MainColor,
+                    style = Typography.bodySmall,
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .clickable {
+                            userJoinViewModel.moveToUserJoinPrivacyWebView()
+                        },
+                )
+            }
+
+
             // ---------------------------- Dialog ------------------------
 
             // Dialog - 사용할 수 있는 아이디인 경우
@@ -345,6 +379,23 @@ fun UserJoinScreen(userJoinViewModel: UserJoinViewModel = hiltViewModel()) {
                 confirmButtonTitle = "확인",
                 confirmButtonOnClick = {
                     userJoinViewModel.showDialogAuthOk.value = false
+                },
+                titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                confirmButtonModifier = Modifier.width(140.dp),
+                dismissButtonModifier = Modifier.width(140.dp)
+            )
+
+            // 개인정보 처리방침 미동의
+            LikeLionAlertDialog(
+                showDialogState = userJoinViewModel.showDialogPrivacyDisagree,
+                title = "약관 동의 ",
+                text = "개인정보처리방침에 동의해야 회원가입을 진행할 수 있어요.",
+                confirmButtonTitle = "닫기",
+                confirmButtonOnClick = {
+                    userJoinViewModel.showDialogPrivacyDisagree.value = false
                 },
                 titleAlign = TextAlign.Center, // 제목 중앙 정렬
                 textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬

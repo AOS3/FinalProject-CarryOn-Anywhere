@@ -18,6 +18,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.AppPushState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.PrivacyPolicyAgree
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -74,12 +75,14 @@ class UserJoinViewModel
     val showDialogAuthOk = mutableStateOf(false)
     val showDialogAuthNo = mutableStateOf(false)
     val showDialogJoinOk = mutableStateOf(false)
+    val showDialogPrivacyDisagree = mutableStateOf(false)
 
     // 버튼 활성화 상태 변수
     val isButtonUserJoinIdEnabled = mutableStateOf(false)
     val isButtonUserJoinPhoneNoEnabled = mutableStateOf(false)
     val isButtonUserJoinAuthNoEnabled = mutableStateOf(false)
     val isButtonUserJoinJoinEnabled = mutableStateOf(false)
+    val isCheckBoxUserJoinPrivacyAccept = mutableStateOf(false)
 
     // 에러 메시지
     val textFieldUserJoinIdErrorText = mutableStateOf("")
@@ -319,6 +322,14 @@ class UserJoinViewModel
             textFieldUserJoinPhoneAuthNumberError.value = false
         }
 
+        // 개인정보 처리방침 동의 체크 확인
+        if (!isCheckBoxUserJoinPrivacyAccept.value) {
+            showDialogPrivacyDisagree.value = true
+            isError = true
+        } else {
+            showDialogPrivacyDisagree.value = false
+        }
+
         // 에러가 있으면 가입 진행 불가
         if (isError) return
 
@@ -339,6 +350,7 @@ class UserJoinViewModel
         userModel.userImage = "none"
         userModel.userState = UserState.USER_STATE_NORMAL
         userModel.userAppPushAgree = AppPushState.APP_PUSH_DISABLE
+        userModel.userPrivacyPolicyAgree = PrivacyPolicyAgree.PRIVACY_POLICY_AGREE
 
         // 저장
         // 저장한다.
@@ -358,6 +370,11 @@ class UserJoinViewModel
             }
 
         }
+    }
+
+    // 개인정보 처리방침 약관보기 클릭
+    fun moveToUserJoinPrivacyWebView(){
+        carryOnApplication.navHostController.navigate(ScreenName.PRIVACY_POLICY_SCREEN.name)
     }
 
     // 가입 완료 후 로그인 화면으로 이동
