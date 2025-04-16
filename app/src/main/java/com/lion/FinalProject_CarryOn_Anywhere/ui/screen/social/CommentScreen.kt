@@ -138,7 +138,14 @@ fun CommentScreen(
                     contentPadding = PaddingValues(bottom = 20.dp),
                 ) {
                     items(replyList.size) { index ->
-                        CommentItem(commentViewModel,replyList[index], navController, index,boardDocumentId)
+                        CommentItem(
+                            commentViewModel = commentViewModel,
+                            reply = replyList[index],
+                            navController = navController,
+                            index = index,
+                            boardDocumentId = boardDocumentId,
+                            loginUserId = loginUserId // 추가
+                        )
 
                         LikeLionDivider(
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 5.dp),
@@ -208,8 +215,11 @@ fun CommentScreen(
 @Composable
 private fun CommentItem(
     commentViewModel: CommentViewModel = hiltViewModel(),
-    reply: ReplyModel, navController: NavController, index: Int,
-    boardDocumentId:String // 게시글 DocumentId khs
+    reply: ReplyModel,
+    navController: NavController,
+    index: Int,
+    boardDocumentId: String,
+    loginUserId: String // 추가
     ) {
 
     var isBottomSheetVisible by remember { mutableStateOf(false) }
@@ -275,21 +285,35 @@ private fun CommentItem(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // More 아이콘 추가
-                IconButton(
-                    onClick = { isBottomSheetVisible = true },
-                    modifier = Modifier
-                        .align(Alignment.End)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More Options",
-                        tint = Color.Black
-                    )
+                if (loginUserId == "guest" && reply.userId == loginUserId) {
+                    // More 아이콘 추가
+                    IconButton(
+                        onClick = { isBottomSheetVisible = true },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More Options",
+                            tint = Color.Black
+                        )
+                    }
+                } else if (loginUserId != "guest") {
+                    IconButton(
+                        onClick = { isBottomSheetVisible = true },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More Options",
+                            tint = Color.Black
+                        )
+                    }
                 }
 
                 // 본인 댓글일 때
-                if (isBottomSheetVisible) {
+                if (isBottomSheetVisible && reply.userId == loginUserId) {
                     LikeLionBottomSheetDivider(
                         onDismissRequest = { isBottomSheetVisible = false },
                         text1 = "수정",
@@ -305,7 +329,18 @@ private fun CommentItem(
                             showDialogDeleteState.value = true
                         }
                     )
+                } else if (isBottomSheetVisible && loginUserId != "guest"){
+                    LikeLionBottomSheetDivider(
+                        onDismissRequest = { isBottomSheetVisible = false },
+                        text1 = "신고하기",
+                        text1Color = Color.Red,
+                        text1OnClick = {
+                            isBottomSheetVisible = false
+                            showDialogNotifyState.value = true
+                        }
+                    )
                 }
+
                 LikeLionAlertDialog(
                     showDialogState = showDialogDeleteState,
                     title = "댓글을 삭제하시겠습니까?",
@@ -347,6 +382,29 @@ private fun CommentItem(
                         showEditDialogState.value = false
                     },
                     onDismiss = { showEditDialogState.value = false}
+                )
+
+                LikeLionAlertDialog(
+                    showDialogState = showDialogNotifyState,
+                    title = "댓글을 신고하시겠습니까?",
+                    text = "신고가 접수되면 검토 후 필요한 조치를 취하겠습니다.",
+                    confirmButtonTitle = "신고",
+                    confirmButtonOnClick = {
+                        showDialogNotifyState.value = false
+                        // 신고 처리
+                        // 상태 변경 -> 신고
+                        commentViewModel.reportReply(reply.replyDocumentId, boardDocumentId)
+                    },
+                    dismissButtonTitle = "취소",
+                    dismissButtonOnClick = {
+                        showDialogNotifyState.value = false
+                    },
+                    titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                    textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                    titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                    textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                    confirmButtonModifier = Modifier.width(120.dp),
+                    dismissButtonModifier = Modifier.width(120.dp)
                 )
 
 
