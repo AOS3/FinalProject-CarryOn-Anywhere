@@ -316,7 +316,7 @@ private fun PostItem(
                         .padding(bottom = 8.dp)
                         .clip(RoundedCornerShape(10.dp))
                 ) {
-                    if (!isImageLoaded.value) {
+                    if (!imageUrl.isNullOrBlank() && !isImageLoaded.value) {
                         SkeletonPlaceholder()
                     }
 
