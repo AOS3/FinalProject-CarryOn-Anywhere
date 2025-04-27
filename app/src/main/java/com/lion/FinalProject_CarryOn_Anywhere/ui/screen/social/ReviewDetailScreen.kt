@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.ModeEdit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,6 +62,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.R
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAddPlaceItem
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionBottomSheetDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionLikeButton
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
@@ -67,6 +70,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.component.shimmerEffect
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.GrayColor
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.SubColor
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReportPostViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.ReviewViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import androidx.compose.foundation.layout.Spacer as Spacer1
@@ -78,6 +82,7 @@ import java.util.Locale
 fun ReviewDetailScreen(
     reviewViewModel: ReviewViewModel = hiltViewModel(),
     tripInfoViewModel: TripInfoViewModel = hiltViewModel(),
+    reportPostViewModel: ReportPostViewModel = hiltViewModel(),
     documentId: String,
     navController: NavController,
     onAddClick: () -> Unit
@@ -113,6 +118,10 @@ fun ReviewDetailScreen(
         val showDialogDeleteState = remember { mutableStateOf(false) }
         // 로그인 유도 다이얼로그 상태
         val showLoginDialog = remember { mutableStateOf(false) }
+        // 바텀 시트
+        var isBottomSheetVisible by remember { mutableStateOf(false) }
+        // 신고하기
+        val showDialogNotifyState = remember { mutableStateOf(false) }
 
         // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
         val carryOnApplication = context.applicationContext as? CarryOnApplication
@@ -164,26 +173,61 @@ fun ReviewDetailScreen(
                     navigationIconImage = Icons.Default.ArrowBack,
                     navigationIconOnClick = { navController.popBackStack() },
                     menuItems = {
-                        if (isAuthor) {
-                            Row {
-                                IconButton(onClick = {
-                                    navController.navigate("modifyScreen/review/$documentId")
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.ModeEdit,
-                                        contentDescription = "수정",
-                                        tint = Color.Black
-                                    )
-                                }
-                                IconButton(onClick = { showDialogDeleteState.value = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "삭제",
-                                        tint = Color.Black
-                                    )
-                                }
-                            }
+                        IconButton(onClick = { isBottomSheetVisible = true }) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More Options",
+                                tint = Color.Black
+                            )
                         }
+                        if(isBottomSheetVisible && isAuthor){
+                            LikeLionBottomSheetDivider(
+                                onDismissRequest = { isBottomSheetVisible = false },
+                                text1 = "수정",
+                                text1Color = Color.Black,
+                                text1OnClick = {
+                                    isBottomSheetVisible = false
+                                    navController.navigate("modifyScreen/review/$documentId")
+                                },
+                                text2 = "삭제",
+                                text2Color = Color.Red,
+                                text2OnClick = {
+                                    isBottomSheetVisible = false
+                                    showDialogDeleteState.value = true
+                                }
+                            )
+                        } else if (isBottomSheetVisible){
+                            LikeLionBottomSheetDivider(
+                                onDismissRequest = { isBottomSheetVisible = false },
+                                text1 = "신고하기",
+                                text1Color = Color.Red,
+                                text1OnClick = {
+                                    isBottomSheetVisible = false
+                                    showDialogNotifyState.value = true
+                                }
+                            )
+                        }
+                        //  기존 본인 게시물 상단 바에서 수정과 삭제 방법
+//                        if (isAuthor) {
+//                            Row {
+//                                IconButton(onClick = {
+//                                    navController.navigate("modifyScreen/review/$documentId")
+//                                }) {
+//                                    Icon(
+//                                        imageVector = Icons.Default.ModeEdit,
+//                                        contentDescription = "수정",
+//                                        tint = Color.Black
+//                                    )
+//                                }
+//                                IconButton(onClick = { showDialogDeleteState.value = true }) {
+//                                    Icon(
+//                                        imageVector = Icons.Default.Delete,
+//                                        contentDescription = "삭제",
+//                                        tint = Color.Black
+//                                    )
+//                                }
+//                            }
+//                        }
                     }
                 )
 
@@ -234,6 +278,40 @@ fun ReviewDetailScreen(
                     dismissButtonTitle = "취소",
                     dismissButtonOnClick = {
                         showDialogDeleteState.value = false
+                    },
+                    titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                    textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                    titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                    textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                    confirmButtonModifier = Modifier.width(120.dp),
+                    dismissButtonModifier = Modifier.width(120.dp)
+                )
+
+                LikeLionAlertDialog(
+                    showDialogState = showDialogNotifyState,
+                    title = "댓글을 신고하시겠습니까?",
+                    text = "신고가 접수되면 검토 후 필요한 조치를 취하겠습니다.",
+                    confirmButtonTitle = "신고",
+                    confirmButtonOnClick = {
+                        showDialogNotifyState.value = false
+
+                        reportPostViewModel.reportReview(
+                            reportPostDocumentId = review.documentId,
+                            reportedUserId = review.author,
+                            reporterUserId = loginUserId,
+                            reportStateNumber = 1,
+                            reportTypeNumber = 1,
+                            onReported = {
+                                Toast.makeText(context, "신고가 접수되었습니다.", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = {
+                                Toast.makeText(context, "신고 실패: $it", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    },
+                    dismissButtonTitle = "취소",
+                    dismissButtonOnClick = {
+                        showDialogNotifyState.value = false
                     },
                     titleAlign = TextAlign.Center, // 제목 중앙 정렬
                     textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
@@ -513,18 +591,18 @@ fun ReviewDetailScreen(
                         }
                     }
 
-                    // 공유 버튼
-                    IconButton(
-                        onClick = {
-                            Toast.makeText(context, "추후 구현 예정입니다.", Toast.LENGTH_SHORT).show()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.IosShare,
-                            contentDescription = "Share",
-                            modifier = Modifier.size(30.dp),
-                        )
-                    }
+//                    // 공유 버튼
+//                    IconButton(
+//                        onClick = {
+//                            Toast.makeText(context, "추후 구현 예정입니다.", Toast.LENGTH_SHORT).show()
+//                        }
+//                    ) {
+//                        Icon(
+//                            imageVector = Icons.Default.IosShare,
+//                            contentDescription = "Share",
+//                            modifier = Modifier.size(30.dp),
+//                        )
+//                    }
                 }
             }
         }

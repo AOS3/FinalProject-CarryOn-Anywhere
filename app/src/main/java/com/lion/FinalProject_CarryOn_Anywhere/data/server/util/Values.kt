@@ -162,3 +162,18 @@ enum class PrivacyPolicyAgree(val number:Int, val str:String){
     PRIVACY_POLICY_DISAGREE(2, "미동의"),
 }
 
+// 신고 상태
+enum class ReportState(val number:Int, val str:String){
+    // 신고 처리 전
+    REPORT_STATE_BEFORE(1, "신고 처리 전"),
+    // 신고 처리 후
+    REPORT_STATE_AFTER(2, "신고 처리 후"),
+}
+
+// 여행 이야기 OR 여행 후기
+enum class ReportType(val number:Int, val str:String){
+    // 여행 후기
+    REPORT_STATE_REVIEW(1, "여행 후기"),
+    // 여행 이야기
+    REPORT_STATE_STORY(2, "여행 이야기")
+}

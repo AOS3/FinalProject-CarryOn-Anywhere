@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,6 +66,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionCommentModifyDialog
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -110,7 +113,7 @@ fun CommentScreen(
 
     // 댓글 입력값을 ViewModel의 상태로 사용
     val textState = commentViewModel.textFieldReplyContent
-
+    val showLoginDialog = remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -175,7 +178,12 @@ fun CommentScreen(
                 trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 8.dp)
+                    .padding(end = 8.dp),
+                readOnly = if (loginUserId == "guest") {
+                    true
+                } else {
+                    false
+                }
             )
 
             // 전송 버튼
@@ -198,12 +206,42 @@ fun CommentScreen(
                         commentViewModel.addReply(boardDocumentId, newReply)
                         Log.d("comment", "전송 버튼 클릭: $text")
                     }
+
+                    if (loginUserId == "guest") {
+                        showLoginDialog.value = true
+                    }
                 }
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,
                     contentDescription = "댓글 전송",
                     tint = MainColor,
+                )
+            }
+
+            // 로그인 유도 다이얼로그
+            if (showLoginDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showLoginDialog.value = false },
+                    title = { Text("로그인이 필요합니다") },
+                    text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showLoginDialog.value = false
+                                navController.navigate(ScreenName.LOGIN_SCREEN.name)
+                            }
+                        ) {
+                            Text("로그인하기")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showLoginDialog.value = false }
+                        ) {
+                            Text("취소")
+                        }
+                    }
                 )
             }
         }
@@ -406,7 +444,6 @@ private fun CommentItem(
                     confirmButtonModifier = Modifier.width(120.dp),
                     dismissButtonModifier = Modifier.width(120.dp)
                 )
-
 
                 //                // 타인 댓글일 때
 //                if (isBottomSheetVisible) {
