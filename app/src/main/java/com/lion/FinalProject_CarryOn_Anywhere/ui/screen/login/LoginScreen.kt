@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -102,7 +104,6 @@ fun LoginScreen(
                     fontSize = 13.sp,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier
-                        .padding(end = 10.dp)
                         .align(Alignment.CenterEnd)
                         .clickable {
                             loginViewModel.buttonAroundClick()
@@ -117,12 +118,13 @@ fun LoginScreen(
                 .background(Color.White)
                 .padding(it)
                 .padding(horizontal = 20.dp)
-                .imePadding(),
+                .imePadding()
+                .verticalScroll(rememberScrollState()),  // 추가: 세로 스크롤 가능하도록
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(30.dp)) // 50에서 30으로 수정
 
             // 로고 이미지
             LikeLionImage(
@@ -183,7 +185,7 @@ fun LoginScreen(
 
             // 비밀번호 텍스트 필드
             LikeLionOutlinedTextField(
-                paddingTop = 10.dp,
+                //paddingTop = 10.dp,
                 textFieldValue = loginViewModel.textFieldLoginPwValue,
                 label = "비밀번호",
                 placeHolder = "비밀번호",
@@ -243,7 +245,7 @@ fun LoginScreen(
             Row(
                 modifier = Modifier
                     .padding(
-                        top = 30.dp,
+                        top = 20.dp,
                         bottom = 10.dp)
             ) {
                 Text(
