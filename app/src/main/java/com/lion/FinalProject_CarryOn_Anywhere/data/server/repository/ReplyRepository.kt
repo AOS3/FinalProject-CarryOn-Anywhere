@@ -23,7 +23,7 @@ class ReplyRepository {
             // 특정 게시글에 대한 댓글 가져오기 : CarryTalkData
             val result1 = talkCollectionReference
                 .whereEqualTo("boardDocumentId", boardDocumentId)
-                .whereEqualTo("replyState", ReplyState.REPLY_STATE_NORMAL)
+                .whereIn("replyState", listOf(ReplyState.REPLY_STATE_NORMAL, ReplyState.REPLY_STATE_COMPLAINT))
                 .get()
                 .await()
 
