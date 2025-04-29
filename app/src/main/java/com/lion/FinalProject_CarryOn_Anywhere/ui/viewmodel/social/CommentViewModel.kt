@@ -10,9 +10,12 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.storage.FirebaseStorage
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReportReplyModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.ReplyRepository
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.ReportReplyRepository
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.ReplyService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.ReportReplyService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -102,20 +105,40 @@ class CommentViewModel @Inject constructor(
         }
     }
 
-
-    // 추가 구현 필요
-    // 댓글 신고 -> 업데이트(불러오기)
-    fun reportReply(replyDocumentId: String,talkDocumentId: String) {
+    // 댓글 신고
+    fun reportReply(reply: ReplyModel, talkDocumentId: String, reportUserDocumentId: String) {
         viewModelScope.launch {
-            val isRemove1 = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_COMPLAINT)
+            val isRemove1 = ReplyRepository.updateReplyState(reply.replyDocumentId, ReplyState.REPLY_STATE_COMPLAINT)
             _isRemove1.postValue(isRemove1)
 
-            if (isRemove1) {
-                // 댓글 불러오기
-                loadReplies(talkDocumentId)
+            val reportReplyModel = ReportReplyModel().apply {
+                reportReplyDocumentId = reply.replyDocumentId  // 신고 대상 댓글 ID
+                userDocumentId = reply.userId  // 댓글 작성자 ID 가져오기
+                this.reportUserDocumentId = reportUserDocumentId  // 신고한 사람 ID
+                reportReplyTimeStamp = System.currentTimeMillis() // 현재 시간
             }
+
+            ReportReplyService(ReportReplyRepository()).addReportReplyData(reportReplyModel)
+
+            loadReplies(talkDocumentId)
         }
     }
+
+
+
+//    // 추가 구현 필요
+//    // 댓글 신고 -> 업데이트(불러오기)
+//    fun reportReply(replyDocumentId: String,talkDocumentId: String) {
+//        viewModelScope.launch {
+//            val isRemove1 = ReplyRepository.updateReplyState(replyDocumentId,ReplyState.REPLY_STATE_COMPLAINT)
+//            _isRemove1.postValue(isRemove1)
+//
+//            if (isRemove1) {
+//                // 댓글 불러오기
+//                loadReplies(talkDocumentId)
+//            }
+//        }
+//    }
 
 
 
