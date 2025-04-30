@@ -79,6 +79,23 @@ class UserRepository {
             return userVoList
         }
 
+        // 사용자 이름을 통해 사용자 데이터를 가져오는 메서드 - 소셜 로그인 이메일 조회
+        suspend fun selectUserDataByUserName(userName:String) : MutableMap<String, *>{
+            val firestore = FirebaseFirestore.getInstance()
+            val collectionReference = firestore.collection("UserData")
+            val result = collectionReference.whereEqualTo("userName", userName).get().await()
+            val userVoList = result.toObjects(UserVO::class.java)
+
+            return if (result.isEmpty || userVoList.isEmpty()) {
+                mutableMapOf<String, Any?>()
+            } else {
+                mutableMapOf(
+                    "user_document_id" to result.documents[0].id,
+                    "user_vo" to userVoList[0]
+                )
+            }
+        }
+
         // 자동 로그인 토큰값 갱신 메서드
         suspend fun updateUserAutoLoginToken(userDocumentId:String, newToken:String){
             val firestore = FirebaseFirestore.getInstance()
@@ -119,18 +136,6 @@ class UserRepository {
             )
 
             documentReference.update(updateMap).await()
-        }
-
-        // 카카오 사용자 데이터를 저장하는 메서드
-        suspend fun saveKakaoUserToFirebase(userMap: Map<String, *>): Boolean {
-            val firestore = FirebaseFirestore.getInstance()
-            return try {
-                firestore.collection("UserData").add(userMap).await()
-                true
-            } catch (e: Exception) {
-                println("회원가입 실패: ${e.localizedMessage}")
-                false
-            }
         }
 
         private val db = FirebaseFirestore.getInstance()
@@ -198,15 +203,15 @@ class UserRepository {
         }
 
         // Firestore에서 사용자 조회 후 없으면 자동 회원가입
-        suspend fun getOrCreateUser(email: String, userName: String, userProfileImage: String, kakaoToken: String): UserModel {
+        suspend fun getOrCreateUser(email: String, userId: String, userProfileImage: String, kakaoToken: String): UserModel {
             val existingUser = getUserByEmail(email)
             return if (existingUser != null) {
                 Log.d("test100", "기존 사용자 Firestore에서 불러옴: ${existingUser.userId}")
                 existingUser
             } else {
                 val newUser = UserModel().apply {
-                    this.userId = email
-                    this.userName = userName
+                    this.userId = userId
+                    this.userName = email
                     this.userImage = userProfileImage
                     this.userTimeStamp = System.currentTimeMillis()
                     this.userState = UserState.USER_STATE_NORMAL
@@ -371,6 +376,17 @@ class UserRepository {
             documentRef.update("userLikeList", currentLikeList).await()
         }
 
+        // 카카오 사용자 데이터를 저장하는 메서드
+        suspend fun saveKakaoUserToFirebase(userMap: Map<String, *>): Boolean {
+            val firestore = FirebaseFirestore.getInstance()
+            return try {
+                firestore.collection("UserData").add(userMap).await()
+                true
+            } catch (e: Exception) {
+                println("회원가입 실패: ${e.localizedMessage}")
+                false
+            }
+        }
 
         // 카카오 로그인 토큰 여부 확인하기
         suspend fun checkKakaoToken(userId: String): String? {
@@ -392,5 +408,6 @@ class UserRepository {
             else return null
 
         }
+
     }
 }

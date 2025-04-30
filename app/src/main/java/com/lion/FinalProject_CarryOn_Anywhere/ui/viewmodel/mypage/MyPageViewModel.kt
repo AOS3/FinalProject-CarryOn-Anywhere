@@ -3,10 +3,12 @@ package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.mypage
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.storage.FirebaseStorage
+import com.kakao.sdk.user.UserApiClient
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
@@ -80,12 +82,25 @@ class MyPageViewModel @Inject constructor(
 
     }
 
+    // 로그아웃 처리 메서드
     fun logoutOnClick(context: Context) {
         viewModelScope.launch {
             try {
                 val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
-                UserService.clearAutoLoginToken(userDocumentId, context)
+                val kakaoToken = carryOnApplication.loginUserModel.userKakaoToken
 
+                // 카카오 토큰이 있는경우
+                if (!kakaoToken.isNullOrEmpty()) {
+                    try {
+                        logoutKakao()
+                        Log.d("KAKAO_LOGOUT", "카카오 로그아웃 성공")
+                    } catch (e: Exception) {
+                        Log.e("KAKAO_LOGOUT", "카카오 로그아웃 실패", e)
+                    }
+                }
+
+                // 공통 로그아웃 처리
+                UserService.clearAutoLoginToken(userDocumentId, context)
                 carryOnApplication.isLoggedIn.value = false
 
                 // 네비게이션 처리
@@ -98,8 +113,15 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-
-
+    private suspend fun logoutKakao(): Boolean = kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+        UserApiClient.instance.logout { error ->
+            if (error != null) {
+                continuation.resumeWith(Result.failure(error))
+            } else {
+                continuation.resume(true) {}
+            }
+        }
+    }
 
     // 페이지 이동 관련
     // 계정 설정

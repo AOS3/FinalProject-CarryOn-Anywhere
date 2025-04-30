@@ -44,6 +44,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindIdScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.PrivacyPolicyWebViewScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.SocialJoinScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mylike.MyLikeScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.DocumentScreen
@@ -98,9 +99,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-    fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
-        // 네비게이션 객체
-        val navHostController = rememberNavController()
+fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
+    // 네비게이션 객체
+    val navHostController = rememberNavController()
 
     // Application 객체에 담는다.
     val carryOnApplication = LocalContext.current.applicationContext as CarryOnApplication
@@ -190,6 +191,12 @@ class MainActivity : ComponentActivity() {
             ) {
                 LoginScreen(windowInsetsController)
             }
+            // 소셜 회원가입 화면
+            composable(
+                route = ScreenName.SNS_JOIN_SCREEN.name
+            ) {
+                SocialJoinScreen(windowInsetsController)
+            }
             // 회원 가입 화면
             composable(
                 route = ScreenName.USER_JOIN_SCREEN.name
@@ -199,7 +206,7 @@ class MainActivity : ComponentActivity() {
             // 개인정보 처리방침 화면
             composable(
                 route = ScreenName.PRIVACY_POLICY_SCREEN.name
-            ) {  
+            ) {
                 PrivacyPolicyWebViewScreen(
                     url = "https://sites.google.com/view/carryon-privacypolicy/",
                     onBackPressed = {

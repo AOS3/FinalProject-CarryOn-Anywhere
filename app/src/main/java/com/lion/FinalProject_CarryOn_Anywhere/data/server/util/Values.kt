@@ -9,6 +9,8 @@ enum class ScreenName{
     PRIVACY_POLICY_SCREEN,
     // 아이디 찾기 화면
     FIND_ID_SCREEN,
+    // SNS 아이디 입력 화면
+    SNS_JOIN_SCREEN,
     // 아이디 찾기 완료 화면
     COMPLETED_FIND_ID_SCREEN,
     // 비밀번호 찾기 화면
