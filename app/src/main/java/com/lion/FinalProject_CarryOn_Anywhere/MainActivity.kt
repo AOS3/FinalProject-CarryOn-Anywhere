@@ -98,9 +98,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
-    // 네비게이션 객체
-    val navHostController = rememberNavController()
+    fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
+        // 네비게이션 객체
+        val navHostController = rememberNavController()
 
     // Application 객체에 담는다.
     val carryOnApplication = LocalContext.current.applicationContext as CarryOnApplication
