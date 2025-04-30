@@ -278,7 +278,7 @@ fun StoryDetailScreen(
 
                 LikeLionAlertDialog(
                     showDialogState = showDialogNotifyState,
-                    title = "댓글을 신고하시겠습니까?",
+                    title = "게시글을 신고하시겠습니까?",
                     text = "신고가 접수되면 검토 후 필요한 조치를 취하겠습니다.",
                     confirmButtonTitle = "신고",
                     confirmButtonOnClick = {
