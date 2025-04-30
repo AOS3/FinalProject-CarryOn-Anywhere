@@ -99,13 +99,13 @@ fun SelectTripDateScreen(
                 .fillMaxSize()
                 .background(Color.White)
                 .padding(it)
-                .padding(horizontal = 20.dp)
         ) {
             Text(
                 text = "여행 할 날짜를 선택해주세요.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = GrayColor,
                 modifier = Modifier.padding(top = 50.dp)
+                    .padding(start = 20.dp)
             )
 
             DateRangePicker(
@@ -141,10 +141,16 @@ fun SelectTripDateScreen(
                         },
                         textAlign = TextAlign.Start,
                         modifier = Modifier.padding(bottom = 15.dp)
+                            .padding(start = 20.dp)
                     )
                 },
                 showModeToggle = false,
-                modifier = Modifier.weight(1f).padding(bottom = 10.dp),
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(bottom = 10.dp),
+
                 state = dateRangePickerState,
                 colors = DatePickerDefaults.colors(
                     containerColor = Color.White,

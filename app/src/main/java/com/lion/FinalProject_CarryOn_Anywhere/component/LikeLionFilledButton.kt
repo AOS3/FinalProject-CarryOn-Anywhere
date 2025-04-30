@@ -109,8 +109,8 @@ fun LikeLionFilledButton(
                         painter = icon,
                         contentDescription = null,
                         modifier = Modifier
-                            .size(30.dp)
-                            .padding(end = 3.dp),
+                            .size(24.dp)
+                            .padding(start = 0.dp, end = 3.dp),
                         contentScale = ContentScale.Fit
                     )
                 }
@@ -126,9 +126,10 @@ fun LikeLionFilledButton(
                     )
                 }
             }
+            // 텍스트는 항상 Row 안에 같이 포함하도록 수정
+            Text(
+                text = text,
+            )
         }
-        Text(
-            text = text,
-        )
     }
 }
