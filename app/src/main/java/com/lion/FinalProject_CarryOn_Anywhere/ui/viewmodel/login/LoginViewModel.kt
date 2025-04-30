@@ -15,6 +15,7 @@ import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.LoginResult
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.UserState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -210,6 +211,7 @@ class LoginViewModel
 
     }
 
+    // 카카오 회원 정보 가져오기
     fun fetchUserInfo(kakaoToken:String) {
         viewModelScope.launch {
             UserApiClient.instance.me { user, error ->
@@ -229,22 +231,49 @@ class LoginViewModel
                 val nickname = user.kakaoAccount?.profile?.nickname ?: "닉네임 없음"
                 val profileImage = user.kakaoAccount?.profile?.thumbnailImageUrl ?: ""
 
+                // 이메일 없으면 에러 처리
+                if (email.isNullOrEmpty()) {
+                    Log.e("KakaoLogin", "카카오 계정 이메일이 없음")
+                    return@me
+                }
+
                 val kakaoToken = kakaoToken
 
                 viewModelScope.launch(Dispatchers.IO) {
-                    val userModel = UserService.handleKakaoLogin(email, nickname, profileImage, kakaoToken)
+                    // Firebase에서 email 조회 (userName)
+                    val existUser = UserService.selectUserDataByUserName(email)
+                    //val userModel = UserService.handleKakaoLogin(email, nickname, profileImage, kakaoToken)
 
                     withContext(Dispatchers.Main) {
-                        if (userModel != null) {
-                            Log.d("KakaoLogin", "Firestore에서 가져온 유저: ${userModel.userId}")
+                        if (existUser != null) {
 
-                            // CarryOnApplication에 로그인 유저 정보 저장
-                            carryOnApplication.loginUserModel = userModel
+                            Log.d("KakaoLogin", "Firestore에서 가져온 유저: ${existUser.userId}")
 
-                            // 메인 화면으로 이동
-                            carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name)
+                            // 탈퇴한 유저인 경우
+                            if (existUser.userState == UserState.USER_STATE_SIGNOUT) {
+                                alertDialogLoginSignOutError.value = true
+                                return@withContext
+                            }
+
+                            // 기존 유저가 있으면 로그인
+                            carryOnApplication.loginUserModel = existUser
+                            carryOnApplication.isLoggedIn.value = true
+
+                            carryOnApplication.navHostController.navigate(ScreenName.MAIN_SCREEN.name) {
+                                popUpTo(0)
+                                launchSingleTop = true
+                            }
+                            UserService.updateUserAutoLoginToken(carryOnApplication, existUser.userDocumentId)
                         } else {
+                            // 기존 유저가 없다면 임시 저장 -> 가입
+                            carryOnApplication.tempSocialUserEmail = email
+                            carryOnApplication.tempSocialUserNickname = nickname
+                            carryOnApplication.tempSocialUserProfileImage = profileImage
+                            carryOnApplication.tempSocialAccessToken = kakaoToken
+
                             Log.e("KakaoLogin", "Firestore 유저 정보를 가져오는 데 실패했음")
+
+                            carryOnApplication.navHostController.navigate(ScreenName.SNS_JOIN_SCREEN.name)
                         }
                     }
                 }

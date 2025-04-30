@@ -24,6 +24,7 @@ class CarryOnApplication :Application(){
     // 관광공사 API KEY
     val tourApiKey = BuildConfig.TOUR_API_KEY
 
+
     // 네비게이션
     lateinit var navHostController: NavHostController
     // NavigationDrawer를 제어하기 위한 변수
@@ -37,6 +38,12 @@ class CarryOnApplication :Application(){
 
     // 로그인 여부
     var isLoggedIn = MutableStateFlow(false)
+
+    // 카카오 로그인 데이터 임시 저장
+    var tempSocialUserEmail: String = ""
+    var tempSocialUserNickname: String = ""
+    var tempSocialUserProfileImage: String = ""
+    var tempSocialAccessToken: String = ""
 
     // ✅ 테스트용 유저 정보
     var loginCustomerModel = UserModel().apply {

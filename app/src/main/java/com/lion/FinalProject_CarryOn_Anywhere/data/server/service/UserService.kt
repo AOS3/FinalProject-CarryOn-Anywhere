@@ -56,6 +56,25 @@ class UserService() {
             return userModel
         }
 
+        // 사용자 이름을 통해 사용자 데이터를 가져오는 메서드 - 소셜 로그인 이메일 조회
+        suspend fun selectUserDataByUserName(userName:String) : UserModel? {
+            val tempMap = UserRepository.selectUserDataByUserName(userName)
+            // 결과 없으면 null 반환
+            if (tempMap.isEmpty()) {
+                return null
+            }
+
+            val loginUserVo = tempMap["user_vo"] as UserVO
+            val loginUserDocumentId = tempMap["user_document_id"] as String
+
+            if (loginUserVo != null && loginUserDocumentId != null) {
+                return loginUserVo.toUserModel(loginUserDocumentId)
+            }
+
+            return null
+        }
+
+
         // 사용자 ID를 통해 사용자 데이터를 가져오는 메서드
         suspend fun selectUserDataByUserIdOne(userId:String) : UserModel{
             val tempMap = UserRepository.selectUserDataByUserIdOne(userId)
@@ -120,20 +139,6 @@ class UserService() {
         // 탈퇴 처리 메서드(해당 유저의 상태값 변경)
         suspend fun updateUserState(userDocumentId:String, newState: UserState){
             UserRepository.updateUserState(userDocumentId,newState)
-        }
-
-        // 카카오 로그인 후 Firestore에서 사용자 정보 가져오기
-        suspend fun handleKakaoLogin(email: String, userName: String, userProfileImage: String, kakaoToken: String): UserModel? {
-            return try {
-                withContext(Dispatchers.IO) {
-                    val user = UserRepository.getOrCreateUser(email, userName, userProfileImage, kakaoToken)
-                    Log.d("test100", "Firestore에서 유저 처리 완료: ${user.userId}")
-                    user
-                }
-            } catch (e: Exception) {
-                Log.e("test100", "Firestore 사용자 처리 중 오류 발생", e)
-                null
-            }
         }
 
         // 계정 설정 관련
@@ -203,6 +208,21 @@ class UserService() {
             // null이거나 빈 문자열이면 false 반환
             return !kakaoToken.isNullOrBlank()
         }
+
+        // 카카오 로그인 후 Firestore에서 사용자 정보 가져오기
+        suspend fun handleKakaoLogin(email: String, userId: String, userProfileImage: String, kakaoToken: String): UserModel? {
+            return try {
+                withContext(Dispatchers.IO) {
+                    val user = UserRepository.getOrCreateUser(email, userId, userProfileImage, kakaoToken)
+                    Log.d("test100", "Firestore에서 유저 처리 완료: ${user.userId}")
+                    user
+                }
+            } catch (e: Exception) {
+                Log.e("test100", "Firestore 사용자 처리 중 오류 발생", e)
+                null
+            }
+        }
+
 
     }
 }

@@ -1,14 +1,18 @@
 package com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.storage.FirebaseStorage
+import com.kakao.sdk.user.UserApiClient
 import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.UserModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.repository.UserRepository
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
@@ -134,20 +138,53 @@ class UserSettingViewModel @Inject constructor(
 
     // 회원 탈퇴를 눌렀을때
     fun withdrawalOnClick(context: Context) {
-        CoroutineScope(Dispatchers.Main).launch {
-            val work1 = async(Dispatchers.IO){
-
+        viewModelScope.launch {
+            try {
                 val userDocumentId = carryOnApplication.loginUserModel.userDocumentId
 
+                // 카카오 계정일 경우 - 연결끊기
+                if (isKakaoLinkedState.value) {
+                    try {
+                        unlinkKakaoAccount()
+                        Log.i(TAG, "카카오 연결 끊기 성공")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "카카오 연결 끊기 실패", e)
+                    }
+                }
+
+                // User 상태 업데이트
                 // 회원 상태 변경
                 UserService.updateUserState(carryOnApplication.loginUserModel.userDocumentId, UserState.USER_STATE_SIGNOUT)
                 // 자동 로그인 토큰 삭제
                 UserService.clearAutoLoginToken(userDocumentId, context)
-            }
-            work1.join()
 
-            // carryOnApplication.isLoggedIn.value = false
-            dialogConfirmOnClick()
+                // 초기화
+                carryOnApplication.isLoggedIn.value = false
+                carryOnApplication.loginUserModel = UserModel()
+
+                // 로그인 화면 이동
+                carryOnApplication.navHostController.navigate(ScreenName.LOGIN_SCREEN.name) {
+                    popUpTo(0)
+                    launchSingleTop = true
+                }
+                // 팝업 표시
+                dialogConfirmOnClick()
+
+            } catch (e: Exception) {
+                println("탈퇴 처리 중 오류 발생: ${e.localizedMessage}")
+            }
+
+        }
+    }
+
+    // 카카오 연결끊기
+    private suspend fun unlinkKakaoAccount(): Boolean = kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+        UserApiClient.instance.unlink { error ->
+            if (error != null) {
+                continuation.resumeWith(Result.failure(error))
+            } else {
+                continuation.resume(true) {}
+            }
         }
     }
 
