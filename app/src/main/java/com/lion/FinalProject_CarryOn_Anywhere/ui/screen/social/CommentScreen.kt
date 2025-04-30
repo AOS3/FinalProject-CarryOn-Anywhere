@@ -431,7 +431,7 @@ private fun CommentItem(
                         showDialogNotifyState.value = false
                         // 신고 처리
                         // 상태 변경 -> 신고
-                        commentViewModel.reportReply(reply.replyDocumentId, boardDocumentId)
+                        commentViewModel.reportReply(reply, boardDocumentId, loginUserId)
                     },
                     dismissButtonTitle = "취소",
                     dismissButtonOnClick = {
