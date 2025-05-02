@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TripReviewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -63,6 +64,9 @@ class ReviewViewModel @Inject constructor(
                 val reviewList = tripReviews
                     .filter { it.tripReviewState == TripReviewState.TRIP_REVIEW_STATE_NORMAL }
                     .map { tripReview ->
+                        val userModel = UserService.selectUserDataByUserDocumentIdOne(tripReview.userDocumentId)
+                        val userId = userModel.userId
+
                         Review(
                             documentId = tripReview.tripReviewDocumentId,
                             imageUrls = tripReview.tripReviewImage,
@@ -72,7 +76,7 @@ class ReviewViewModel @Inject constructor(
                             postDate = tripReview.tripReviewTimestamp,
                             content = tripReview.tripReviewContent,
                             author = tripReview.userDocumentId,
-                            nickName = tripReview.userName,
+                            nickName = userId,
                             tripDate = tripReview.tripReviewShareDate,
                             shareTitle = tripReview.tripReviewShareTitle,
                             sharePlace = tripReview.tripReviewSharePlace,

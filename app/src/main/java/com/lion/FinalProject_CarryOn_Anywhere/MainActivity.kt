@@ -1,10 +1,15 @@
 package com.lion.FinalProject_CarryOn_Anywhere
 
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -77,12 +82,17 @@ import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.EditPlanPlaceVie
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
 import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import java.security.MessageDigest
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 🔐 릴리즈 키 해시 로그 출력 (Android 9 이상)
+        release(this)
 
         //enableEdgeToEdge()
         val windowInsetsController =
@@ -95,6 +105,21 @@ class MainActivity : ComponentActivity() {
                 CarryOnMain(windowInsetsController)
             }
         }
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.P)
+fun release(context: Context) {
+    val packageInfo = context.packageManager.getPackageInfo(
+        context.packageName,
+        PackageManager.GET_SIGNING_CERTIFICATES
+    )
+    val signatures = packageInfo.signingInfo!!.apkContentsSigners
+    val messageDigest = MessageDigest.getInstance("SHA")
+    for (signature in signatures) {
+        val hash = messageDigest.digest(signature.toByteArray())
+        val base64Hash = Base64.encodeToString(hash, Base64.NO_WRAP)
+        Log.d("ReleaseKeyHash", base64Hash)
     }
 }
 

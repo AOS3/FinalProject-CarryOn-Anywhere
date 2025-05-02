@@ -239,7 +239,7 @@ fun MainScreen(
                             image = if (firstImage != null) {
                                 rememberAsyncImagePainter(firstImage)
                             } else {
-                                painterResource(id = R.drawable.sample_tripreview)
+                                painterResource(id = R.drawable.noplaceimg)
                             },
                             title = review.tripReviewTitle,
                             writer = userId,
