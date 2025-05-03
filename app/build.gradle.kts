@@ -1,3 +1,4 @@
+import io.netty.util.ReferenceCountUtil.release
 import java.util.Properties
 
 plugins {
@@ -22,8 +23,8 @@ android {
         applicationId = "com.lion.FinalProject_CarryOn_Anywhere"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.0.1"
 
         buildConfigField("String", "KAKAO_API_KEY", "\"${properties["KAKAO_API_KEY"]}\"")
         resValue("string", "KAKAO_REDIRECT_URI", "\"${properties["KAKAO_REDIRECT_URI"]}\"")
@@ -35,6 +36,14 @@ android {
 
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("/Users/chloehwang/Desktop/carryon-release_key") // keystore 파일 경로
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "cro2534"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "carryon_release_key"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "cro2534"
+        }
+    }
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -42,6 +51,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release") // 서명설정 추가
         }
     }
     compileOptions {
