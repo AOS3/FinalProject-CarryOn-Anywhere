@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.TripReviewModel
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.CarryTalkService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.TripReviewService
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.service.UserService
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.CarryTalkState
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TalkTag
 import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.TripReviewState
@@ -60,13 +61,15 @@ class StoryViewModel @Inject constructor(
                 val postList = carryTalks
                     .filter { it.talkState == CarryTalkState.CARRYTALK_STATE_NORMAL }
                     .map { talk ->
+                        val userModel = UserService.selectUserDataByUserDocumentIdOne(talk.userDocumentId)
+                        val userId = userModel.userId
                     Post(
                         documentId = talk.talkDocumentId,
                         tag = talk.talkTag.str,
                         title = talk.talkTitle,
                         content = talk.talkContent,
                         author = talk.userDocumentId,
-                        nickName = talk.userName,
+                        nickName = userId,
                         postDate = talk.talkTimeStamp,
                         likes = talk.talkLikeCount,
                         comments = talk.talkReplyList.size,
