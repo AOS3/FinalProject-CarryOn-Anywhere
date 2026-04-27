@@ -1,47 +1,557 @@
 package com.lion.FinalProject_CarryOn_Anywhere
 
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Base64
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionBottomNavItems
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionBottomNavigation
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.MainScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.PlaceInfoScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.home.PlaceSearchScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.ChangePwScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.CompletedFindIdScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindIdScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.FindPwScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.LoginScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.PrivacyPolicyWebViewScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.SocialJoinScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.login.UserJoinScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mylike.MyLikeScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.DocumentScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.DocumentScreen2
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditMyInfoScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.EditPwScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPageScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyPostsScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.mypage.MyTripPlanScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.AddTripPlanScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.EditPlanPlaceScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.SelectTripDateScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.SelectTripRegionScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.ShowTripMapScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.TripSearchPlaceScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.trip.WriteRequestPlaceScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.review.ReviewScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.CommentScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.ModifyScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.PostScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.ReviewDetailScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.SharingScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.SocialScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.StoryDetailScreen
+import com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social.StoryScreen
 import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.FinalProject_CarryOn_AnywhereTheme
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.home.PlaceSearchViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.AddTripInfoViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.EditPlanPlaceViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripInfoViewModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.trip.TripSearchPlaceViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import java.security.MessageDigest
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // 🔐 릴리즈 키 해시 로그 출력 (Android 9 이상)
+        release(this)
+
+        //enableEdgeToEdge()
+        val windowInsetsController =
+            WindowCompat.getInsetsController(window, window.decorView)
+
+        //windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+
         setContent {
             FinalProject_CarryOn_AnywhereTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                CarryOnMain(windowInsetsController)
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
+@RequiresApi(Build.VERSION_CODES.P)
+fun release(context: Context) {
+    val packageInfo = context.packageManager.getPackageInfo(
+        context.packageName,
+        PackageManager.GET_SIGNING_CERTIFICATES
     )
+    val signatures = packageInfo.signingInfo!!.apkContentsSigners
+    val messageDigest = MessageDigest.getInstance("SHA")
+    for (signature in signatures) {
+        val hash = messageDigest.digest(signature.toByteArray())
+        val base64Hash = Base64.encodeToString(hash, Base64.NO_WRAP)
+        Log.d("ReleaseKeyHash", base64Hash)
+    }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    FinalProject_CarryOn_AnywhereTheme {
-        Greeting("Android")
+fun CarryOnMain(windowInsetsController: WindowInsetsControllerCompat) {
+    // 네비게이션 객체
+    val navHostController = rememberNavController()
+
+    // Application 객체에 담는다.
+    val carryOnApplication = LocalContext.current.applicationContext as CarryOnApplication
+    carryOnApplication.navHostController = navHostController
+
+    val isLoggedIn by carryOnApplication.isLoggedIn.collectAsState()
+    val showDialog = remember { mutableStateOf(false) }
+
+    val tripInfoViewModel : TripInfoViewModel = hiltViewModel()
+    val addTripInfoViewModel : AddTripInfoViewModel = hiltViewModel()
+    val tripSearchPlaceViewModel: TripSearchPlaceViewModel = hiltViewModel()
+
+    // BottomNavigation 표시 화면 목록
+    val bottomNaviScreens = listOf(
+        // 메인 화면
+        ScreenName.MAIN_SCREEN.name,
+        // 마이페이지 화면
+        ScreenName.MY_PAGE.name,
+        // 찜 화면
+        ScreenName.MY_LIKE.name,
+        // 캐리톡 화면
+        ScreenName.SOCIAL_SCREEN.name,
+    )
+
+    // 현재 네비게이션 상태 확인
+    val currentBackStackEntry = navHostController.currentBackStackEntryAsState().value
+    val currentRoute = currentBackStackEntry?.destination?.route
+    //val isLoggedIn by carryOnApplication.isLoggedIn.collectAsState()
+
+    Scaffold(
+        bottomBar = {
+            // 로그인 상태와 Bottom Navigation이 필요한 화면인지 확인
+            if (currentRoute in bottomNaviScreens) {
+                LikeLionBottomNavigation(
+                    navController = navHostController,
+                    items = LikeLionBottomNavItems(isLoggedIn),
+                    isLoggedIn = isLoggedIn,
+                    onLoginRequest = {showDialog.value = true}
+                )
+            }
+        }
+    ) { paddingValues ->
+        // 네비게이션 처리
+        NavHost(
+            navController = navHostController,
+            modifier = Modifier
+                .padding(paddingValues),
+            startDestination = ScreenName.START_SCREEN.name,
+            enterTransition = {
+                fadeIn(
+                    tween(300)
+                ) +
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Start,
+                            tween(300)
+                        )
+            },
+            popExitTransition = {
+                fadeOut(
+                    tween(300)
+                ) +
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.End,
+                            tween(300)
+                        )
+            },
+            exitTransition = {
+                fadeOut(
+                    tween(300)
+                )
+            },
+            popEnterTransition = {
+                fadeIn(
+                    tween(300)
+                )
+            },
+        ) {
+            // 시작 화면
+            composable(
+                route = ScreenName.START_SCREEN.name
+            ){
+                StartScreen()
+            }
+            // 로그인 화면
+            composable(
+                route = ScreenName.LOGIN_SCREEN.name
+            ) {
+                LoginScreen(windowInsetsController)
+            }
+            // 소셜 회원가입 화면
+            composable(
+                route = ScreenName.SNS_JOIN_SCREEN.name
+            ) {
+                SocialJoinScreen(windowInsetsController)
+            }
+            // 회원 가입 화면
+            composable(
+                route = ScreenName.USER_JOIN_SCREEN.name
+            ) {
+                UserJoinScreen()
+            }
+            // 개인정보 처리방침 화면
+            composable(
+                route = ScreenName.PRIVACY_POLICY_SCREEN.name
+            ) {
+                PrivacyPolicyWebViewScreen(
+                    url = "https://sites.google.com/view/carryon-privacypolicy/",
+                    onBackPressed = {
+                        carryOnApplication.navHostController.popBackStack()
+                    }
+                )
+            }
+            // 아이디 찾기 화면
+            composable(
+                route = ScreenName.FIND_ID_SCREEN.name
+            ) {
+                FindIdScreen()
+            }
+            // 아이디 찾기 완료 화면
+            composable(
+                route = "${ScreenName.COMPLETED_FIND_ID_SCREEN.name}/{userId}"
+            ) {
+                val userId = currentBackStackEntry?.arguments?.getString("userId") ?: "알 수 없음"
+                CompletedFindIdScreen(userId = userId)
+            }
+            // 비밀번호 찾기 화면
+            composable(
+                route = ScreenName.FIND_PW_SCREEN.name
+            ) {
+                FindPwScreen()
+            }
+            // 비밀번호 변경 화면
+            composable(
+                route = "${ScreenName.CHANGE_PW_SCREEN.name}/{userId}"
+            ) {
+                val userId = currentBackStackEntry?.arguments?.getString("userId") ?: "알 수 없음"
+                ChangePwScreen(userId = userId)
+            }
+            // 메인 화면
+            composable(
+                route = ScreenName.MAIN_SCREEN.name
+            ) {
+                MainScreen()
+            }
+            // 검색 화면
+            composable(
+                route = ScreenName.PLACE_SEARCH_SCREEN.name
+            ) {
+                PlaceSearchScreen(navController = navHostController)
+            }
+            // 검색 상세 화면
+            composable(
+                route = "${ScreenName.PLACE_INFO_SCREEN.name}/{contentid}/{contenttypeid}",
+            ) { backStackEntry ->
+                val contentId = backStackEntry.arguments?.getString("contentid") ?: ""
+                val contentTypeId = backStackEntry.arguments?.getString("contenttypeid") ?: ""
+                val placeSearchViewModel: PlaceSearchViewModel = hiltViewModel()
+                Log.d("NAV_DEBUG", "contentId: $contentId, contentTypeId: $contentTypeId")
+                PlaceInfoScreen(
+                    navController = navHostController,
+                    contentId = contentId,
+                    contentTypeId = contentTypeId,
+                    placeSearchViewModel = placeSearchViewModel
+                )
+            }
+
+            // 지역 선택 화면
+            composable(
+                route = ScreenName.SELECT_TRIP_REGION.name
+            ) {
+                SelectTripRegionScreen(addTripInfoViewModel)
+            }
+
+            // 날짜 선택 화면
+            composable(
+                route = "${ScreenName.SELECT_TRIP_DATE.name}?tripDocumentId={tripDocumentId}",
+                arguments = listOf(
+                    navArgument("tripDocumentId") {
+                        type = NavType.StringType
+                        nullable = true
+                    }
+                )
+            ) {
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")
+                SelectTripDateScreen(addTripInfoViewModel, tripDocumentId)
+            }
+
+            // 지도 출력 화면
+            composable(
+                route = "${ScreenName.SHOW_TRIP_MAP.name}/{tripDocumentId}"
+            ) {
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                ShowTripMapScreen(tripInfoViewModel, tripDocumentId)
+            }
+
+            // 여행 장소 검색 화면
+            composable(
+                route = "${ScreenName.TRIP_SEARCH_PLACE.name}/{selectedDay}/{tripDocumentId}/{regionCodes}/{subRegionCodes}"
+            ) {
+                val selectedDay = it.arguments?.getString("selectedDay")!!
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                val regionCodes = it.arguments?.getString("regionCodes")?.split(",") ?: emptyList()
+                val subRegionCodes = it.arguments?.getString("subRegionCodes")?.split(",") ?: emptyList()
+                TripSearchPlaceScreen(tripSearchPlaceViewModel, selectedDay, tripDocumentId, regionCodes, subRegionCodes)
+            }
+
+            // 장소 등록 요청 화면
+            composable(
+                route = ScreenName.WRITE_REQUEST_PLACE.name
+            ) {
+                WriteRequestPlaceScreen(tripSearchPlaceViewModel)
+            }
+
+            // 일정 편집 화면
+            composable(
+                route = "${ScreenName.EDIT_PLAN_PLACE.name}/{selectedDay}/{selectedIndex}/{tripDocumentId}"
+            ) {
+                val editPlanPlaceViewModel: EditPlanPlaceViewModel = hiltViewModel()
+                val selectedDay = it.arguments?.getString("selectedDay")!!
+                val selectedIndex = it.arguments?.getString("selectedIndex")?.toIntOrNull() ?: 0
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                EditPlanPlaceScreen(editPlanPlaceViewModel, selectedDay, selectedIndex, tripDocumentId)
+            }
+
+            // 일정 생성 화면
+            composable(
+                route = "${ScreenName.ADD_TRIP_PLAN.name}/{tripDocumentId}"
+            ) {
+                val tripDocumentId = it.arguments?.getString("tripDocumentId")!!
+                AddTripPlanScreen(tripInfoViewModel, tripDocumentId)
+            }
+
+            // 소셜 화면
+            composable(
+                route = ScreenName.SOCIAL_SCREEN.name
+            ){
+                SocialScreen(
+                    navController = navHostController,
+                    onAddClick = {
+                        navHostController.navigate(ScreenName.POST_SCREEN.name)
+                    }
+                )
+            }
+
+            // 소셜 화면 - 여행 후기 화면
+            composable(
+                route = ScreenName.REVIEW_SCREEN.name
+            ){
+                ReviewScreen(
+                    navController = navHostController
+                )
+            }
+
+            // 소셜 화면 - 여행 이야기 화면
+            composable(
+                route = ScreenName.STORY_SCREEN.name
+            ){
+                StoryScreen(
+                    navController = navHostController
+                )
+            }
+
+            // 글 작성 화면
+            composable(
+                route = ScreenName.POST_SCREEN.name
+            ){
+                PostScreen(
+                    navController = navHostController,
+                    onAddClick = {
+                        navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
+                    }
+                )
+            }
+
+            // 여행 후기 상세 화면
+            composable("reviewDetail/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
+                ReviewDetailScreen(
+                    documentId = documentId,
+                    navController = navHostController,
+                    onAddClick = {
+                        navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
+                    }
+                )
+            }
+
+            // 여행 이야기 상세 화면
+            composable("storyDetail/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
+                StoryDetailScreen(
+                    documentId = documentId,
+                    navController = navHostController,
+                    onAddClick = {
+                        navHostController.navigate(ScreenName.STORY_SCREEN.name)
+                    }
+                )
+            }
+
+            // 공유 화면
+            composable(
+                route = ScreenName.SHARE_SCREEN.name
+            ){
+                SharingScreen(
+                    navController = navHostController,
+                )
+            }
+
+            // 글 수정 화면 (여행 후기)
+            composable("modifyScreen/review/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
+                ModifyScreen(
+                    navController = navHostController,
+                    onAddClick = {
+                        navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
+                    },
+                    reviewDocumentId = documentId,
+                    storyDocumentId = null
+                )
+            }
+
+            // 글 수정 화면 (여행 이야기)
+            composable("modifyScreen/story/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
+                ModifyScreen(
+                    navController = navHostController,
+                    onAddClick = {
+                        navHostController.navigate(ScreenName.REVIEW_SCREEN.name)
+                    },
+                    reviewDocumentId = null,
+                    storyDocumentId = documentId
+                )
+            }
+
+
+            // 댓글 화면
+            composable("commentScreen/{documentId}") { backStackEntry ->
+                val documentId = backStackEntry.arguments?.getString("documentId") ?: ""
+                CommentScreen(
+                    navController = navHostController,
+                    boardDocumentId = documentId,
+                    // 기타 필요한 인자들
+                )
+            }
+
+            // 마이페이지 화면
+            composable(
+                route = ScreenName.MY_PAGE.name
+            ) {
+                MyPageScreen(navHostController)
+            }
+
+            // 계정 설정 화면
+            composable(
+                route = ScreenName.EDIT_MY_INFO.name
+            ) {
+                EditMyInfoScreen(navHostController)
+            }
+
+            // 비밀번호 변경 화면
+            composable(
+                route = ScreenName.EDIT_PW.name
+            ) {
+                EditPwScreen()
+            }
+
+
+            // 나의 글 화면
+            composable(
+                route = ScreenName.MY_POSTS.name
+            ) {
+                MyPostsScreen(navHostController)
+            }
+
+            // 내 일정 화면
+            composable(
+                route = ScreenName.MY_TRIP_PLAN.name
+            ) {
+                MyTripPlanScreen(navHostController)
+            }
+
+            // 나의 찜 화면
+            composable(
+                route = ScreenName.MY_LIKE.name
+            ) {
+                MyLikeScreen(navHostController)
+            }
+
+            // 이용약관 화면
+            composable(
+                route = ScreenName.DOCUMENT_SCREEN.name
+            ) { DocumentScreen(navHostController)
+            }
+
+            // 개인정보 처리 방침 화면
+            composable(
+                route = ScreenName.DOCUMENT_SCREEN2.name
+            ) { DocumentScreen2(navHostController)
+            }
+        }
+    }
+
+    // 로그인 필요 다이얼로그
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showDialog.value = false },
+            title = { Text("로그인이 필요합니다") },
+            text = { Text("서비스를 사용하려면 로그인이 필요합니다.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDialog.value = false
+                        navHostController.navigate(ScreenName.LOGIN_SCREEN.name)
+                    }
+                ) {
+                    Text("로그인하기")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDialog.value = false }
+                ) {
+                    Text("취소")
+                }
+            },
+            containerColor = Color.White
+        )
     }
 }

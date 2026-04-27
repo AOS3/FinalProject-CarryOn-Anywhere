@@ -1,0 +1,508 @@
+package com.lion.FinalProject_CarryOn_Anywhere.ui.screen.social
+
+import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionAlertDialog
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionBottomSheet
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionBottomSheetDivider
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionDivider
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionEmptyView
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextField
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionOutlinedTextFieldEndIconMode
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionTopAppBar
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.model.ReplyModel
+import com.lion.FinalProject_CarryOn_Anywhere.ui.theme.MainColor
+import com.lion.FinalProject_CarryOn_Anywhere.CarryOnApplication
+import com.lion.FinalProject_CarryOn_Anywhere.component.LikeLionCommentModifyDialog
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ReplyState
+import com.lion.FinalProject_CarryOn_Anywhere.data.server.util.ScreenName
+import com.lion.FinalProject_CarryOn_Anywhere.ui.viewmodel.social.CommentViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CommentScreen(
+    navController: NavController,
+    commentViewModel: CommentViewModel = hiltViewModel(),
+    boardDocumentId:String // 게시글 DocumentId khs
+) {
+    val inputBarHeight = 60.dp
+
+    // 테스트용 코드
+//     val commnets by commentViewModel.comments.collectAsState()
+//    val textState = remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+
+    // 현재 로그인한 사용자 정보 가져오기 (안전한 null 체크)
+    val carryOnApplication = context.applicationContext as? CarryOnApplication
+    val loginUserId = try {
+        carryOnApplication?.loginUserModel?.userId ?: "guest"
+    } catch (e: UninitializedPropertyAccessException) {
+        "guest"
+    }
+    val loginUserName = try {
+        carryOnApplication?.loginUserModel?.userName ?: "익명"
+    } catch (e: UninitializedPropertyAccessException) {
+        "익명"
+    }
+
+    // ViewModel의 LiveData를 observe하여 실제 댓글 목록 사용
+    val replyList by commentViewModel.replyList.collectAsState()
+    Log.d("test100","replyList선언 후 ${replyList}")
+
+
+    // 화면이 구성될 때 해당 게시글의 댓글을 불러옴
+    LaunchedEffect(boardDocumentId) {
+        commentViewModel.loadReplies(boardDocumentId)
+        //Log.d("test100","LaunchedEffect 후 ${replyList}")
+    }
+
+    // 댓글 입력값을 ViewModel의 상태로 사용
+    val textState = commentViewModel.textFieldReplyContent
+    val showLoginDialog = remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White) // 배경색을 흰색으로 설정
+    ) {
+        LikeLionTopAppBar(
+            title = "댓글",
+            backColor = Color.White,
+            navigationIconImage = Icons.Default.ArrowBack,
+            navigationIconOnClick = { navController.popBackStack() },
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f) // LazyColumn이 키보드 영향을 받지 않도록
+                .fillMaxWidth()
+        ) {
+            if (replyList.isEmpty()) {
+                LikeLionEmptyView(message = "댓글이 없습니다.")
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 20.dp),
+                ) {
+                    items(replyList.size) { index ->
+                        CommentItem(
+                            commentViewModel = commentViewModel,
+                            reply = replyList[index],
+                            navController = navController,
+                            index = index,
+                            boardDocumentId = boardDocumentId,
+                            loginUserId = loginUserId // 추가
+                        )
+
+                        LikeLionDivider(
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 5.dp),
+                            color = Color.LightGray,
+                            thickness = 1.dp
+                        )
+                    }
+                }
+            }
+        }
+
+        // 하단 입력창만 키보드에 따라 올라가게 설정
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .imePadding() // 키보드가 나타날 때 이 영역만 이동
+                .windowInsetsPadding(WindowInsets.ime), // 추가로 입력창만 위로 이동
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 입력 필드
+            LikeLionOutlinedTextField(
+                textFieldValue = commentViewModel.textFieldReplyContent,
+                label = "댓글을 입력해 주세요.",
+                singleLine = true,
+                trailingIconMode = LikeLionOutlinedTextFieldEndIconMode.TEXT,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+                readOnly = if (loginUserId == "guest") {
+                    true
+                } else {
+                    false
+                }
+            )
+
+            // 전송 버튼
+            IconButton(
+                onClick = {
+                    val text = commentViewModel.textFieldReplyContent.value.trim()
+                    if (text.isNotEmpty()) {
+                        commentViewModel.textFieldReplyContent.value = ""
+                        // 댓글 저장 로직
+                        // 새 댓글 객체 생성
+                        val newReply = ReplyModel().apply {
+                            this.boardDocumentId = boardDocumentId
+                            replyContent = text
+                            replyTimeStamp = System.currentTimeMillis()
+                            replyState = ReplyState.REPLY_STATE_NORMAL
+                            userId = loginUserId
+                        }
+
+                        // 댓글 추가 함수 호출
+                        commentViewModel.addReply(boardDocumentId, newReply)
+                        Log.d("comment", "전송 버튼 클릭: $text")
+                    }
+
+                    if (loginUserId == "guest") {
+                        showLoginDialog.value = true
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Send,
+                    contentDescription = "댓글 전송",
+                    tint = MainColor,
+                )
+            }
+
+            // 로그인 유도 다이얼로그
+            if (showLoginDialog.value) {
+                AlertDialog(
+                    onDismissRequest = { showLoginDialog.value = false },
+                    title = { Text("로그인이 필요합니다") },
+                    text = { Text("이 기능을 사용하려면 로그인해야 합니다.") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showLoginDialog.value = false
+                                navController.navigate(ScreenName.LOGIN_SCREEN.name)
+                            }
+                        ) {
+                            Text("로그인하기")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showLoginDialog.value = false }
+                        ) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+}
+
+@SuppressLint("UnrememberedMutableState")
+@Composable
+private fun CommentItem(
+    commentViewModel: CommentViewModel = hiltViewModel(),
+    reply: ReplyModel,
+    navController: NavController,
+    index: Int,
+    boardDocumentId: String,
+    loginUserId: String // 추가
+    ) {
+
+    var isBottomSheetVisible by remember { mutableStateOf(false) }
+
+    val showDialogDeleteState = remember { mutableStateOf(false) }
+    val showDialogNotifyState = remember { mutableStateOf(false) }
+
+    // 수정 관련 추가 부분
+    var showEditDialogState = remember { mutableStateOf(false) }
+    
+    Card(
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 5.dp, horizontal = 15.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
+                .fillMaxHeight(), // Row의 높이를 자동으로 맞추도록 설정
+            verticalAlignment = Alignment.CenterVertically // 세로 중앙 정렬 추가
+        ) {
+            // 왼쪽 Column (태그, 제목, 내용, 작성자 정보)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(), // Row의 높이를 상속
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // 작성자정보.
+                Text(
+                    text = reply.userId,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                // 내용
+                Text(
+                    text = reply.replyContent,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 작성 날짜
+                Text(
+                    text = formattedDate(reply.replyTimeStamp),
+                    fontSize = 12.sp,
+                    color = Color.LightGray
+                )
+            }
+
+            // 오른쪽 Column (선택 버튼 + More 아이콘)
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight(),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                if (loginUserId == "guest" && reply.userId == loginUserId) {
+                    // More 아이콘 추가
+                    IconButton(
+                        onClick = { isBottomSheetVisible = true },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More Options",
+                            tint = Color.Black
+                        )
+                    }
+                } else if (loginUserId != "guest") {
+                    IconButton(
+                        onClick = { isBottomSheetVisible = true },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "More Options",
+                            tint = Color.Black
+                        )
+                    }
+                }
+
+                // 본인 댓글일 때
+                if (isBottomSheetVisible && reply.userId == loginUserId) {
+                    LikeLionBottomSheetDivider(
+                        onDismissRequest = { isBottomSheetVisible = false },
+                        text1 = "수정",
+                        text1Color = Color.Black,
+                        text1OnClick = {
+                            isBottomSheetVisible = false
+                            showEditDialogState.value = true
+                        },
+                        text2 = "삭제",
+                        text2Color = Color.Red,
+                        text2OnClick = {
+                            isBottomSheetVisible = false
+                            showDialogDeleteState.value = true
+                        }
+                    )
+                } else if (isBottomSheetVisible && loginUserId != "guest"){
+                    LikeLionBottomSheetDivider(
+                        onDismissRequest = { isBottomSheetVisible = false },
+                        text1 = "신고하기",
+                        text1Color = Color.Red,
+                        text1OnClick = {
+                            isBottomSheetVisible = false
+                            showDialogNotifyState.value = true
+                        }
+                    )
+                }
+
+                LikeLionAlertDialog(
+                    showDialogState = showDialogDeleteState,
+                    title = "댓글을 삭제하시겠습니까?",
+                    text = "삭제되면 복구할 수 없습니다.",
+                    confirmButtonTitle = "삭제",
+                    confirmButtonOnClick = {
+                        showDialogDeleteState.value = false
+                        // 삭제 처리
+                        // 상태 변경 및 해당 Data에서 List 수정
+                        commentViewModel.removeReply(reply.replyDocumentId, boardDocumentId)
+                    },
+                    dismissButtonTitle = "취소",
+                    dismissButtonOnClick = {
+                        showDialogDeleteState.value = false
+                    },
+                    titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                    textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                    titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                    textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                    confirmButtonModifier = Modifier.width(120.dp),
+                    dismissButtonModifier = Modifier.width(120.dp)
+                )
+
+                // 수정 다이얼로그: LikeLionCommentModifyDialog 사용
+                LikeLionCommentModifyDialog(
+                    showDialog = showEditDialogState,
+                    onConfirm = { updatedText ->
+                        // 수정된 댓글 정보를 담은 새 ReplyModel 객체 생성
+                        val updatedReply = ReplyModel().apply {
+                            replyDocumentId = reply.replyDocumentId
+                            this.boardDocumentId = reply.boardDocumentId
+                            userId = reply.userId
+                            replyContent = updatedText
+                            replyTimeStamp = System.currentTimeMillis()
+                            replyState = ReplyState.REPLY_STATE_MODIFY
+                        }
+                        // ViewModel의 updateReply 호출 (업데이트 후 loadReplies 실행)
+                        commentViewModel.updateReply(reply.replyDocumentId, updatedReply, boardDocumentId)
+                        showEditDialogState.value = false
+                    },
+                    onDismiss = { showEditDialogState.value = false}
+                )
+
+                LikeLionAlertDialog(
+                    showDialogState = showDialogNotifyState,
+                    title = "댓글을 신고하시겠습니까?",
+                    text = "신고가 접수되면 검토 후 필요한 조치를 취하겠습니다.",
+                    confirmButtonTitle = "신고",
+                    confirmButtonOnClick = {
+                        showDialogNotifyState.value = false
+                        // 신고 처리
+                        // 상태 변경 -> 신고
+                        commentViewModel.reportReply(reply, boardDocumentId, loginUserId)
+                    },
+                    dismissButtonTitle = "취소",
+                    dismissButtonOnClick = {
+                        showDialogNotifyState.value = false
+                    },
+                    titleAlign = TextAlign.Center, // 제목 중앙 정렬
+                    textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+                    titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+                    textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+                    confirmButtonModifier = Modifier.width(120.dp),
+                    dismissButtonModifier = Modifier.width(120.dp)
+                )
+
+                //                // 타인 댓글일 때
+//                if (isBottomSheetVisible) {
+//                    LikeLionBottomSheetDivider(
+//                        onDismissRequest = { isBottomSheetVisible = false },
+//                        text1 = "신고하기",
+//                        text1Color = Color.Red,
+//                        text1OnClick = {
+//                            isBottomSheetVisible = false
+//                            showDialogNotifyState.value = true
+//                        }
+//                    )
+//                }
+//                LikeLionAlertDialog(
+//                    showDialogState = showDialogNotifyState,
+//                    title = "댓글을 신고하시겠습니까?",
+//                    text = "신고가 접수되면 검토 후 필요한 조치를 취하겠습니다.",
+//                    confirmButtonTitle = "신고",
+//                    confirmButtonOnClick = {
+//                        showDialogNotifyState.value = false
+//                        // 신고 처리
+//                        // 상태 변경 -> 신고
+//                        commentViewModel.reportReply(reply.replyDocumentId, boardDocumentId)
+//                    },
+//                    dismissButtonTitle = "취소",
+//                    dismissButtonOnClick = {
+//                        showDialogNotifyState.value = false
+//                    },
+//                    titleAlign = TextAlign.Center, // 제목 중앙 정렬
+//                    textAlign = TextAlign.Center, // 본문 텍스트 중앙 정렬
+//                    titleModifier = Modifier.fillMaxWidth(), // 제목 가로 중앙 정렬
+//                    textModifier = Modifier.fillMaxWidth(), // 본문 가로 중앙 정렬
+//                    confirmButtonModifier = Modifier.width(120.dp),
+//                    dismissButtonModifier = Modifier.width(120.dp)
+//                )
+
+            }
+        }
+    }
+}
+
+
+
+
+
+// 날짜 변환
+private fun formattedDate(timestamp: Long): String {
+    val date = Date(timestamp)
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    return format.format(date)
+}
+
+
+
+
+//@Preview(showBackground = true)
+//@Composable
+//private fun ReviewScreenPreview() {
+//    CommentScreen(
+//        navController = NavController(LocalContext.current)
+//    )
+//}
