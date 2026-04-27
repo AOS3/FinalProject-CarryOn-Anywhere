@@ -6,7 +6,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object TourAPIRetrofitClient {
-    private const val BASE_URL = "https://apis.data.go.kr/B551011/KorService1/"
+    private const val BASE_URL = "https://apis.data.go.kr/B551011/KorService2/"
 
     private val gson = GsonBuilder()
         .setLenient()

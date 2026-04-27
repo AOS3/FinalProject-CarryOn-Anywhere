@@ -5,7 +5,7 @@ import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface TourAPIInterface {
-    @GET("areaCode1")
+    @GET("areaCode2")
     suspend fun getRegionCodes(
         @Query("serviceKey") serviceKey: String,
         @Query("numOfRows") numOfRows: Int = 50,
@@ -15,7 +15,7 @@ interface TourAPIInterface {
         @Query("_type") type: String = "json",
     ): Response<TourApiModel.AreaCodeResponse>
 
-    @GET("areaCode1")
+    @GET("areaCode2")
     suspend fun getSubRegions(
         @Query("serviceKey") serviceKey: String,
         @Query("MobileOS") mobileOS: String = "AND",
@@ -26,7 +26,7 @@ interface TourAPIInterface {
         @Query("areaCode") areaCode: String
     ): Response<TourApiModel.AreaCodeResponse>
 
-    @GET("areaBasedList1")
+    @GET("areaBasedList2")
     suspend fun getPlaces(
         @Query("serviceKey") serviceKey: String,
         @Query("numOfRows") numOfRows: Int = 20,
@@ -40,7 +40,7 @@ interface TourAPIInterface {
     ): Response<TourApiModel.TouristSpotResponse>
 
     // 키워드 검색
-    @GET("searchKeyword1")
+    @GET("searchKeyword2")
     suspend fun getSearchPlaces(
         @Query("serviceKey") serviceKey: String,
         @Query("numOfRows") numOfRows: Int = 10,
@@ -54,7 +54,7 @@ interface TourAPIInterface {
     ): Response<TourApiModel.TouristSpotResponse>
 
     // 공통 정보 조회
-    @GET("detailCommon1")
+    @GET("detailCommon2")
     suspend fun getDetailCommon1(
         @Query("serviceKey") serviceKey: String,
         @Query("contentId") contentId: String,
