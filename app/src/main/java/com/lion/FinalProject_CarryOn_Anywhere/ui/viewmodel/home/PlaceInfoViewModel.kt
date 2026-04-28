@@ -84,13 +84,19 @@ class PlaceInfoViewModel @Inject constructor(
                 val response = TourAPIRetrofitClient.instance.getDetailCommon1(
                     serviceKey = carryOnApplication.tourApiKey,
                     contentId = contentId,
-                    contentTypeId = contentTypeId,
+                    //contentTypeId = contentTypeId,
                 )
+                Log.d("DETAIL_API", "raw=${response.raw().request.url}")
+                Log.d("DETAIL_API", "body=${response.body()}")
+                Log.d("DETAIL_API", "error=${response.errorBody()?.string()}")
 
                 if (response.isSuccessful) {
-                    val placeInfo = response.body()?.response?.body?.items?.item ?: emptyList()
+                    val placeInfo = response.body()?.response?.body?.items?.item?.firstOrNull()
 
-                    _placeDetail.value = placeInfo.map{ convertToMap(it) } // 첫 번째 아이템을 변환
+                    _placeDetail.value = placeInfo?.let{
+                        listOf(convertToMap(it))
+                    } ?: emptyList()
+                    // 첫 번째 아이템을 변환
 
                 } else {
                     Log.e("API_ERROR", "API 응답 실패: ${response.errorBody()?.string()}")
@@ -99,6 +105,8 @@ class PlaceInfoViewModel @Inject constructor(
                 Log.e("API_ERROR", "네트워크 오류: ${e.message}")
             } catch (e: HttpException) {
                 Log.e("API_ERROR", "HTTP 오류: ${e.message}")
+            } finally {
+                _isLoading.value = false
             }
         }
     }

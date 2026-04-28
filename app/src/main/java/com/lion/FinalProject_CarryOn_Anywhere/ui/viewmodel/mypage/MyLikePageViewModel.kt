@@ -130,13 +130,13 @@ class MyLikePageViewModel @Inject constructor(
                             val response = TourAPIRetrofitClient.instance.getDetailCommon1(
                                 serviceKey = carryOnApplication.tourApiKey,
                                 contentId = contentId,
-                                contentTypeId = contentTypeId,
+                                //contentTypeId = contentTypeId,
                             )
 
                             if (response.isSuccessful) {
-                                val placeInfo = response.body()?.response?.body?.items?.item
+                                val placeInfo = response.body()?.response?.body?.items?.item?.firstOrNull()
 
-                                placeInfo?.forEach {
+                                placeInfo?.let {
                                     placeInfoList.add(convertToMap(it).mapValues { it.value.toString() })
                                 }
 
