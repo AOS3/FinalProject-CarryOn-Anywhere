@@ -49,8 +49,8 @@ interface TourAPIInterface {
         @Query("MobileApp") mobileApp: String = "AppTest",
         @Query("keyword") keyword: String,
         @Query("_type") type: String = "json",
-        @Query("listYN") listYN:String = "Y",
-        @Query("arrange") arrange:String = "C",
+        //@Query("listYN") listYN:String = "Y",
+        //@Query("arrange") arrange:String = "C",
     ): Response<TourApiModel.TouristSpotResponse>
 
     // 공통 정보 조회
@@ -58,15 +58,15 @@ interface TourAPIInterface {
     suspend fun getDetailCommon1(
         @Query("serviceKey") serviceKey: String,
         @Query("contentId") contentId: String,
-        @Query("contentTypeId") contentTypeId: String,
+        //@Query("contentTypeId") contentTypeId: String,
         @Query("MobileOS") mobileOS: String = "AND",
         @Query("MobileApp") mobileApp: String = "AppTest",
         @Query("_type") type: String = "json",
-        @Query("defaultYN") defaultYN:String = "Y",
-        @Query("firstImageYN") firstImageYN:String = "Y",
-        @Query("areacodeYN") areacodeYN:String = "Y",
-        @Query("catcodeYN") catcodeYN:String = "Y",
-        @Query("addrinfoYN") addrinfoYN:String = "Y",
-        @Query("overviewYN") overviewYN:String = "Y",
+//        @Query("defaultYN") defaultYN:String = "Y",
+//        @Query("firstImageYN") firstImageYN:String = "Y",
+//        @Query("areacodeYN") areacodeYN:String = "Y",
+//        @Query("catcodeYN") catcodeYN:String = "Y",
+//        @Query("addrinfoYN") addrinfoYN:String = "Y",
+//        @Query("overviewYN") overviewYN:String = "Y",
         ): Response<TourApiModel.TouristSpotDetailResponse>
 }

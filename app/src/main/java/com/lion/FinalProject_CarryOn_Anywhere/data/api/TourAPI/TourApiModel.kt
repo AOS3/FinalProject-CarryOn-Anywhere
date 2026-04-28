@@ -53,11 +53,15 @@ class TourApiModel {
     )
 
     data class TouristSpotDetailBody(
+        val header: ResponseHeader?,
         val body: TouristSpotDetailItems?
     )
 
     data class TouristSpotDetailItems(
-        val items: TouristSpotDetailList?
+        val items: TouristSpotDetailList?,
+        val numOfRows: Int?,
+        val pageNo: Int?,
+        val totalCount: Int?
     )
 
     data class TouristSpotDetailList(

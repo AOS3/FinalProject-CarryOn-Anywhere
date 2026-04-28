@@ -22,8 +22,8 @@ android {
     defaultConfig {
         applicationId = "com.lion.FinalProject_CarryOn_Anywhere"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 3
+        targetSdk = 35
+        versionCode = 6
         versionName = "1.0.1"
 
         buildConfigField("String", "KAKAO_API_KEY", "\"${properties["KAKAO_API_KEY"]}\"")
